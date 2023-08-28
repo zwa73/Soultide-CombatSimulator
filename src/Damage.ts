@@ -1,5 +1,5 @@
 import { Character, StackBuff, StaticStatus, StaticStatusKey } from "./CombatSimulation";
-import { ModifyType, testConstraints } from "./OnDamageModify";
+import { ModifyType, matchCons } from "./OnDamageModify";
 import { SkillCategory, SkillType, SkillRange } from "./Skill";
 
 /**伤害类型枚举 */
@@ -9,7 +9,8 @@ export type DamageType = `${typeof DamageTypeList[number]}`;
 const DamageTypeUndefineRecord:Record<DamageType,undefined> = DamageTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;
 
 /**伤害包含关系表 */
-export const DamageIncludeMap:Record<DamageType,DamageType[]|undefined>=DamageTypeUndefineRecord;
+export const DamageIncludeMap:Record<DamageType,DamageType[]>=
+    Object.keys(DamageTypeUndefineRecord).reduce((acc, key) => ({ ...acc, [key]: [key] }), {}) as any;
 DamageIncludeMap.雷电 = ["雷电","电击"];
 DamageIncludeMap.冰霜 = ["冰霜","极寒"];
 DamageIncludeMap.火焰 = ["火焰","燃烧"];
@@ -117,12 +118,12 @@ export class Damage{
         //计算伤害约束的buff
         const sourceBuffList = Object.values(this.source.buffTable)
             .filter(item=>
-                !item.buff.isHurtMod && item.buff.damageConstraint &&
-                testConstraints(this.info,item.buff.damageConstraint));
+                item.buff.damageConstraint &&
+                matchCons(false,this.info,item.buff.damageConstraint));
         const targetMultList = Object.values(target.buffTable)
             .filter(item=>
-                item.buff.isHurtMod && item.buff.damageConstraint &&
-                testConstraints(this.info,item.buff.damageConstraint));
+                item.buff.damageConstraint &&
+                matchCons(true,this.info,item.buff.damageConstraint));
         const sourceMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
         const sourceAddMod:Record<StaticStatusKey,number|undefined> = {} as any;
         const targetMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
@@ -154,8 +155,7 @@ export class Damage{
             (sourceMultMod.技能伤害||1)*(targetMultMod.技能伤害||1);
 
         //属性伤害
-        let tlist:DamageType[] = DamageIncludeMap[this.info.dmgType]||[this.info.dmgType];
-        for(let t of tlist){
+        for(let t of DamageIncludeMap[this.info.dmgType]){
             let flag:ModifyType = `${t}伤害`;
             dmg   =(dmg+(sourceAddMod[flag]||0)+(targetAddMod[flag]||0))
                 *(sourceMultMod[flag]||1)*(targetMultMod[flag]||1);

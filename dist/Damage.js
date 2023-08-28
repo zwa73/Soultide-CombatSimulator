@@ -7,7 +7,7 @@ exports.DamageTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
     "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 const DamageTypeUndefineRecord = exports.DamageTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
 /**伤害包含关系表 */
-exports.DamageIncludeMap = DamageTypeUndefineRecord;
+exports.DamageIncludeMap = Object.keys(DamageTypeUndefineRecord).reduce((acc, key) => ({ ...acc, [key]: [key] }), {});
 exports.DamageIncludeMap.雷电 = ["雷电", "电击"];
 exports.DamageIncludeMap.冰霜 = ["冰霜", "极寒"];
 exports.DamageIncludeMap.火焰 = ["火焰", "燃烧"];
@@ -100,11 +100,11 @@ class Damage {
             return dmg;
         //计算伤害约束的buff
         const sourceBuffList = Object.values(this.source.buffTable)
-            .filter(item => !item.buff.isHurtMod && item.buff.damageConstraint &&
-            (0, OnDamageModify_1.testConstraints)(this.info, item.buff.damageConstraint));
+            .filter(item => item.buff.damageConstraint &&
+            (0, OnDamageModify_1.matchCons)(false, this.info, item.buff.damageConstraint));
         const targetMultList = Object.values(target.buffTable)
-            .filter(item => item.buff.isHurtMod && item.buff.damageConstraint &&
-            (0, OnDamageModify_1.testConstraints)(this.info, item.buff.damageConstraint));
+            .filter(item => item.buff.damageConstraint &&
+            (0, OnDamageModify_1.matchCons)(true, this.info, item.buff.damageConstraint));
         const sourceMultMod = {};
         const sourceAddMod = {};
         const targetMultMod = {};
@@ -131,8 +131,7 @@ class Damage {
         dmg = (dmg + (sourceAddMod.技能伤害 || 0) + (targetAddMod.技能伤害 || 0)) *
             (sourceMultMod.技能伤害 || 1) * (targetMultMod.技能伤害 || 1);
         //属性伤害
-        let tlist = exports.DamageIncludeMap[this.info.dmgType] || [this.info.dmgType];
-        for (let t of tlist) {
+        for (let t of exports.DamageIncludeMap[this.info.dmgType]) {
             let flag = `${t}伤害`;
             dmg = (dmg + (sourceAddMod[flag] || 0) + (targetAddMod[flag] || 0))
                 * (sourceMultMod[flag] || 1) * (targetMultMod[flag] || 1);

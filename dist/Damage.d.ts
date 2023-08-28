@@ -4,7 +4,7 @@ import { SkillCategory, SkillType, SkillRange } from "./Skill";
 export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 export type DamageType = `${typeof DamageTypeList[number]}`;
 /**伤害包含关系表 */
-export declare const DamageIncludeMap: Record<DamageType, DamageType[] | undefined>;
+export declare const DamageIncludeMap: Record<DamageType, DamageType[]>;
 /**伤害特效 */
 export declare enum SpecEffect {
     /**造成治疗 */

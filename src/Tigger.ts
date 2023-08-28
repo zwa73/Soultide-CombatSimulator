@@ -2,8 +2,8 @@ import { SkillData } from "./Skill";
 
 
 export type TiggerBase={
-    /**权重 */
-    weight:number;
+    /**权重 默认0*/
+    weight?:number;
     /**触发点 */
     hook:AnyHook;
     /**触发函数 */
@@ -12,7 +12,7 @@ export type TiggerBase={
 
 /**使用技能前 */
 export interface TUseSkillBefore extends TiggerBase{
-    hook:"UseSkillBefore";
+    hook:"释放技能后";
     /**触发 使用技能前 触发器
      * @param SkillData 技能参数
      */
@@ -20,7 +20,7 @@ export interface TUseSkillBefore extends TiggerBase{
 }
 /**使用技能后 */
 export interface TUseSkillAfter extends TiggerBase{
-    hook:"UseSkillAfter";
+    hook:"释放技能前";
     /**触发 使用技能后 触发器
      * @param SkillData 技能参数
      */
@@ -29,8 +29,9 @@ export interface TUseSkillAfter extends TiggerBase{
 
 /**触发器表 */
 export type HookTiggerMap = {
-    UseSkillBefore  :TUseSkillBefore;
-    UseSkillAfter   :TUseSkillAfter ;
+    释放技能后  :TUseSkillBefore;
+    释放技能前  :TUseSkillAfter ;
+
 };
 export type AnyHook   = keyof HookTiggerMap;
 export type AnyTigger = HookTiggerMap[keyof HookTiggerMap];

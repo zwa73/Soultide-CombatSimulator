@@ -1,8 +1,9 @@
+import { JObject } from '@zwa73/utils';
 import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
 import { Skill } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { DamageInfoConstraints, ModifyType } from './OnDamageModify';
+import { DamageInfoConstraintList, ModifyType } from './OnDamageModify';
 /**静态属性 */
 export type StaticStatus = {
     /**最大生命 */
@@ -31,9 +32,9 @@ export type StaticStatusOption = Partial<StaticStatus>;
 /**当前属性 */
 export type DynmaicStatus = {
     /**当前生命 */
-    health: number;
+    当前生命: number;
     /**当前怒气 */
-    energy: number;
+    当前怒气: number;
 };
 /**附加状态 */
 export type Buff = {
@@ -41,20 +42,22 @@ export type Buff = {
     name: string;
     /**可叠加 */
     canSatck?: boolean;
-    /**是受攻击的buff */
-    isHurtMod?: true;
-    /**面板倍率增益 */
+    /**结束时间点 数字为经过回合数 hook字段为下一次hook触发时 默认则不结束*/
+    endWith?: number | AnyHook;
+    /**倍率增益 */
     multModify?: StaticStatusOption;
-    /**叠加的面板倍率增益 */
+    /**叠加的倍率增益 */
     stackMultModify?: StaticStatusOption;
-    /**面板数值增益 */
+    /**数值增益 */
     addModify?: StaticStatusOption;
-    /**叠加的面板数值增益 */
+    /**叠加的数值增益 */
     stackAddModify?: StaticStatusOption;
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    damageConstraint?: DamageInfoConstraints;
+    damageConstraint?: DamageInfoConstraintList;
     /**触发器 */
     tiggerList?: AnyTigger[];
+    /**内部参数表 */
+    table?: JObject;
 };
 /**叠加的buff */
 export type StackBuff = {

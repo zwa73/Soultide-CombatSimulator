@@ -31,8 +31,8 @@ class Character {
         this.name = name;
         this.staticStatus = Object.assign({}, exports.DefStaticStatus, opt);
         this.dynmaicStatus = {
-            health: this.staticStatus.最大生命,
-            energy: this.staticStatus.初始怒气,
+            当前生命: this.staticStatus.最大生命,
+            当前怒气: this.staticStatus.初始怒气,
         };
     }
     /**获取某个计算完增益的属性 */
@@ -84,14 +84,14 @@ class Character {
             target: target,
             battlefield: this.battlefield,
         };
-        this.getTiggers("UseSkillAfter").forEach(t => skillData = t.tigger(skillData));
+        this.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
         skill.use(skillData);
-        this.getTiggers("UseSkillBefore").forEach(t => skillData = t.tigger(skillData));
+        this.getTiggers("释放技能后").forEach(t => skillData = t.tigger(skillData));
     }
     /**受到伤害 */
     getHurt(damage) {
         let dmg = damage.calcOverdamage(this);
-        this.dynmaicStatus.health -= dmg;
+        this.dynmaicStatus.当前生命 -= dmg;
         console.log(this.name + " 受到", dmg, "点伤害");
     }
     /**受到攻击 */

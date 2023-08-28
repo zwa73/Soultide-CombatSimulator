@@ -1,9 +1,10 @@
 import * as utils from '@zwa73/utils';
+import { JObject } from '@zwa73/utils';
 import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
 import { Skill, SkillData } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { DamageInfoConstraints, ModifyType, ModifyTypeList } from './OnDamageModify';
+import { DamageInfoConstraintList, ModifyType, ModifyTypeList } from './OnDamageModify';
 /**静态属性 */
 export type StaticStatus={
     /**最大生命 */
@@ -45,9 +46,9 @@ export type StaticStatusOption = Partial<StaticStatus>;
 /**当前属性 */
 export type DynmaicStatus={
     /**当前生命 */
-    health:number;
+    当前生命:number;
     /**当前怒气 */
-    energy:number;
+    当前怒气:number;
 }
 /**附加状态 */
 export type Buff={
@@ -55,20 +56,22 @@ export type Buff={
     name:string;
     /**可叠加 */
     canSatck?:boolean;
-    /**是受攻击的buff */
-    isHurtMod?:true;
-    /**面板倍率增益 */
+    /**结束时间点 数字为经过回合数 hook字段为下一次hook触发时 默认则不结束*/
+    endWith?:number|AnyHook;
+    /**倍率增益 */
     multModify?:StaticStatusOption;
-    /**叠加的面板倍率增益 */
+    /**叠加的倍率增益 */
     stackMultModify?:StaticStatusOption;
-    /**面板数值增益 */
+    /**数值增益 */
     addModify?:StaticStatusOption;
-    /**叠加的面板数值增益 */
+    /**叠加的数值增益 */
     stackAddModify?:StaticStatusOption;
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    damageConstraint?:DamageInfoConstraints;
+    damageConstraint?:DamageInfoConstraintList;
     /**触发器 */
     tiggerList?:AnyTigger[];
+    /**内部参数表 */
+    table?:JObject;
 }
 /**叠加的buff */
 export type StackBuff={
@@ -94,8 +97,8 @@ export class Character {
         this.name=name;
         this.staticStatus = Object.assign({},DefStaticStatus,opt);
         this.dynmaicStatus = {
-            health:this.staticStatus.最大生命,
-            energy:this.staticStatus.初始怒气,
+            当前生命:this.staticStatus.最大生命,
+            当前怒气:this.staticStatus.初始怒气,
         }
     }
     /**获取某个计算完增益的属性 */
@@ -149,14 +152,14 @@ export class Character {
             target:target,
             battlefield:this.battlefield,
         }
-        this.getTiggers("UseSkillAfter").forEach(t=> skillData=t.tigger(skillData));
+        this.getTiggers("释放技能前").forEach(t=> skillData=t.tigger(skillData));
         skill.use(skillData);
-        this.getTiggers("UseSkillBefore").forEach(t=> skillData=t.tigger(skillData));
+        this.getTiggers("释放技能后").forEach(t=> skillData=t.tigger(skillData));
     }
     /**受到伤害 */
     getHurt(damage:Damage){
         let dmg = damage.calcOverdamage(this);
-        this.dynmaicStatus.health-=dmg;
+        this.dynmaicStatus.当前生命-=dmg;
         console.log(this.name+" 受到",dmg,"点伤害")
     }
     /**受到攻击 */

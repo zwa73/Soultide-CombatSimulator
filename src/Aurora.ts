@@ -6,8 +6,8 @@ export namespace Aurora{
         info:genSkillInfo("雷电技能","单体","奥义"),
         use(skillData){
             const {user}=skillData;
-            user.addBuff(噩廻,user.dynmaicStatus.energy);
-            user.dynmaicStatus.energy=0;
+            user.addBuff(噩廻,user.dynmaicStatus.当前怒气);
+            user.dynmaicStatus.当前怒气=0;
             user.useSkill(失心童话Sub,skillData.target);
         }
     }
