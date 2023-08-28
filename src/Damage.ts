@@ -1,11 +1,18 @@
-import { Character, StackBuff, StaticStatus, StaticStatusKey } from "./CombatSimulation";
-import { ModifyType, matchCons } from "./OnDamageModify";
-import { SkillCategory, SkillType, SkillRange } from "./Skill";
+import { Character, StackBuff } from "./CombatSimulation";
+import { matchCons } from "./Modify";
+import { SkillCategory, SkillRange, SkillType } from "./Skill";
+import { StaticStatusKey, StaticStatusOption } from "./Status";
+
+//———————————————————— 伤害 ————————————————————//
+
+
 
 /**伤害类型枚举 */
 export const DamageTypeList = ["雷电","冰霜","火焰","魔法","物理",
     "电击","极寒","燃烧","暗蚀","流血","治疗","固定"] as const;
+/**伤害类型 */
 export type DamageType = `${typeof DamageTypeList[number]}`;
+/**undefine值的伤害类型Record */
 const DamageTypeUndefineRecord:Record<DamageType,undefined> = DamageTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;
 
 /**伤害包含关系表 */
@@ -54,34 +61,13 @@ export type DamageInfo={
 }
 
 
-function calcOnDamageModify(multMod:Record<StaticStatusKey,number|undefined>,
-    addMod:Record<StaticStatusKey,number|undefined>,buffList:StackBuff[]){
-    for(let item of buffList){
-        let basedMultTable = item.buff.multModify||{};
-        let stackMultTable = item.buff.stackMultModify||{};
-        let basedAddTable  = item.buff.addModify||{};
-        let stackAddTable  = item.buff.stackAddModify||{};
-        let stack = item.stack;
-        for(let flag of Object.keys(basedMultTable) as StaticStatusKey[]){
-            if(multMod[flag]==null) multMod[flag]=1;
-            multMod[flag]!+=basedMultTable[flag]!;
-        }
-        for(let flag of Object.keys(stackMultTable) as StaticStatusKey[]){
-            if(multMod[flag]==null) multMod[flag]=1;
-            multMod[flag]!+=stackMultTable[flag]!*stack;
-        }
-        for(let flag of Object.keys(basedAddTable) as StaticStatusKey[]){
-            if(addMod[flag]==null) addMod[flag]=0;
-            addMod[flag]!+=basedAddTable[flag]!;
-        }
-        for(let flag of Object.keys(stackAddTable) as StaticStatusKey[]){
-            if(addMod[flag]==null) addMod[flag]=0;
-            addMod[flag]!+=stackAddTable[flag]!*stack;
-        }
-    }
+/**累加的调整值表 */
+type ModTableSet = {
+    /**倍率调整表 */
+    multModTable:StaticStatusOption,
+    /**加值调整表 */
+    addModTable:StaticStatusOption,
 }
-
-
 /**伤害 */
 export class Damage{
     /**伤害详细类型 */
@@ -96,7 +82,6 @@ export class Damage{
      * @param source      伤害来源
      * @param factor      伤害系数
      * @param info        伤害类型
-     * @param category    伤害类别
      * @param specEffects 特殊效果
      */
     constructor(source:Character,factor:number,info:DamageInfo,...specEffects:SpecEffect[]){
@@ -104,6 +89,88 @@ export class Damage{
         this.factor=factor;
         this.info=info;
         this.specEffects=specEffects;
+    }
+    /**计算攻击时应用的加值与倍率
+     * @param target  受伤角色
+     * @returns [ multModMap, addModMap ]
+     */
+    private calcOnDamageModify(target:Character):ModTableSet{
+        //计算伤害约束的buff
+        const sourceBuffList = Object.values(this.source.buffTable)
+            .filter(item=>
+                item.buff.damageConstraint &&
+                matchCons(false,this.info,item.buff.damageConstraint));
+        const targetBuffList = Object.values(target.buffTable)
+            .filter(item=>
+                item.buff.damageConstraint &&
+                matchCons(true,this.info,item.buff.damageConstraint));
+        const sourceTableSet = this.calcOnDamageModifySub(sourceBuffList);
+        const targetTableSet = this.calcOnDamageModifySub(targetBuffList);
+        const [sourceMultMap,sourceAddMap] = [sourceTableSet.multModTable,sourceTableSet.addModTable];
+        const [targetMultMap,targetAddMap] = [targetTableSet.multModTable,targetTableSet.addModTable];
+
+        const multModTable:StaticStatusOption={} as any;
+        const addModTable :StaticStatusOption={} as any;
+        for(let flag of Object.keys(sourceMultMap) as StaticStatusKey[]){
+            if(multModTable[flag]==null) multModTable[flag]=1;
+            multModTable[flag]!*=sourceMultMap[flag]!;
+        }
+        for(let flag of Object.keys(targetMultMap) as StaticStatusKey[]){
+            if(multModTable[flag]==null) multModTable[flag]=1;
+            multModTable[flag]!*=targetMultMap[flag]!;
+        }
+        for(let flag of Object.keys(sourceAddMap) as StaticStatusKey[]){
+            if(addModTable[flag]==null) addModTable[flag]=0;
+            addModTable[flag]!+=sourceAddMap[flag]!;
+        }
+        for(let flag of Object.keys(targetAddMap) as StaticStatusKey[]){
+            if(addModTable[flag]==null) addModTable[flag]=0;
+            addModTable[flag]!+=targetAddMap[flag]!;
+        }
+
+        return {multModTable,addModTable}
+    }
+    /**根据buff表计算攻击时应用的加值与倍率
+     * @param buffList  buff表
+     * @returns [ multModMap, addModMap ]
+     */
+    private calcOnDamageModifySub(buffList:StackBuff[]):ModTableSet{
+        const multModTable:StaticStatusOption={} as any;
+        const addModTable :StaticStatusOption={} as any;
+        //叠加乘区
+        function stackArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
+            for(let flag of Object.keys(modMap) as StaticStatusKey[]){
+                if(baseMap[flag]==null) baseMap[flag]=1;
+                baseMap[flag]!+=modMap[flag]!*stack;
+            }
+        }
+        for(const item of buffList){
+            const basedMultTable = item.buff.multModify||{};
+            const stackMultTable = item.buff.stackMultModify||{};
+            const basedAddTable  = item.buff.addModify||{};
+            const stackAddTable  = item.buff.stackAddModify||{};
+            const stack = item.stack;
+            //叠加同乘区
+            stackArean(multModTable, basedMultTable, 1      );
+            stackArean(multModTable, stackMultTable, stack  );
+            stackArean(addModTable , basedAddTable , 1      );
+            stackArean(addModTable , stackAddTable , stack  );
+        }
+        return {
+            /**倍率调整表 */
+            multModTable: multModTable,
+            /**加值调整表 */
+            addModTable: addModTable
+        };
+    }
+    /**对数值进行增益
+     * @param base       基础值
+     * @param flag       增益名
+     * @param multModMap 倍率Map
+     * @param addModMap  加值Map
+     */
+    private modValue(base:number,flag:StaticStatusKey,tableSet:ModTableSet){
+        return (base+this.source.getStaticStatus(flag)+(tableSet.addModTable[flag]||0))*(tableSet.multModTable[flag]||1);
     }
     /**含有某个特效 */
     hasSpecEffect(flag:SpecEffect){
@@ -115,57 +182,34 @@ export class Damage{
         let dmg = this.factor;
         if(this.hasSpecEffect(固定)) return dmg;
 
-        //计算伤害约束的buff
-        const sourceBuffList = Object.values(this.source.buffTable)
-            .filter(item=>
-                item.buff.damageConstraint &&
-                matchCons(false,this.info,item.buff.damageConstraint));
-        const targetMultList = Object.values(target.buffTable)
-            .filter(item=>
-                item.buff.damageConstraint &&
-                matchCons(true,this.info,item.buff.damageConstraint));
-        const sourceMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
-        const sourceAddMod:Record<StaticStatusKey,number|undefined> = {} as any;
-        const targetMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
-        const targetAddMod:Record<StaticStatusKey,number|undefined> = {} as any;
-        calcOnDamageModify(sourceMultMod,sourceAddMod,sourceBuffList);
-        calcOnDamageModify(targetMultMod,targetAddMod,targetMultList);
+        const modTableSet = this.calcOnDamageModify(target);
+        console.log(modTableSet)
         //系数
-        dmg=(dmg+(sourceAddMod.伤害系数||0)+(targetAddMod.伤害系数||0))*
-            (sourceMultMod.伤害系数||1)*(targetMultMod.伤害系数||1);
+        dmg=this.modValue(dmg,"伤害系数",modTableSet);
 
         //攻击
         let def = this.hasSpecEffect(穿防)||this.hasSpecEffect(治疗)? 0:target.getStaticStatus("防御");
-        let atk = (this.source.getStaticStatus("攻击")+(sourceAddMod.攻击||0)+(targetAddMod.攻击||0))*
-            (sourceMultMod.攻击||1)*(targetMultMod.攻击||1) - def;
-        dmg*=atk>1? atk:1;
+        let atk = this.modValue(0,"攻击",modTableSet);
+        dmg*=(atk-def)>1? (atk-def):1;
 
         //附加伤害
-        let adddmg=((sourceAddMod[`${dmgType}附伤`]||0)+(targetAddMod[`${dmgType}附伤`]||0))*
-            (targetMultMod[`${dmgType}附伤`]||1)*(targetMultMod[`${dmgType}附伤`]||1);
+        let adddmg=this.modValue(0,`${dmgType}附伤`,modTableSet);
 
         //泛伤
-        dmg   =(dmg+(sourceAddMod.所有伤害||0)+(targetAddMod.所有伤害||0))*
-            (sourceMultMod.所有伤害||1)*(targetMultMod.所有伤害||1);
-        adddmg=(adddmg+(sourceAddMod.所有伤害||0)+(targetAddMod.所有伤害||0))*
-            (sourceMultMod.所有伤害||1)*(targetMultMod.所有伤害||1);
+        dmg   =this.modValue(dmg   ,`所有伤害`,modTableSet);
+        adddmg=this.modValue(adddmg,`所有伤害`,modTableSet);
 
         //技伤
-        dmg=(dmg+(sourceAddMod.技能伤害||0)+(targetAddMod.技能伤害||0))*
-            (sourceMultMod.技能伤害||1)*(targetMultMod.技能伤害||1);
+        dmg=this.modValue(dmg,`技能伤害`,modTableSet);
 
         //属性伤害
         for(let t of DamageIncludeMap[this.info.dmgType]){
-            let flag:ModifyType = `${t}伤害`;
-            dmg   =(dmg+(sourceAddMod[flag]||0)+(targetAddMod[flag]||0))
-                *(sourceMultMod[flag]||1)*(targetMultMod[flag]||1);
-            adddmg=(adddmg+(sourceAddMod[flag]||0)+(targetAddMod[flag]||0))
-                *(sourceMultMod[flag]||1)*(targetMultMod[flag]||1);
+            dmg   =this.modValue(dmg    ,`${t}伤害`,modTableSet);
+            adddmg=this.modValue(adddmg ,`${t}伤害`,modTableSet);
         }
 
         //类别伤害
-        dmg=(dmg+(sourceAddMod[`${skillCategory}伤害`]||0)+(targetAddMod[`${skillCategory}伤害`]||0))*
-            (sourceMultMod[`${skillCategory}伤害`]||1)*(targetMultMod[`${skillCategory}伤害`]||1);
+        dmg=this.modValue(dmg    ,`${skillCategory}伤害`,modTableSet);
 
         //合并附伤
         dmg+=adddmg;

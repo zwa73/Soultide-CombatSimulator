@@ -1,8 +1,5 @@
 import { DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillRange, SkillType } from "./Skill";
-/**加成类型 区分乘区*/
-export type ModifyType = `${DamageType}伤害` | `${SkillCategory}伤害` | `${DamageType}附伤` | "技能伤害" | "暴击伤害" | "攻击" | "所有伤害" | "伤害系数";
-export declare const ModifyTypeList: ModifyType[];
 export type DamageInfoConstraint = SkillType | SkillRange | SkillCategory | DamageType | "受攻击时";
 /**伤害具体类型约束 */
 export type DamageInfoConstraintList = Array<DamageInfoConstraint>;

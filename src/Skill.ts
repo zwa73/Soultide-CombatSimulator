@@ -2,6 +2,10 @@ import { Attack } from "./Attack";
 import { Battlefield, Character } from "./CombatSimulation";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
 
+//———————————————————— 技能 ————————————————————//
+
+
+
 /**技能类型 */
 export const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","非"] as const;
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;

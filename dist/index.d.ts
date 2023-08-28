@@ -1,5 +1,7 @@
 export * from './CombatSimulation';
-export * from './DamageCalculator';
+export * from './Attack';
+export * from './Damage';
+export * from './Skill';
+export * from './Status';
 export * from './Tigger';
 export * from './Aurora';
-export { default } from './DamageCalculator';

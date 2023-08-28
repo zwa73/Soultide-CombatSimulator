@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.genSkillInfo = exports.genAttack = exports.genDamage = exports.genDamageInfo = exports.SkillCategoryList = exports.SkillRangeList = exports.SkillMaintypeList = void 0;
 const Attack_1 = require("./Attack");
 const Damage_1 = require("./Damage");
+//———————————————————— 技能 ————————————————————//
 /**技能类型 */
 exports.SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
 /**技能范围 */

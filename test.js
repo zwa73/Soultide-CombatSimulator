@@ -11,3 +11,4 @@ char.useSkill(Aurora.失心童话,[char2]);
 
 console.log(char.buffTable)
 console.log(char.dynmaicStatus)
+console.log(char2.dynmaicStatus)

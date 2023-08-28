@@ -1,20 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefaultBattlefield = exports.Battlefield = exports.Formation = exports.Character = exports.DefStaticStatus = void 0;
+exports.DefaultBattlefield = exports.Battlefield = exports.Formation = exports.Character = void 0;
 const utils = require("@zwa73/utils");
-const OnDamageModify_1 = require("./OnDamageModify");
-/**默认的属性 */
-exports.DefStaticStatus = {
-    最大生命: 0,
-    攻击: 0,
-    速度: 0,
-    防御: 0,
-    暴击率: 0.05,
-    暴击伤害: 1.5,
-    初始怒气: 0,
-    闪避: 0,
-};
-OnDamageModify_1.ModifyTypeList.forEach(item => exports.DefStaticStatus[item] = 0);
+const Status_1 = require("./Status");
 /**角色 */
 class Character {
     /**角色名称 */
@@ -29,7 +17,7 @@ class Character {
     buffTable = {};
     constructor(name, opt) {
         this.name = name;
-        this.staticStatus = Object.assign({}, exports.DefStaticStatus, opt);
+        this.staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
         this.dynmaicStatus = {
             当前生命: this.staticStatus.最大生命,
             当前怒气: this.staticStatus.初始怒气,

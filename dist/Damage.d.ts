@@ -1,7 +1,8 @@
 import { Character } from "./CombatSimulation";
-import { SkillCategory, SkillType, SkillRange } from "./Skill";
+import { SkillCategory, SkillRange, SkillType } from "./Skill";
 /**伤害类型枚举 */
 export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
+/**伤害类型 */
 export type DamageType = `${typeof DamageTypeList[number]}`;
 /**伤害包含关系表 */
 export declare const DamageIncludeMap: Record<DamageType, DamageType[]>;
@@ -48,10 +49,26 @@ export declare class Damage {
      * @param source      伤害来源
      * @param factor      伤害系数
      * @param info        伤害类型
-     * @param category    伤害类别
      * @param specEffects 特殊效果
      */
     constructor(source: Character, factor: number, info: DamageInfo, ...specEffects: SpecEffect[]);
+    /**计算攻击时应用的加值与倍率
+     * @param target  受伤角色
+     * @returns [ multModMap, addModMap ]
+     */
+    private calcOnDamageModify;
+    /**根据buff表计算攻击时应用的加值与倍率
+     * @param buffList  buff表
+     * @returns [ multModMap, addModMap ]
+     */
+    private calcOnDamageModifySub;
+    /**对数值进行增益
+     * @param base       基础值
+     * @param flag       增益名
+     * @param multModMap 倍率Map
+     * @param addModMap  加值Map
+     */
+    private modValue;
     /**含有某个特效 */
     hasSpecEffect(flag: SpecEffect): boolean | undefined;
     /**计算伤害 */
