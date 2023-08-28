@@ -29,28 +29,36 @@ class Character {
         let mod = this.buffTable.getStaticStatus(this.staticStatus[field], field);
         return mod;
     }
-    /**获取所有对应触发器 */
-    getTiggers(hook) {
-        return this.buffTable.getTiggers(hook);
-    }
     /**添加一个buff */
-    addBuff(buff, stack) {
+    addBuff(buff, stack = 1) {
         this.buffTable.addBuff(buff, stack);
     }
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
+     * @param isTiggerSkill 是触发技能
      */
-    useSkill(skill, target) {
+    useSkill(skill, target, isTiggerSkill = false) {
         let skillData = {
+            skill: skill,
             user: this,
-            target: target,
+            targetList: target,
             battlefield: this.battlefield,
-            buffTable: new Modify_1.BuffTable()
+            buffTable: new Modify_1.BuffTable(),
+            isTiggerSkill: isTiggerSkill
         };
-        this.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
-        skill.use(skillData);
-        this.getTiggers("释放技能后").forEach(t => skillData = t.tigger(skillData));
+        skill.beforeCast ? skill.beforeCast(skillData) : undefined;
+        this.buffTable.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
+        skill.cast(skillData);
+        this.buffTable.getTiggers("释放技能后").forEach(t => skillData = t.tigger(skillData));
+        skill.afterCast ? skill.afterCast(skillData) : undefined;
+    }
+    /**被动的触发某个技能
+     * @param skill  技能
+     * @param target 目标
+     */
+    tiggerSkill(skill, target) {
+        this.useSkill(skill, target, true);
     }
     /**受到伤害 */
     getHurt(damage) {

@@ -21,3 +21,4 @@ __exportStar(require("./Skill"), exports);
 __exportStar(require("./Status"), exports);
 __exportStar(require("./Tigger"), exports);
 __exportStar(require("./Aurora"), exports);
+__exportStar(require("./Colcher"), exports);

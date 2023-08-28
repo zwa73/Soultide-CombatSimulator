@@ -1,4 +1,3 @@
-import { AnyHook, HookTiggerMap } from './Tigger';
 import { Skill } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
@@ -19,15 +18,19 @@ export declare class Character {
     constructor(name: string, opt: StaticStatusOption);
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey): number;
-    /**获取所有对应触发器 */
-    getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
     /**添加一个buff */
-    addBuff(buff: Buff, stack: number): void;
+    addBuff(buff: Buff, stack?: number): void;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
+     * @param isTiggerSkill 是触发技能
      */
-    useSkill(skill: Skill, target: Character[]): void;
+    useSkill(skill: Skill, target: Character[], isTiggerSkill?: boolean): void;
+    /**被动的触发某个技能
+     * @param skill  技能
+     * @param target 目标
+     */
+    tiggerSkill(skill: Skill, target: Character[]): void;
     /**受到伤害 */
     getHurt(damage: Damage): void;
     /**受到攻击 */

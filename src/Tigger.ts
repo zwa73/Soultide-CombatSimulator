@@ -1,4 +1,4 @@
-import { SkillData } from "./Skill";
+import { Skill, SkillData } from "./Skill";
 
 
 export type TiggerBase={
@@ -14,7 +14,7 @@ export type TiggerBase={
 export interface TUseSkillBefore extends TiggerBase{
     hook:"释放技能后";
     /**触发 使用技能前 触发器
-     * @param SkillData 技能参数
+     * @param skillData 技能参数
      */
     tigger(skillData:SkillData):SkillData;
 }
@@ -22,7 +22,7 @@ export interface TUseSkillBefore extends TiggerBase{
 export interface TUseSkillAfter extends TiggerBase{
     hook:"释放技能前";
     /**触发 使用技能后 触发器
-     * @param SkillData 技能参数
+     * @param skillData 技能参数
      */
     tigger(skillData:SkillData):SkillData;
 }

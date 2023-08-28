@@ -121,16 +121,21 @@ class Damage {
         let atk = this.modValue(0, "攻击", modTableSet);
         dmg *= (atk - def) > 1 ? (atk - def) : 1;
         //附加伤害
-        let adddmg = this.modValue(0, `${dmgType}附伤`, modTableSet);
+        let needAdd = this.info.skillType != "非技能";
+        let adddmg = 0;
+        if (needAdd)
+            adddmg = this.modValue(0, `${dmgType}附伤`, modTableSet);
         //泛伤
         dmg = this.modValue(dmg, `所有伤害`, modTableSet);
-        adddmg = this.modValue(adddmg, `所有伤害`, modTableSet);
+        if (this.info.skillType != "非技能")
+            adddmg = this.modValue(adddmg, `所有伤害`, modTableSet);
         //技伤
         dmg = this.modValue(dmg, `技能伤害`, modTableSet);
         //属性伤害
         for (let t of exports.DamageIncludeMap[this.info.dmgType]) {
             dmg = this.modValue(dmg, `${t}伤害`, modTableSet);
-            adddmg = this.modValue(adddmg, `${t}伤害`, modTableSet);
+            if (needAdd)
+                adddmg = this.modValue(adddmg, `${t}伤害`, modTableSet);
         }
         //类别伤害
         dmg = this.modValue(dmg, `${skillCategory}伤害`, modTableSet);

@@ -15,6 +15,10 @@ export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 export const SkillRangeList = ["单体","群体","无范围"] as const;
 export type SkillRange = typeof SkillRangeList[number];
 
+/**技能子类型 */
+export const SkillSubtypeList = ["伤害技能","治疗技能","其他技能"] as const;
+export type SkillSubtype = typeof SkillSubtypeList[number];
+
 /**技能目标 */
 export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后排";
 
@@ -23,35 +27,53 @@ export const SkillCategoryList = ["普攻","核心","秘术","奥义","无类别
 export type SkillCategory = typeof SkillCategoryList[number];
 
 export type SkillData={
+    skill:Skill;
     /**战场 */
     battlefield:Battlefield;
     /**使用者 */
     user:Character;
     /**目标 */
-    target:Character[];
+    targetList:Character[];
     /**只应用于此次技能的Buff */
     buffTable:BuffTable;
+    /**是触发的技能 */
+    isTiggerSkill:boolean;
 }
 export type SkillInfo={
+    /**技能名 */
+    skillName:SkillName;
     /**技能的类型 */
-    type:SkillType;
+    skillType:SkillType;
+    /**技能的子类型 */
+    skillSubtype:SkillSubtype;
     /**技能范围 */
-    range:SkillRange;
+    skillRange:SkillRange;
     /**技能类别 */
-    category:SkillCategory;
+    skillCategory:SkillCategory;
 }
+export type SkillName = `技能:${string}`;
 export type Skill={
     readonly info:SkillInfo;
     /**使用技能
      * @param skillData 技能参数
      */
-    readonly use:(skillData:SkillData)=>void;
+    readonly cast:(skillData:SkillData)=>void;
+    /**使用技能前的额外效果
+     * @param skillData 技能参数
+     */
+    readonly afterCast?:(skillData:SkillData)=>void;
+    /**使用技能后的额外效果
+     * @param skillData 技能参数
+     */
+    readonly beforeCast?:(skillData:SkillData)=>void;
 }
 export function genDamageInfo(info:SkillInfo,dmgType:DamageType):DamageInfo{
     return {
-        skillCategory:info.category,
-        skillRange:info.range,
-        skillType:info.type,
+        skillName:info.skillName,
+        skillCategory:info.skillCategory,
+        skillRange:info.skillRange,
+        skillType:info.skillType,
+        skillSubtype:info.skillSubtype,
         dmgType:dmgType,
     }
 }
@@ -61,6 +83,10 @@ export function genDamage(info:SkillInfo,skillData:SkillData,factor:number,dmgTy
 export function genAttack(info:SkillInfo,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
     return new Attack(skillData.user,genDamage(info,skillData,factor,dmgType,...specEffects));
 }
-export function genSkillInfo(type:SkillType,range:SkillRange,category:SkillCategory):SkillInfo{
-    return {type,range,category};
+export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
+    return {skillName,skillType,skillSubtype,skillRange,skillCategory};
+}
+export function checkTargets(targets:Character[],needMin:number,needMax:number){
+    if(targets.length>needMax || targets.length<needMin)
+        throw "checkTargets错误 需求目标数:"+needMin+"~"+needMax+" 实际目标数:"+targets.length;
 }

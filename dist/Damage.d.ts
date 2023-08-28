@@ -1,5 +1,5 @@
 import { Character } from "./CombatSimulation";
-import { SkillCategory, SkillData, SkillRange, SkillType } from "./Skill";
+import { SkillData, SkillInfo } from "./Skill";
 /**伤害类型枚举 */
 export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害类型 */
@@ -26,15 +26,9 @@ export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect,
 export declare const DamageSpecMap: Record<DamageType, SpecEffect[] | undefined>;
 /**伤害具体类型 */
 export type DamageInfo = {
-    /**技能的类型 */
-    skillType: SkillType;
-    /**技能范围 */
-    skillRange: SkillRange;
-    /**技能类别 */
-    skillCategory: SkillCategory;
     /**伤害类型 */
     dmgType: DamageType;
-};
+} & SkillInfo;
 /**伤害来源 */
 export type DamageSource = {
     /**角色来源 */

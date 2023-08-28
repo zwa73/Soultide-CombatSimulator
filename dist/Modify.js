@@ -15,9 +15,8 @@ exports.ModifyTypeList.push("技能伤害", "暴击伤害", "攻击", "所有伤
  * @param cons   约束列表
  */
 function matchCons(isHurt, info, cons) {
-    let infos = [
-        info.skillCategory, info.skillRange, info.skillType, info.dmgType
-    ];
+    let infos = [];
+    Object.values(info).forEach(element => infos.push(element));
     if (isHurt)
         infos.push("受攻击时");
     //遍历约束
@@ -42,9 +41,17 @@ class BuffTable {
     }
     /**获取一个Buff的层数 */
     getBuffStack(key) {
-        if (this._table[key] == null)
+        if (this._table[key] == null || this._table[key].stack <= 0)
             return 0;
         return this._table[key].stack;
+    }
+    /**是否含有某个有效的buff */
+    hasBuff(key) {
+        return this.getBuffStack(key) > 0;
+    }
+    /**移除某个buff */
+    removeBuff(key) {
+        this._table[key].stack = 0;
     }
     /**获取某个计算完增益的属性 不包含伤害约束属性
      * @param base  基础值
@@ -112,7 +119,10 @@ class BuffTable {
     getTiggers(hook) {
         //触发器数组
         let arr = [];
-        for (const obj of Object.values(this._table)) {
+        for (const key in this._table) {
+            if (!this.hasBuff(key))
+                continue;
+            let obj = this._table[key];
             if (obj.buff.tiggerList == null)
                 continue;
             for (const tigger of obj.buff.tiggerList) {

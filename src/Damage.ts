@@ -1,6 +1,6 @@
 import { Character } from "./CombatSimulation";
-import { ModTableSet, StackBuff, matchCons } from "./Modify";
-import { SkillCategory, SkillData, SkillRange, SkillType } from "./Skill";
+import { ModTableSet } from "./Modify";
+import { SkillData, SkillInfo } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 
 //———————————————————— 伤害 ————————————————————//
@@ -50,15 +50,9 @@ DamageSpecMap.燃烧 = [穿盾];
 
 /**伤害具体类型 */
 export type DamageInfo={
-    /**技能的类型 */
-    skillType:SkillType;
-    /**技能范围 */
-    skillRange:SkillRange;
-    /**技能类别 */
-    skillCategory:SkillCategory;
     /**伤害类型 */
     dmgType:DamageType;
-}
+}&SkillInfo;
 
 /**伤害来源 */
 export type DamageSource={
@@ -153,18 +147,20 @@ export class Damage{
         dmg*=(atk-def)>1? (atk-def):1;
 
         //附加伤害
-        let adddmg=this.modValue(0,`${dmgType}附伤`,modTableSet);
+        let needAdd = this.info.skillType!="非技能";
+        let adddmg=0;
+        if(needAdd) adddmg = this.modValue(0,`${dmgType}附伤`,modTableSet);
 
         //泛伤
         dmg   =this.modValue(dmg   ,`所有伤害`,modTableSet);
-        adddmg=this.modValue(adddmg,`所有伤害`,modTableSet);
+        if(this.info.skillType!="非技能") adddmg=this.modValue(adddmg,`所有伤害`,modTableSet);
         //技伤
         dmg=this.modValue(dmg,`技能伤害`,modTableSet);
 
         //属性伤害
         for(let t of DamageIncludeMap[this.info.dmgType]){
             dmg   =this.modValue(dmg    ,`${t}伤害`,modTableSet);
-            adddmg=this.modValue(adddmg ,`${t}伤害`,modTableSet);
+            if(needAdd) adddmg=this.modValue(adddmg ,`${t}伤害`,modTableSet);
         }
 
         //类别伤害

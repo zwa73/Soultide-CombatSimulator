@@ -1,5 +1,5 @@
 import { DamageInfo, DamageType } from "./Damage";
-import { SkillCategory, SkillRange, SkillType } from "./Skill";
+import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
 /**加成类型 区分乘区 */
@@ -7,7 +7,7 @@ export type ModifyType = `${DamageType}伤害` | `${SkillCategory}伤害` | `${D
 /**所有可能的加成类型枚举 */
 export declare const ModifyTypeList: ModifyType[];
 /**伤害具体类型约束 */
-export type DamageInfoConstraint = SkillType | SkillRange | SkillCategory | DamageType | "受攻击时";
+export type DamageInfoConstraint = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | "受攻击时" | SkillName;
 /**伤害约束表 */
 export type DamageInfoConstraintList = ReadonlyArray<DamageInfoConstraint>;
 /**判断 info 是否包含 target 的所有约束字段
@@ -59,6 +59,10 @@ export declare class BuffTable {
     addBuff(buff: Buff, stack: number): void;
     /**获取一个Buff的层数 */
     getBuffStack(key: string): number;
+    /**是否含有某个有效的buff */
+    hasBuff(key: string): boolean;
+    /**移除某个buff */
+    removeBuff(key: string): void;
     /**获取某个计算完增益的属性 不包含伤害约束属性
      * @param base  基础值
      * @param field 所要应用的调整字段

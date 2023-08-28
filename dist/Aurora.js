@@ -5,20 +5,15 @@ const Skill_1 = require("./Skill");
 var Aurora;
 (function (Aurora) {
     Aurora.失心童话 = {
-        info: (0, Skill_1.genSkillInfo)("雷电技能", "单体", "奥义"),
-        use(skillData) {
-            const { user } = skillData;
+        info: (0, Skill_1.genSkillInfo)("技能:失心童话", "雷电技能", "伤害技能", "单体", "奥义"),
+        cast(skillData) {
+            const { user, targetList } = skillData;
+            (0, Skill_1.checkTargets)(targetList, 1, 1);
             user.addBuff(噩廻, user.dynmaicStatus.当前怒气);
             user.dynmaicStatus.当前怒气 = 0;
-            user.useSkill(Aurora.失心童话Sub, skillData.target);
-        }
-    };
-    Aurora.失心童话Sub = {
-        info: (0, Skill_1.genSkillInfo)("雷电技能", "单体", "奥义"),
-        use(skillData) {
             let atk = (0, Skill_1.genAttack)(this.info, skillData, 1, "雷电");
             for (let i = 0; i < 3; i++)
-                skillData.target[0].getHit(atk);
+                targetList[0].getHit(atk);
         }
     };
     const 噩廻 = {
