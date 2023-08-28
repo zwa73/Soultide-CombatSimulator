@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Damage = exports.DamageSpecMap = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = exports.DamageIncludeMap = exports.DamageTypeList = void 0;
-const Modify_1 = require("./Modify");
 //———————————————————— 伤害 ————————————————————//
 /**伤害类型枚举 */
 exports.DamageTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
@@ -66,73 +65,33 @@ class Damage {
      */
     calcOnDamageModify(target) {
         //计算伤害约束的buff
-        const sourceBuffList = Object.values(this.source.buffTable)
-            .filter(item => item.buff.damageConstraint &&
-            (0, Modify_1.matchCons)(false, this.info, item.buff.damageConstraint));
-        const targetBuffList = Object.values(target.buffTable)
-            .filter(item => item.buff.damageConstraint &&
-            (0, Modify_1.matchCons)(true, this.info, item.buff.damageConstraint));
-        const sourceTableSet = this.calcOnDamageModifySub(sourceBuffList);
-        const targetTableSet = this.calcOnDamageModifySub(targetBuffList);
-        const [sourceMultMap, sourceAddMap] = [sourceTableSet.multModTable, sourceTableSet.addModTable];
-        const [targetMultMap, targetAddMap] = [targetTableSet.multModTable, targetTableSet.addModTable];
-        const multModTable = {};
-        const addModTable = {};
-        for (let flag of Object.keys(sourceMultMap)) {
-            if (multModTable[flag] == null)
-                multModTable[flag] = 1;
-            multModTable[flag] *= sourceMultMap[flag];
-        }
-        for (let flag of Object.keys(targetMultMap)) {
-            if (multModTable[flag] == null)
-                multModTable[flag] = 1;
-            multModTable[flag] *= targetMultMap[flag];
-        }
-        for (let flag of Object.keys(sourceAddMap)) {
-            if (addModTable[flag] == null)
-                addModTable[flag] = 0;
-            addModTable[flag] += sourceAddMap[flag];
-        }
-        for (let flag of Object.keys(targetAddMap)) {
-            if (addModTable[flag] == null)
-                addModTable[flag] = 0;
-            addModTable[flag] += targetAddMap[flag];
-        }
-        return { multModTable, addModTable };
-    }
-    /**根据buff表计算攻击时应用的加值与倍率
-     * @param buffList  buff表
-     * @returns [ multModMap, addModMap ]
-     */
-    calcOnDamageModifySub(buffList) {
-        const multModTable = {};
-        const addModTable = {};
-        //叠加乘区
-        function stackArean(baseMap, modMap, stack) {
-            for (let flag of Object.keys(modMap)) {
-                if (baseMap[flag] == null)
-                    baseMap[flag] = 1;
-                baseMap[flag] += modMap[flag] * stack;
+        const defset = { addModTable: {}, multModTable: {} };
+        const charTableSet = this.source.char ? this.source.char.buffTable.getDamageConsModTable(false, this.info) : defset;
+        const skillTableSet = this.source.skill ? this.source.skill.buffTable.getDamageConsModTable(false, this.info) : defset;
+        const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
+        const modTableSet = { multModTable: {}, addModTable: {} };
+        function mergeMultMod(baseTable, modTable) {
+            for (let flag of Object.keys(modTable)) {
+                if (baseTable[flag] == null)
+                    baseTable[flag] = 1;
+                baseTable[flag] *= modTable[flag];
             }
         }
-        for (const item of buffList) {
-            const basedMultTable = item.buff.multModify || {};
-            const stackMultTable = item.buff.stackMultModify || {};
-            const basedAddTable = item.buff.addModify || {};
-            const stackAddTable = item.buff.stackAddModify || {};
-            const stack = item.stack;
-            //叠加同乘区
-            stackArean(multModTable, basedMultTable, 1);
-            stackArean(multModTable, stackMultTable, stack);
-            stackArean(addModTable, basedAddTable, 1);
-            stackArean(addModTable, stackAddTable, stack);
+        function mergeAddMod(baseTable, modTable) {
+            for (let flag of Object.keys(modTable)) {
+                if (baseTable[flag] == null)
+                    baseTable[flag] = 0;
+                baseTable[flag] += modTable[flag];
+            }
         }
-        return {
-            /**倍率调整表 */
-            multModTable: multModTable,
-            /**加值调整表 */
-            addModTable: addModTable
-        };
+        function mergeTableSet(baseSet, modSet) {
+            mergeMultMod(baseSet.multModTable, modSet.multModTable);
+            mergeAddMod(baseSet.addModTable, modSet.addModTable);
+        }
+        mergeTableSet(modTableSet, charTableSet);
+        mergeTableSet(modTableSet, targetTableSet);
+        mergeTableSet(modTableSet, skillTableSet);
+        return modTableSet;
     }
     /**对数值进行增益
      * @param base       基础值
@@ -141,7 +100,7 @@ class Damage {
      * @param addModMap  加值Map
      */
     modValue(base, flag, tableSet) {
-        return (base + this.source.getStaticStatus(flag) + (tableSet.addModTable[flag] || 0)) * (tableSet.multModTable[flag] || 1);
+        return (base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) * (tableSet.multModTable[flag] || 1);
     }
     /**含有某个特效 */
     hasSpecEffect(flag) {

@@ -1,6 +1,7 @@
 import { Attack } from "./Attack";
 import { Battlefield, Character } from "./CombatSimulation";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
+import { BuffTable } from "./Modify";
 
 //———————————————————— 技能 ————————————————————//
 
@@ -23,11 +24,13 @@ export type SkillCategory = typeof SkillCategoryList[number];
 
 export type SkillData={
     /**战场 */
-    battlefield:Battlefield,
+    battlefield:Battlefield;
     /**使用者 */
-    user:Character,
+    user:Character;
     /**目标 */
-    target:Character[]
+    target:Character[];
+    /**只应用于此次技能的Buff */
+    buffTable:BuffTable;
 }
 export type SkillInfo={
     /**技能的类型 */
@@ -38,11 +41,11 @@ export type SkillInfo={
     category:SkillCategory;
 }
 export type Skill={
-    info:SkillInfo;
+    readonly info:SkillInfo;
     /**使用技能
      * @param skillData 技能参数
      */
-    use(skillData:SkillData):void;
+    readonly use:(skillData:SkillData)=>void;
 }
 export function genDamageInfo(info:SkillInfo,dmgType:DamageType):DamageInfo{
     return {
@@ -53,7 +56,7 @@ export function genDamageInfo(info:SkillInfo,dmgType:DamageType):DamageInfo{
     }
 }
 export function genDamage(info:SkillInfo,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Damage{
-    return new Damage(skillData.user,factor,genDamageInfo(info,dmgType),...specEffects);
+    return new Damage({char:skillData.user,skill:skillData},factor,genDamageInfo(info,dmgType),...specEffects);
 }
 export function genAttack(info:SkillInfo,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
     return new Attack(skillData.user,genDamage(info,skillData,factor,dmgType,...specEffects));

@@ -20,7 +20,7 @@ function genDamageInfo(info, dmgType) {
 }
 exports.genDamageInfo = genDamageInfo;
 function genDamage(info, skillData, factor, dmgType, ...specEffects) {
-    return new Damage_1.Damage(skillData.user, factor, genDamageInfo(info, dmgType), ...specEffects);
+    return new Damage_1.Damage({ char: skillData.user, skill: skillData }, factor, genDamageInfo(info, dmgType), ...specEffects);
 }
 exports.genDamage = genDamage;
 function genAttack(info, skillData, factor, dmgType, ...specEffects) {

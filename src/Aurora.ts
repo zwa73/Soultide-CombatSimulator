@@ -1,4 +1,4 @@
-import { Buff } from "./CombatSimulation";
+import { Buff } from "./Modify";
 import { Skill, genAttack, genSkillInfo } from "./Skill";
 
 export namespace Aurora{
@@ -28,6 +28,6 @@ export namespace Aurora{
         stackAddModify:{
             伤害系数:0.03,
         },
-        damageConstraint:["奥义","雷电技能"],
-    }
+        damageConstraint:["奥义","雷电技能"] as const,
+    };
 }

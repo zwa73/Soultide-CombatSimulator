@@ -1,6 +1,7 @@
 import { Attack } from "./Attack";
 import { Battlefield, Character } from "./CombatSimulation";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
+import { BuffTable } from "./Modify";
 /**技能类型 */
 export declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
@@ -19,6 +20,8 @@ export type SkillData = {
     user: Character;
     /**目标 */
     target: Character[];
+    /**只应用于此次技能的Buff */
+    buffTable: BuffTable;
 };
 export type SkillInfo = {
     /**技能的类型 */
@@ -29,11 +32,11 @@ export type SkillInfo = {
     category: SkillCategory;
 };
 export type Skill = {
-    info: SkillInfo;
+    readonly info: SkillInfo;
     /**使用技能
      * @param skillData 技能参数
      */
-    use(skillData: SkillData): void;
+    readonly use: (skillData: SkillData) => void;
 };
 export declare function genDamageInfo(info: SkillInfo, dmgType: DamageType): DamageInfo;
 export declare function genDamage(info: SkillInfo, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Damage;

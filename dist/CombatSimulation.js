@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultBattlefield = exports.Battlefield = exports.Formation = exports.Character = void 0;
 const utils = require("@zwa73/utils");
+const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
 /**角色 */
 class Character {
@@ -14,7 +15,7 @@ class Character {
     /**角色的当前属性 */
     dynmaicStatus;
     /**所有的附加状态 */
-    buffTable = {};
+    buffTable = new Modify_1.BuffTable();
     constructor(name, opt) {
         this.name = name;
         this.staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
@@ -25,42 +26,16 @@ class Character {
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field) {
-        let modify = 1;
-        for (let buffName in this.buffTable) {
-            let stackData = this.buffTable[buffName];
-            let buff = stackData.buff;
-            let stack = stackData.stack;
-            if (buff.damageConstraint != null)
-                continue;
-            if (buff.multModify)
-                modify += buff.multModify[field] || 0;
-            if (buff.stackMultModify && stack)
-                modify += stack * (buff.stackMultModify[field] || 0);
-        }
-        return this.staticStatus[field] * modify;
+        let mod = this.buffTable.getStaticStatus(this.staticStatus[field], field);
+        return mod;
     }
     /**获取所有对应触发器 */
     getTiggers(hook) {
-        //触发器数组
-        let arr = [];
-        for (const obj of Object.values(this.buffTable)) {
-            if (obj.buff.tiggerList == null)
-                continue;
-            for (const tigger of obj.buff.tiggerList) {
-                if (tigger.hook == hook)
-                    arr.push(tigger);
-            }
-        }
-        arr.sort((a, b) => (b.weight || 0) - (a.weight || 0));
-        return arr;
+        return this.buffTable.getTiggers(hook);
     }
+    /**添加一个buff */
     addBuff(buff, stack) {
-        if (this.buffTable[buff.name] == null || buff.canSatck != true)
-            this.buffTable[buff.name] = { buff, stack };
-        else {
-            let cadd = this.buffTable[buff.name];
-            cadd.stack += stack;
-        }
+        this.buffTable.addBuff(buff, stack);
     }
     /**释放某个技能
      * @param skill  技能
@@ -71,6 +46,7 @@ class Character {
             user: this,
             target: target,
             battlefield: this.battlefield,
+            buffTable: new Modify_1.BuffTable()
         };
         this.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
         skill.use(skillData);

@@ -1,5 +1,5 @@
 import { Character } from "./CombatSimulation";
-import { SkillCategory, SkillRange, SkillType } from "./Skill";
+import { SkillCategory, SkillData, SkillRange, SkillType } from "./Skill";
 /**伤害类型枚举 */
 export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害类型 */
@@ -35,6 +35,13 @@ export type DamageInfo = {
     /**伤害类型 */
     dmgType: DamageType;
 };
+/**伤害来源 */
+export type DamageSource = {
+    /**角色来源 */
+    char?: Character;
+    /**技能来源 */
+    skill?: SkillData;
+};
 /**伤害 */
 export declare class Damage {
     /**伤害详细类型 */
@@ -44,24 +51,19 @@ export declare class Damage {
     /**特效 */
     specEffects: SpecEffect[];
     /**来源 */
-    source: Character;
+    source: DamageSource;
     /**
      * @param source      伤害来源
      * @param factor      伤害系数
      * @param info        伤害类型
      * @param specEffects 特殊效果
      */
-    constructor(source: Character, factor: number, info: DamageInfo, ...specEffects: SpecEffect[]);
+    constructor(source: DamageSource, factor: number, info: DamageInfo, ...specEffects: SpecEffect[]);
     /**计算攻击时应用的加值与倍率
      * @param target  受伤角色
      * @returns [ multModMap, addModMap ]
      */
     private calcOnDamageModify;
-    /**根据buff表计算攻击时应用的加值与倍率
-     * @param buffList  buff表
-     * @returns [ multModMap, addModMap ]
-     */
-    private calcOnDamageModifySub;
     /**对数值进行增益
      * @param base       基础值
      * @param flag       增益名

@@ -1,42 +1,12 @@
 import * as utils from '@zwa73/utils';
-import { JObject } from '@zwa73/utils';
-import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
+import { AnyHook, HookTiggerMap } from './Tigger';
 import { Skill, SkillData } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { DamageInfoConstraintList } from './Modify';
+import { Buff, BuffTable } from './Modify';
 import { DefStaticStatus, DynmaicStatus, StaticStatus, StaticStatusKey, StaticStatusOption } from './Status';
 
-/**附加状态 */
-export type Buff={
-    /**名称 */
-    name:string;
-    /**可叠加 */
-    canSatck?:boolean;
-    /**结束时间点 数字为经过回合数 hook字段为下一次hook触发时 默认则不结束*/
-    endWith?:number|AnyHook;
-    /**倍率增益 */
-    multModify?:StaticStatusOption;
-    /**叠加的倍率增益 */
-    stackMultModify?:StaticStatusOption;
-    /**数值增益 */
-    addModify?:StaticStatusOption;
-    /**叠加的数值增益 */
-    stackAddModify?:StaticStatusOption;
-    /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    damageConstraint?:DamageInfoConstraintList;
-    /**触发器 */
-    tiggerList?:AnyTigger[];
-    /**内部参数表 */
-    table?:JObject;
-}
-/**叠加的buff */
-export type StackBuff={
-    /**buff类型 */
-    buff:Buff,
-    /**叠加层数 */
-    stack:number,
-}
+
 /**角色 */
 export class Character {
     /**角色名称 */
@@ -48,7 +18,7 @@ export class Character {
     /**角色的当前属性 */
     dynmaicStatus:DynmaicStatus;
     /**所有的附加状态 */
-    buffTable:Record<string,StackBuff>={};
+    buffTable:BuffTable=new BuffTable();
 
     constructor(name:string,opt:StaticStatusOption){
         this.name=name;
@@ -60,44 +30,16 @@ export class Character {
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field:StaticStatusKey){
-        let modify:number=1;
-        for(let buffName in this.buffTable){
-            let stackData = this.buffTable[buffName];
-            let buff = stackData.buff;
-            let stack = stackData.stack;
-
-            if(buff.damageConstraint!=null) continue;
-
-            if(buff.multModify)
-                modify += buff.multModify[field]||0;
-            if(buff.stackMultModify && stack)
-                modify += stack * (buff.stackMultModify[field]||0);
-        }
-        return this.staticStatus[field]*modify;
+        let mod = this.buffTable.getStaticStatus(this.staticStatus[field],field);
+        return mod;
     }
     /**获取所有对应触发器 */
     getTiggers<T extends AnyHook>(hook:T):HookTiggerMap[T][] {
-        //索引触发器类型
-        type TT = HookTiggerMap[T];
-        //触发器数组
-        let arr:TT[]=[];
-        for (const obj of Object.values(this.buffTable)){
-            if(obj.buff.tiggerList==null) continue;
-            for(const tigger of obj.buff.tiggerList){
-                if(tigger.hook==hook)
-                    arr.push(tigger as TT);
-            }
-        }
-        arr.sort((a, b) => (b.weight||0) - (a.weight||0));
-        return arr;
+        return this.buffTable.getTiggers(hook);
     }
+    /**添加一个buff */
     addBuff(buff:Buff,stack:number){
-        if(this.buffTable[buff.name]==null || buff.canSatck!=true)
-            this.buffTable[buff.name]={buff,stack};
-        else{
-            let cadd = this.buffTable[buff.name];
-            cadd.stack+=stack;
-        }
+        this.buffTable.addBuff(buff,stack);
     }
     /**释放某个技能
      * @param skill  技能
@@ -108,6 +50,7 @@ export class Character {
             user:this,
             target:target,
             battlefield:this.battlefield,
+            buffTable:new BuffTable()
         }
         this.getTiggers("释放技能前").forEach(t=> skillData=t.tigger(skillData));
         skill.use(skillData);

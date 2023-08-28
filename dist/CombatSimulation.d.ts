@@ -1,40 +1,9 @@
-import { JObject } from '@zwa73/utils';
-import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
+import { AnyHook, HookTiggerMap } from './Tigger';
 import { Skill } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { DamageInfoConstraintList } from './Modify';
+import { Buff, BuffTable } from './Modify';
 import { DynmaicStatus, StaticStatus, StaticStatusKey, StaticStatusOption } from './Status';
-/**附加状态 */
-export type Buff = {
-    /**名称 */
-    name: string;
-    /**可叠加 */
-    canSatck?: boolean;
-    /**结束时间点 数字为经过回合数 hook字段为下一次hook触发时 默认则不结束*/
-    endWith?: number | AnyHook;
-    /**倍率增益 */
-    multModify?: StaticStatusOption;
-    /**叠加的倍率增益 */
-    stackMultModify?: StaticStatusOption;
-    /**数值增益 */
-    addModify?: StaticStatusOption;
-    /**叠加的数值增益 */
-    stackAddModify?: StaticStatusOption;
-    /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    damageConstraint?: DamageInfoConstraintList;
-    /**触发器 */
-    tiggerList?: AnyTigger[];
-    /**内部参数表 */
-    table?: JObject;
-};
-/**叠加的buff */
-export type StackBuff = {
-    /**buff类型 */
-    buff: Buff;
-    /**叠加层数 */
-    stack: number;
-};
 /**角色 */
 export declare class Character {
     /**角色名称 */
@@ -46,12 +15,13 @@ export declare class Character {
     /**角色的当前属性 */
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */
-    buffTable: Record<string, StackBuff>;
+    buffTable: BuffTable;
     constructor(name: string, opt: StaticStatusOption);
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey): number;
     /**获取所有对应触发器 */
     getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
+    /**添加一个buff */
     addBuff(buff: Buff, stack: number): void;
     /**释放某个技能
      * @param skill  技能

@@ -1,6 +1,6 @@
-import { Character, StackBuff } from "./CombatSimulation";
-import { matchCons } from "./Modify";
-import { SkillCategory, SkillRange, SkillType } from "./Skill";
+import { Character } from "./CombatSimulation";
+import { ModTableSet, StackBuff, matchCons } from "./Modify";
+import { SkillCategory, SkillData, SkillRange, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 
 //———————————————————— 伤害 ————————————————————//
@@ -60,14 +60,15 @@ export type DamageInfo={
     dmgType:DamageType;
 }
 
-
-/**累加的调整值表 */
-type ModTableSet = {
-    /**倍率调整表 */
-    multModTable:StaticStatusOption,
-    /**加值调整表 */
-    addModTable:StaticStatusOption,
+/**伤害来源 */
+export type DamageSource={
+    /**角色来源 */
+    char?:Character,
+    /**技能来源 */
+    skill?:SkillData,
 }
+
+
 /**伤害 */
 export class Damage{
     /**伤害详细类型 */
@@ -77,14 +78,14 @@ export class Damage{
     /**特效 */
     specEffects:SpecEffect[]=[];
     /**来源 */
-    source:Character;
+    source:DamageSource;
     /**
      * @param source      伤害来源
      * @param factor      伤害系数
      * @param info        伤害类型
      * @param specEffects 特殊效果
      */
-    constructor(source:Character,factor:number,info:DamageInfo,...specEffects:SpecEffect[]){
+    constructor(source:DamageSource,factor:number,info:DamageInfo,...specEffects:SpecEffect[]){
         this.source=source;
         this.factor=factor;
         this.info=info;
@@ -96,72 +97,31 @@ export class Damage{
      */
     private calcOnDamageModify(target:Character):ModTableSet{
         //计算伤害约束的buff
-        const sourceBuffList = Object.values(this.source.buffTable)
-            .filter(item=>
-                item.buff.damageConstraint &&
-                matchCons(false,this.info,item.buff.damageConstraint));
-        const targetBuffList = Object.values(target.buffTable)
-            .filter(item=>
-                item.buff.damageConstraint &&
-                matchCons(true,this.info,item.buff.damageConstraint));
-        const sourceTableSet = this.calcOnDamageModifySub(sourceBuffList);
-        const targetTableSet = this.calcOnDamageModifySub(targetBuffList);
-        const [sourceMultMap,sourceAddMap] = [sourceTableSet.multModTable,sourceTableSet.addModTable];
-        const [targetMultMap,targetAddMap] = [targetTableSet.multModTable,targetTableSet.addModTable];
-
-        const multModTable:StaticStatusOption={} as any;
-        const addModTable :StaticStatusOption={} as any;
-        for(let flag of Object.keys(sourceMultMap) as StaticStatusKey[]){
-            if(multModTable[flag]==null) multModTable[flag]=1;
-            multModTable[flag]!*=sourceMultMap[flag]!;
-        }
-        for(let flag of Object.keys(targetMultMap) as StaticStatusKey[]){
-            if(multModTable[flag]==null) multModTable[flag]=1;
-            multModTable[flag]!*=targetMultMap[flag]!;
-        }
-        for(let flag of Object.keys(sourceAddMap) as StaticStatusKey[]){
-            if(addModTable[flag]==null) addModTable[flag]=0;
-            addModTable[flag]!+=sourceAddMap[flag]!;
-        }
-        for(let flag of Object.keys(targetAddMap) as StaticStatusKey[]){
-            if(addModTable[flag]==null) addModTable[flag]=0;
-            addModTable[flag]!+=targetAddMap[flag]!;
-        }
-
-        return {multModTable,addModTable}
-    }
-    /**根据buff表计算攻击时应用的加值与倍率
-     * @param buffList  buff表
-     * @returns [ multModMap, addModMap ]
-     */
-    private calcOnDamageModifySub(buffList:StackBuff[]):ModTableSet{
-        const multModTable:StaticStatusOption={} as any;
-        const addModTable :StaticStatusOption={} as any;
-        //叠加乘区
-        function stackArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
-            for(let flag of Object.keys(modMap) as StaticStatusKey[]){
-                if(baseMap[flag]==null) baseMap[flag]=1;
-                baseMap[flag]!+=modMap[flag]!*stack;
+        const defset:ModTableSet = {addModTable:{},multModTable:{}};
+        const charTableSet   = this.source.char?  this.source.char.buffTable.getDamageConsModTable(false,this.info):defset;
+        const skillTableSet  = this.source.skill? this.source.skill.buffTable.getDamageConsModTable(false,this.info):defset;
+        const targetTableSet = target.buffTable.getDamageConsModTable(true,this.info);
+        const modTableSet:ModTableSet ={multModTable:{},addModTable:{}} as any;
+        function mergeMultMod(baseTable:StaticStatusOption,modTable:StaticStatusOption){
+            for(let flag of Object.keys(modTable) as StaticStatusKey[]){
+                if(baseTable[flag]==null) baseTable[flag]=1;
+                baseTable[flag]!*=modTable[flag]!;
             }
         }
-        for(const item of buffList){
-            const basedMultTable = item.buff.multModify||{};
-            const stackMultTable = item.buff.stackMultModify||{};
-            const basedAddTable  = item.buff.addModify||{};
-            const stackAddTable  = item.buff.stackAddModify||{};
-            const stack = item.stack;
-            //叠加同乘区
-            stackArean(multModTable, basedMultTable, 1      );
-            stackArean(multModTable, stackMultTable, stack  );
-            stackArean(addModTable , basedAddTable , 1      );
-            stackArean(addModTable , stackAddTable , stack  );
+        function mergeAddMod(baseTable:StaticStatusOption,modTable:StaticStatusOption){
+            for(let flag of Object.keys(modTable) as StaticStatusKey[]){
+                if(baseTable[flag]==null) baseTable[flag]=0;
+                baseTable[flag]!+=modTable[flag]!;
+            }
         }
-        return {
-            /**倍率调整表 */
-            multModTable: multModTable,
-            /**加值调整表 */
-            addModTable: addModTable
-        };
+        function mergeTableSet(baseSet:ModTableSet,modSet:ModTableSet){
+            mergeMultMod(baseSet.multModTable,modSet.multModTable);
+            mergeAddMod (baseSet.addModTable ,modSet.addModTable );
+        }
+        mergeTableSet(modTableSet,charTableSet);
+        mergeTableSet(modTableSet,targetTableSet);
+        mergeTableSet(modTableSet,skillTableSet);
+        return modTableSet;
     }
     /**对数值进行增益
      * @param base       基础值
@@ -170,7 +130,7 @@ export class Damage{
      * @param addModMap  加值Map
      */
     private modValue(base:number,flag:StaticStatusKey,tableSet:ModTableSet){
-        return (base+this.source.getStaticStatus(flag)+(tableSet.addModTable[flag]||0))*(tableSet.multModTable[flag]||1);
+        return (base+(this.source.char? this.source.char.getStaticStatus(flag):0)+(tableSet.addModTable[flag]||0))*(tableSet.multModTable[flag]||1);
     }
     /**含有某个特效 */
     hasSpecEffect(flag:SpecEffect){
@@ -198,7 +158,6 @@ export class Damage{
         //泛伤
         dmg   =this.modValue(dmg   ,`所有伤害`,modTableSet);
         adddmg=this.modValue(adddmg,`所有伤害`,modTableSet);
-
         //技伤
         dmg=this.modValue(dmg,`技能伤害`,modTableSet);
 
@@ -210,7 +169,6 @@ export class Damage{
 
         //类别伤害
         dmg=this.modValue(dmg    ,`${skillCategory}伤害`,modTableSet);
-
         //合并附伤
         dmg+=adddmg;
         //浮动

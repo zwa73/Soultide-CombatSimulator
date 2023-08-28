@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchCons = exports.ModifyTypeList = void 0;
+exports.BuffTable = exports.matchCons = exports.ModifyTypeList = void 0;
 const Damage_1 = require("./Damage");
 const Skill_1 = require("./Skill");
 /**所有可能的加成类型枚举 */
@@ -27,3 +27,110 @@ function matchCons(isHurt, info, cons) {
     return true;
 }
 exports.matchCons = matchCons;
+/**buff表 */
+class BuffTable {
+    _table = {};
+    constructor() { }
+    /**添加一个Buff */
+    addBuff(buff, stack) {
+        if (this._table[buff.name] == null || buff.canSatck != true)
+            this._table[buff.name] = { buff, stack };
+        else {
+            let cadd = this._table[buff.name];
+            cadd.stack += stack;
+        }
+    }
+    /**获取一个Buff的层数 */
+    getBuffStack(key) {
+        if (this._table[key] == null)
+            return 0;
+        return this._table[key].stack;
+    }
+    /**获取某个计算完增益的属性 不包含伤害约束属性
+     * @param base  基础值
+     * @param field 所要应用的调整字段
+     */
+    getStaticStatus(base, field) {
+        let mult = 1;
+        let add = 0;
+        for (let buffName in this._table) {
+            let stackData = this._table[buffName];
+            let buff = stackData.buff;
+            let stack = stackData.stack;
+            if (buff.damageConstraint != null)
+                continue;
+            if (buff.multModify)
+                mult += buff.multModify[field] || 0;
+            if (buff.stackMultModify)
+                mult += stack * (buff.stackMultModify[field] || 0);
+            if (buff.addModify)
+                add += buff.addModify[field] || 0;
+            if (buff.stackAddModify)
+                add += stack * (buff.stackAddModify[field] || 0);
+        }
+        return (base + add) * mult;
+    }
+    /**获取伤害约束的Buff调整值表
+     * @param isHurt     是受到攻击触发的buff
+     * @param damageInfo 伤害信息
+     */
+    getDamageConsModTable(isHurt, damageInfo) {
+        //计算伤害约束的buff
+        const vaildList = Object.values(this._table)
+            .filter(item => item.buff.damageConstraint &&
+            matchCons(isHurt, damageInfo, item.buff.damageConstraint));
+        const multModTable = {};
+        const addModTable = {};
+        //叠加乘区
+        function stackArean(baseMap, modMap, stack) {
+            for (let flag of Object.keys(modMap)) {
+                if (baseMap[flag] == null)
+                    baseMap[flag] = 1;
+                baseMap[flag] += modMap[flag] * stack;
+            }
+        }
+        for (const item of vaildList) {
+            const basedMultTable = item.buff.multModify || {};
+            const stackMultTable = item.buff.stackMultModify || {};
+            const basedAddTable = item.buff.addModify || {};
+            const stackAddTable = item.buff.stackAddModify || {};
+            const stack = item.stack;
+            //叠加同乘区
+            stackArean(multModTable, basedMultTable, 1);
+            stackArean(multModTable, stackMultTable, stack);
+            stackArean(addModTable, basedAddTable, 1);
+            stackArean(addModTable, stackAddTable, stack);
+        }
+        return {
+            /**倍率调整表 */
+            multModTable: multModTable,
+            /**加值调整表 */
+            addModTable: addModTable
+        };
+    }
+    /**获取所有对应触发器 */
+    getTiggers(hook) {
+        //触发器数组
+        let arr = [];
+        for (const obj of Object.values(this._table)) {
+            if (obj.buff.tiggerList == null)
+                continue;
+            for (const tigger of obj.buff.tiggerList) {
+                if (tigger.hook == hook)
+                    arr.push(tigger);
+            }
+        }
+        arr.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+        return arr;
+    }
+    clone() {
+        let nbuff = new BuffTable();
+        for (let i in this._table) {
+            nbuff._table[i].buff = this._table[i].buff;
+            nbuff._table[i].stack = this._table[i].stack;
+        }
+        return nbuff;
+    }
+}
+exports.BuffTable = BuffTable;
+;
