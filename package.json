@@ -1,0 +1,14 @@
+{
+  "name": "soultide-combatsimulator",
+  "version": "1.0.0",
+  "description": "灵魂潮汐战斗模拟工具",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "zwa73",
+  "license": "ISC",
+  "dependencies": {
+    "@zwa73/utils": "^1.0.33"
+  }
+}
