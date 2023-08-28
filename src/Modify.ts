@@ -157,8 +157,8 @@ export class BuffTable{
                 item.buff.damageConstraint &&
                 matchCons(isHurt,damageInfo,item.buff.damageConstraint));
 
-        const multModTable:StaticStatusOption={} as any;
-        const addModTable :StaticStatusOption={} as any;
+        const multModTable:StaticStatusOption={};
+        const addModTable :StaticStatusOption={};
         //叠加乘区
         function stackArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
             for(let flag of Object.keys(modMap) as StaticStatusKey[]){

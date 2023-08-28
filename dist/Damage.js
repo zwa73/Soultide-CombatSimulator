@@ -67,8 +67,12 @@ class Damage {
     calcOnDamageModify(target) {
         //计算伤害约束的buff
         const defset = { addModTable: {}, multModTable: {} };
-        const charTableSet = this.source.char ? this.source.char.buffTable.getDamageConsModTable(false, this.info) : defset;
-        const skillTableSet = this.source.skill ? this.source.skill.buffTable.getDamageConsModTable(false, this.info) : defset;
+        const charTableSet = this.source.char
+            ? this.source.char.buffTable.getDamageConsModTable(false, this.info)
+            : defset;
+        const skillTableSet = this.source.skill
+            ? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
+            : defset;
         const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
         const modTableSet = { multModTable: {}, addModTable: {} };
         function mergeMultMod(baseTable, modTable) {
@@ -101,7 +105,8 @@ class Damage {
      * @param addModMap  加值Map
      */
     modValue(base, flag, tableSet) {
-        return (base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) * (tableSet.multModTable[flag] || 1);
+        return ((base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) *
+            (tableSet.multModTable[flag] || 1));
     }
     /**含有某个特效 */
     hasSpecEffect(flag) {
@@ -120,7 +125,7 @@ class Damage {
         //攻击
         let def = this.hasSpecEffect(exports.穿防) || this.hasSpecEffect(exports.治疗) ? 0 : target.getStaticStatus("防御");
         let atk = this.modValue(0, "攻击", modTableSet);
-        dmg *= (atk - def) > 1 ? (atk - def) : 1;
+        dmg *= atk - def > 1 ? atk - def : 1;
         //附加伤害
         let needAdd = this.info.skillType != "非技能";
         let adddmg = 0;
@@ -144,7 +149,7 @@ class Damage {
         dmg += adddmg;
         //浮动
         if (!this.hasSpecEffect(exports.稳定))
-            dmg = dmg + (Math.random() * dmg * 0.1) - dmg * 0.05;
+            dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
         return Math.floor(dmg);
     }
     /**复制一份伤害 */

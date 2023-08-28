@@ -68,117 +68,128 @@ export type DamageSource={
 
 
 /**伤害 */
-export class Damage{
-    /**伤害详细类型 */
-    info: DamageInfo;
-    /**系数 */
-    factor:number;
-    /**特效 */
-    specEffects:SpecEffect[]=[];
-    /**来源 */
-    source:DamageSource;
-    /**
-     * @param source      伤害来源
-     * @param factor      伤害系数
-     * @param info        伤害类型
-     * @param specEffects 特殊效果
-     */
-    constructor(source:DamageSource,factor:number,info:DamageInfo,...specEffects:SpecEffect[]){
-        this.source=source;
-        this.factor=factor;
-        this.info=info;
-        this.specEffects=specEffects;
-    }
-    /**计算攻击时应用的加值与倍率
-     * @param target  受伤角色
-     * @returns [ multModMap, addModMap ]
-     */
-    private calcOnDamageModify(target:Character):ModTableSet{
-        //计算伤害约束的buff
-        const defset:ModTableSet = {addModTable:{},multModTable:{}};
-        const charTableSet   = this.source.char?  this.source.char.buffTable.getDamageConsModTable(false,this.info):defset;
-        const skillTableSet  = this.source.skill? this.source.skill.buffTable.getDamageConsModTable(false,this.info):defset;
-        const targetTableSet = target.buffTable.getDamageConsModTable(true,this.info);
-        const modTableSet:ModTableSet ={multModTable:{},addModTable:{}} as any;
-        function mergeMultMod(baseTable:StaticStatusOption,modTable:StaticStatusOption){
-            for(let flag of Object.keys(modTable) as StaticStatusKey[]){
-                if(baseTable[flag]==null) baseTable[flag]=1;
-                baseTable[flag]!*=modTable[flag]!;
-            }
-        }
-        function mergeAddMod(baseTable:StaticStatusOption,modTable:StaticStatusOption){
-            for(let flag of Object.keys(modTable) as StaticStatusKey[]){
-                if(baseTable[flag]==null) baseTable[flag]=0;
-                baseTable[flag]!+=modTable[flag]!;
-            }
-        }
-        function mergeTableSet(baseSet:ModTableSet,modSet:ModTableSet){
-            mergeMultMod(baseSet.multModTable,modSet.multModTable);
-            mergeAddMod (baseSet.addModTable ,modSet.addModTable );
-        }
-        mergeTableSet(modTableSet,charTableSet);
-        mergeTableSet(modTableSet,targetTableSet);
-        mergeTableSet(modTableSet,skillTableSet);
-        return modTableSet;
-    }
-    /**对数值进行增益
-     * @param base       基础值
-     * @param flag       增益名
-     * @param multModMap 倍率Map
-     * @param addModMap  加值Map
-     */
-    private modValue(base:number,flag:StaticStatusKey,tableSet:ModTableSet){
-        return (base+(this.source.char? this.source.char.getStaticStatus(flag):0)+(tableSet.addModTable[flag]||0))*(tableSet.multModTable[flag]||1);
-    }
-    /**含有某个特效 */
-    hasSpecEffect(flag:SpecEffect){
-        return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
-    }
-    /**计算伤害 */
-    calcOverdamage(target:Character):number{
-        const {dmgType,skillCategory} = this.info;
-        let dmg = this.factor;
-        if(this.hasSpecEffect(固定)) return dmg;
+export class Damage {
+	/**伤害详细类型 */
+	info: DamageInfo;
+	/**系数 */
+	factor: number;
+	/**特效 */
+	specEffects: SpecEffect[] = [];
+	/**来源 */
+	source: DamageSource;
+	/**
+	 * @param source      伤害来源
+	 * @param factor      伤害系数
+	 * @param info        伤害类型
+	 * @param specEffects 特殊效果
+	 */
+	constructor(
+		source: DamageSource,
+		factor: number,
+		info: DamageInfo,
+		...specEffects: SpecEffect[]
+	) {
+		this.source = source;
+		this.factor = factor;
+		this.info = info;
+		this.specEffects = specEffects;
+	}
+	/**计算攻击时应用的加值与倍率
+	 * @param target  受伤角色
+	 * @returns [ multModMap, addModMap ]
+	 */
+	private calcOnDamageModify(target: Character): ModTableSet {
+		//计算伤害约束的buff
+		const defset: ModTableSet = { addModTable: {}, multModTable: {} };
+		const charTableSet = this.source.char
+			? this.source.char.buffTable.getDamageConsModTable(false, this.info)
+			: defset;
+		const skillTableSet = this.source.skill
+			? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
+			: defset;
+		const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
+		const modTableSet: ModTableSet = { multModTable: {}, addModTable: {} };
+		function mergeMultMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+			for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+				if (baseTable[flag] == null) baseTable[flag] = 1;
+				baseTable[flag]! *= modTable[flag]!;
+			}
+		}
+		function mergeAddMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+			for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+				if (baseTable[flag] == null) baseTable[flag] = 0;
+				baseTable[flag]! += modTable[flag]!;
+			}
+		}
+		function mergeTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
+			mergeMultMod(baseSet.multModTable, modSet.multModTable);
+			mergeAddMod(baseSet.addModTable, modSet.addModTable);
+		}
+		mergeTableSet(modTableSet, charTableSet);
+		mergeTableSet(modTableSet, targetTableSet);
+		mergeTableSet(modTableSet, skillTableSet);
+		return modTableSet;
+	}
+	/**对数值进行增益
+	 * @param base       基础值
+	 * @param flag       增益名
+	 * @param multModMap 倍率Map
+	 * @param addModMap  加值Map
+	 */
+	private modValue(base: number, flag: StaticStatusKey, tableSet: ModTableSet) {
+		return (
+			(base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) *
+			(tableSet.multModTable[flag] || 1)
+		);
+	}
+	/**含有某个特效 */
+	hasSpecEffect(flag: SpecEffect) {
+		return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
+	}
+	/**计算伤害 */
+	calcOverdamage(target: Character): number {
+		const { dmgType, skillCategory } = this.info;
+		let dmg = this.factor;
+		if (this.hasSpecEffect(固定)) return dmg;
 
-        const modTableSet = this.calcOnDamageModify(target);
-        console.log(modTableSet)
-        //系数
-        dmg=this.modValue(dmg,"伤害系数",modTableSet);
+		const modTableSet = this.calcOnDamageModify(target);
+		console.log(modTableSet);
+		//系数
+		dmg = this.modValue(dmg, "伤害系数", modTableSet);
 
-        //攻击
-        let def = this.hasSpecEffect(穿防)||this.hasSpecEffect(治疗)? 0:target.getStaticStatus("防御");
-        let atk = this.modValue(0,"攻击",modTableSet);
-        dmg*=(atk-def)>1? (atk-def):1;
+		//攻击
+		let def = this.hasSpecEffect(穿防) || this.hasSpecEffect(治疗)? 0 : target.getStaticStatus("防御");
+		let atk = this.modValue(0, "攻击", modTableSet);
+		dmg *= atk - def > 1 ? atk - def : 1;
 
-        //附加伤害
-        let needAdd = this.info.skillType!="非技能";
-        let adddmg=0;
-        if(needAdd) adddmg = this.modValue(0,AddiDamageIncludeMap[dmgType],modTableSet);
+		//附加伤害
+		let needAdd = this.info.skillType != "非技能";
+		let adddmg = 0;
+		if (needAdd) adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], modTableSet);
 
-        //泛伤
-        dmg   =this.modValue(dmg,"所有伤害",modTableSet);
-        if(needAdd) adddmg=this.modValue(adddmg,"所有伤害",modTableSet);
+		//泛伤
+		dmg = this.modValue(dmg, "所有伤害", modTableSet);
+		if (needAdd) adddmg = this.modValue(adddmg, "所有伤害", modTableSet);
 
-        //技伤
-        dmg=this.modValue(dmg,`技能伤害`,modTableSet);
+		//技伤
+		dmg = this.modValue(dmg, `技能伤害`, modTableSet);
 
-        //属性伤害
-        for(let t of DamageIncludeMap[this.info.dmgType]){
-            dmg   =this.modValue(dmg, t, modTableSet);
-            if(needAdd) adddmg=this.modValue(adddmg, t, modTableSet);
-        }
+		//属性伤害
+		for (let t of DamageIncludeMap[this.info.dmgType]) {
+			dmg = this.modValue(dmg, t, modTableSet);
+			if (needAdd) adddmg = this.modValue(adddmg, t, modTableSet);
+		}
 
-        //类别伤害
-        dmg=this.modValue(dmg    ,`${skillCategory}伤害`,modTableSet);
-        //合并附伤
-        dmg+=adddmg;
-        //浮动
-        if(!this.hasSpecEffect(稳定))
-            dmg = dmg+(Math.random()*dmg*0.1)-dmg*0.05;
-        return Math.floor(dmg);
-    }
-    /**复制一份伤害 */
-    clone(){
-        return new Damage(this.source,this.factor,this.info,...this.specEffects);
-    }
+		//类别伤害
+		dmg = this.modValue(dmg, `${skillCategory}伤害`, modTableSet);
+		//合并附伤
+		dmg += adddmg;
+		//浮动
+		if (!this.hasSpecEffect(稳定)) dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
+		return Math.floor(dmg);
+	}
+	/**复制一份伤害 */
+	clone() {
+		return new Damage(this.source, this.factor, this.info, ...this.specEffects);
+	}
 }
