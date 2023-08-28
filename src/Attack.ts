@@ -1,4 +1,4 @@
-import { Character } from "./CombatSimulation";
+import { Character } from "./Character";
 import { Damage, 暴击 } from "./Damage";
 
 /**造成技能攻击 */

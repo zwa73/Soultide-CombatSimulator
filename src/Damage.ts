@@ -1,4 +1,4 @@
-import { Character } from "./CombatSimulation";
+import { Character } from "./Character";
 import { ModTableSet } from "./Modify";
 import { SkillData, SkillInfo } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";

@@ -1,4 +1,4 @@
-import { Character } from "./CombatSimulation";
+import { Character } from "./Character";
 import { SkillData, SkillInfo } from "./Skill";
 /**伤害类型枚举 */
 export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];

@@ -4,5 +4,5 @@ export * from './Damage';
 export * from './Skill';
 export * from './Status';
 export * from './Tigger';
-export * from './Aurora';
-export * from './Colcher';
+export * from './Character';
+export * from './CharacterTable';

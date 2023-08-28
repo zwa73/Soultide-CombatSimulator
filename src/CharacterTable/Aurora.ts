@@ -1,5 +1,5 @@
-import { Buff } from "./Modify";
-import { Skill, checkTargets, genAttack, genSkillInfo } from "./Skill";
+import { Buff } from "../Modify";
+import { Skill, checkTargets, genAttack, genSkillInfo } from "../Skill";
 
 export namespace Aurora{
     export const 失心童话:Skill={

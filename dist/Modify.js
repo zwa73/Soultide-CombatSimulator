@@ -30,10 +30,14 @@ exports.matchCons = matchCons;
 class BuffTable {
     _table = {};
     constructor() { }
-    /**添加一个Buff */
-    addBuff(buff, stack, countdown) {
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff, stack = 1, duration = Infinity) {
         if (this._table[buff.name] == null || buff.canSatck != true)
-            this._table[buff.name] = { buff, stack, duration: countdown };
+            this._table[buff.name] = { buff, stack, duration };
         else {
             let cadd = this._table[buff.name];
             cadd.stack += stack;

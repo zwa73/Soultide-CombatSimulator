@@ -80,10 +80,14 @@ export type BuffStack={
 export class BuffTable{
     private _table:Record<string,BuffStack>={};
     constructor(){}
-    /**添加一个Buff */
-    addBuff(buff:Buff,stack:number,countdown:number){
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
         if(this._table[buff.name]==null || buff.canSatck!=true)
-            this._table[buff.name]={ buff, stack, duration: countdown };
+            this._table[buff.name]={ buff, stack, duration };
         else{
             let cadd = this._table[buff.name];
             cadd.stack+=stack;

@@ -1,5 +1,5 @@
-import { Buff } from "./Modify";
-import { Skill, checkTargets, genSkillInfo } from "./Skill";
+import { Buff } from "../Modify";
+import { Skill, checkTargets, genSkillInfo } from "../Skill";
 
 export namespace Colcher{
     export const 王女的祝福:Skill={
@@ -7,7 +7,7 @@ export namespace Colcher{
         cast(skillData){
             const {user,targetList}=skillData;
             checkTargets(targetList,1,1);
-            targetList[0].addBuff(回音);
+            targetList[0].addBuff(回音,1,2);
         }
     }
     export const 回音:Buff={

@@ -57,8 +57,12 @@ export type BuffStack = {
 export declare class BuffTable {
     private _table;
     constructor();
-    /**添加一个Buff */
-    addBuff(buff: Buff, stack: number, countdown: number): void;
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff: Buff, stack?: number, duration?: number): void;
     /**获取一个Buff的层数 */
     getBuffStack(key: string): number;
     /**获取buff持续时间 */

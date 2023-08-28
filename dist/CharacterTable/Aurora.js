@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Aurora = void 0;
-const Skill_1 = require("./Skill");
+const Skill_1 = require("../Skill");
 var Aurora;
 (function (Aurora) {
     Aurora.失心童话 = {

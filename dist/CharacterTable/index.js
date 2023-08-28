@@ -14,11 +14,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./CombatSimulation"), exports);
-__exportStar(require("./Attack"), exports);
-__exportStar(require("./Damage"), exports);
-__exportStar(require("./Skill"), exports);
-__exportStar(require("./Status"), exports);
-__exportStar(require("./Tigger"), exports);
-__exportStar(require("./Character"), exports);
-__exportStar(require("./CharacterTable"), exports);
+__exportStar(require("./Aurora"), exports);
+__exportStar(require("./Colcher"), exports);

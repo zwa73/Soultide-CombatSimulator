@@ -1,5 +1,6 @@
 import { Attack } from "./Attack";
-import { Battlefield, Character } from "./CombatSimulation";
+import { Character } from "./Character";
+import { Battlefield } from "./CombatSimulation";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
 import { BuffTable } from "./Modify";
 

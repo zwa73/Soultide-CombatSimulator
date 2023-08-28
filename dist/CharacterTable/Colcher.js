@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Colcher = void 0;
-const Skill_1 = require("./Skill");
+const Skill_1 = require("../Skill");
 var Colcher;
 (function (Colcher) {
     Colcher.王女的祝福 = {
@@ -9,7 +9,7 @@ var Colcher;
         cast(skillData) {
             const { user, targetList } = skillData;
             (0, Skill_1.checkTargets)(targetList, 1, 1);
-            targetList[0].addBuff(Colcher.回音);
+            targetList[0].addBuff(Colcher.回音, 1, 2);
         }
     };
     Colcher.回音 = {
