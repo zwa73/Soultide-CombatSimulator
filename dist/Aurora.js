@@ -24,14 +24,12 @@ var Aurora;
     const 噩廻 = {
         name: "噩廻",
         canSatck: true,
-        stackModifyOnDamages: [{
-                number: 0.03,
-                modifyType: "伤害系数",
-                constraint: ["奥义", "雷电技能"],
-            }, {
-                number: 0.002,
-                modifyType: "攻击力",
-                constraint: ["奥义", "雷电技能"],
-            }]
+        stackMultModify: {
+            攻击: 0.002,
+        },
+        stackAddModify: {
+            伤害系数: 0.03,
+        },
+        damageConstraint: ["奥义", "雷电技能"],
     };
 })(Aurora = exports.Aurora || (exports.Aurora = {}));

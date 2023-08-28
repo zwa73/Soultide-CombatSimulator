@@ -3,26 +3,42 @@ import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
 import { Skill, SkillData } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { OnDamageModify } from './OnDamageModify';
+import { DamageInfoConstraints, ModifyType, ModifyTypeList } from './OnDamageModify';
 /**静态属性 */
 export type StaticStatus={
-    /**最大生命值 */
-    maxHealth:  number;
-    /**攻击力 */
-    attack:     number;
+    /**最大生命 */
+    最大生命:number;
+    /**攻击 */
+    攻击:    number;
     /**速度 */
-    speed:      number;
-    /**防御力 */
-    defense:    number;
+    速度:      number;
+    /**防御 */
+    防御:      number;
     /**暴击率 */
-    critRate:   number;
+    暴击率:    number;
     /**暴击伤害 */
-    critDamage: number;
+    暴击伤害:  number;
     /**初始怒气 */
-    startEnergy:number;
+    初始怒气:  number;
     /**闪避 */
-    dodge:      number;
-}
+    闪避:      number;
+}&Record<ModifyType,number>;
+/**默认的属性 */
+export const DefStaticStatus:StaticStatus={
+    最大生命    :0,
+    攻击        :0,
+    速度        :0,
+    防御        :0,
+    暴击率      :0.05,
+    暴击伤害    :1.5,
+    初始怒气    :0,
+    闪避        :0,
+} as StaticStatus;
+ModifyTypeList.forEach(item=>DefStaticStatus[item]=0);
+/**静态属性键 */
+export type StaticStatusKey = keyof StaticStatus;
+
+
 /**静态属性 选项*/
 export type StaticStatusOption = Partial<StaticStatus>;
 
@@ -39,21 +55,32 @@ export type Buff={
     name:string;
     /**可叠加 */
     canSatck?:boolean;
-    /**层数 */
-    stackCount?:number;
+    /**是受攻击的buff */
+    isHurtMod?:true;
     /**面板倍率增益 */
-    statusMultModify?:StaticStatusOption;
+    multModify?:StaticStatusOption;
     /**叠加的面板倍率增益 */
-    stackStatausMultModify?:StaticStatusOption;
-    /**伤害时的增益 */
-    modifyOnDamages?:OnDamageModify[];
-    /**叠加的伤害时的增益 */
-    stackModifyOnDamages?:OnDamageModify[];
+    stackMultModify?:StaticStatusOption;
+    /**面板数值增益 */
+    addModify?:StaticStatusOption;
+    /**叠加的面板数值增益 */
+    stackAddModify?:StaticStatusOption;
+    /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
+    damageConstraint?:DamageInfoConstraints;
     /**触发器 */
     tiggerList?:AnyTigger[];
 }
+/**叠加的buff */
+export type StackBuff={
+    /**buff类型 */
+    buff:Buff,
+    /**叠加层数 */
+    stack:number,
+}
 /**角色 */
 export class Character {
+    /**角色名称 */
+    name:string;
     /**角色处在的战场 */
     battlefield:Battlefield=DefaultBattlefield;
     /**角色的静态属性 */
@@ -61,31 +88,30 @@ export class Character {
     /**角色的当前属性 */
     dynmaicStatus:DynmaicStatus;
     /**所有的附加状态 */
-    buffTable:Record<string,{
-        stackCount:number,
-        buff:Buff
-    }>={};
+    buffTable:Record<string,StackBuff>={};
 
-    constructor({maxHealth=1,attack=0,speed=0,defense=0,
-        critRate=0.05,critDamage=1.5,startEnergy=0,dodge=0
-    }:StaticStatusOption){
-        this.staticStatus = {maxHealth,attack,speed,defense,
-            critRate,critDamage,startEnergy,dodge};
+    constructor(name:string,opt:StaticStatusOption){
+        this.name=name;
+        this.staticStatus = Object.assign({},DefStaticStatus,opt);
         this.dynmaicStatus = {
-            health:maxHealth,
-            energy:startEnergy,
+            health:this.staticStatus.最大生命,
+            energy:this.staticStatus.初始怒气,
         }
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field:keyof StaticStatus){
+    getStaticStatus(field:StaticStatusKey){
         let modify:number=1;
-        for(let key in this.buffTable){
-            let stackData = this.buffTable[key];
+        for(let buffName in this.buffTable){
+            let stackData = this.buffTable[buffName];
             let buff = stackData.buff;
-            if(buff.statusMultModify)
-                modify += buff.statusMultModify[field]||0;
-            if(buff.stackStatausMultModify && stackData.stackCount)
-                modify += stackData.stackCount * (buff.stackStatausMultModify[field]||0);
+            let stack = stackData.stack;
+
+            if(buff.damageConstraint!=null) continue;
+
+            if(buff.multModify)
+                modify += buff.multModify[field]||0;
+            if(buff.stackMultModify && stack)
+                modify += stack * (buff.stackMultModify[field]||0);
         }
         return this.staticStatus[field]*modify;
     }
@@ -105,40 +131,13 @@ export class Character {
         arr.sort((a, b) => (b.weight||0) - (a.weight||0));
         return arr;
     }
-    addBuff(buff:Buff,stackCount:number){
+    addBuff(buff:Buff,stack:number){
         if(this.buffTable[buff.name]==null || buff.canSatck!=true)
-            this.buffTable[buff.name]={buff,stackCount};
+            this.buffTable[buff.name]={buff,stack};
         else{
             let cadd = this.buffTable[buff.name];
-            cadd.stackCount+=stackCount;
+            cadd.stack+=stack;
         }
-    }
-    /**获取所有伤害时生效的增益 */
-    getOnDamageModify(){
-        let list:{
-            /**增益 */
-            mod:OnDamageModify,
-            /**叠加数 */
-            stack:number,
-        }[] = [];
-        for(let key in this.buffTable){
-            let stackData = this.buffTable[key];
-            let buff = stackData.buff;
-            if(buff.modifyOnDamages!=null){
-                buff.modifyOnDamages.forEach(item=>list.push({
-                    mod:item,
-                    stack:1,
-                }));
-            }
-            if(buff.stackModifyOnDamages!=null && stackData.stackCount!=null){
-                let num = stackData.stackCount;
-                buff.stackModifyOnDamages.forEach(item=>list.push({
-                    mod:item,
-                    stack:num,
-                }));
-            }
-        }
-        return list;
     }
     /**释放某个技能
      * @param skill  技能
@@ -158,7 +157,7 @@ export class Character {
     getHurt(damage:Damage){
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.health-=dmg;
-        console.log(dmg)
+        console.log(this.name+" 受到",dmg,"点伤害")
     }
     /**受到攻击 */
     getHit(attack:Attack){
@@ -167,7 +166,7 @@ export class Character {
     }
     /**克隆角色 */
     clone():Character{
-        return new Character(utils.deepClone(this.staticStatus));
+        return new Character(this.name,utils.deepClone(this.staticStatus));
     }
 }
 

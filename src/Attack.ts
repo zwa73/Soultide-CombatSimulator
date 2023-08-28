@@ -17,7 +17,7 @@ export class Attack{
     }
     /**计算一段攻击伤害 */
     calcDamage():Damage{
-        let critRate = this.source.getStaticStatus("critRate");
+        let critRate = this.source.getStaticStatus("暴击率");
         let currDamage = this.damage.clone();
         if(Math.random()<critRate)
             currDamage.specEffects.push(暴击);

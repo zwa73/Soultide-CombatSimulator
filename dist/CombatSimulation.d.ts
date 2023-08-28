@@ -2,26 +2,30 @@ import { AnyHook, AnyTigger, HookTiggerMap } from './Tigger';
 import { Skill } from './Skill';
 import { Damage } from './Damage';
 import { Attack } from './Attack';
-import { OnDamageModify } from './OnDamageModify';
+import { DamageInfoConstraints, ModifyType } from './OnDamageModify';
 /**静态属性 */
 export type StaticStatus = {
-    /**最大生命值 */
-    maxHealth: number;
-    /**攻击力 */
-    attack: number;
+    /**最大生命 */
+    最大生命: number;
+    /**攻击 */
+    攻击: number;
     /**速度 */
-    speed: number;
-    /**防御力 */
-    defense: number;
+    速度: number;
+    /**防御 */
+    防御: number;
     /**暴击率 */
-    critRate: number;
+    暴击率: number;
     /**暴击伤害 */
-    critDamage: number;
+    暴击伤害: number;
     /**初始怒气 */
-    startEnergy: number;
+    初始怒气: number;
     /**闪避 */
-    dodge: number;
-};
+    闪避: number;
+} & Record<ModifyType, number>;
+/**默认的属性 */
+export declare const DefStaticStatus: StaticStatus;
+/**静态属性键 */
+export type StaticStatusKey = keyof StaticStatus;
 /**静态属性 选项*/
 export type StaticStatusOption = Partial<StaticStatus>;
 /**当前属性 */
@@ -37,21 +41,32 @@ export type Buff = {
     name: string;
     /**可叠加 */
     canSatck?: boolean;
-    /**层数 */
-    stackCount?: number;
+    /**是受攻击的buff */
+    isHurtMod?: true;
     /**面板倍率增益 */
-    statusMultModify?: StaticStatusOption;
+    multModify?: StaticStatusOption;
     /**叠加的面板倍率增益 */
-    stackStatausMultModify?: StaticStatusOption;
-    /**伤害时的增益 */
-    modifyOnDamages?: OnDamageModify[];
-    /**叠加的伤害时的增益 */
-    stackModifyOnDamages?: OnDamageModify[];
+    stackMultModify?: StaticStatusOption;
+    /**面板数值增益 */
+    addModify?: StaticStatusOption;
+    /**叠加的面板数值增益 */
+    stackAddModify?: StaticStatusOption;
+    /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
+    damageConstraint?: DamageInfoConstraints;
     /**触发器 */
     tiggerList?: AnyTigger[];
 };
+/**叠加的buff */
+export type StackBuff = {
+    /**buff类型 */
+    buff: Buff;
+    /**叠加层数 */
+    stack: number;
+};
 /**角色 */
 export declare class Character {
+    /**角色名称 */
+    name: string;
     /**角色处在的战场 */
     battlefield: Battlefield;
     /**角色的静态属性 */
@@ -59,23 +74,13 @@ export declare class Character {
     /**角色的当前属性 */
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */
-    buffTable: Record<string, {
-        stackCount: number;
-        buff: Buff;
-    }>;
-    constructor({ maxHealth, attack, speed, defense, critRate, critDamage, startEnergy, dodge }: StaticStatusOption);
+    buffTable: Record<string, StackBuff>;
+    constructor(name: string, opt: StaticStatusOption);
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field: keyof StaticStatus): number;
+    getStaticStatus(field: StaticStatusKey): number;
     /**获取所有对应触发器 */
     getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
-    addBuff(buff: Buff, stackCount: number): void;
-    /**获取所有伤害时生效的增益 */
-    getOnDamageModify(): {
-        /**增益 */
-        mod: OnDamageModify;
-        /**叠加数 */
-        stack: number;
-    }[];
+    addBuff(buff: Buff, stack: number): void;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标

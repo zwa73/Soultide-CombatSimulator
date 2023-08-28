@@ -1,9 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefaultBattlefield = exports.Battlefield = exports.Formation = exports.Character = void 0;
+exports.DefaultBattlefield = exports.Battlefield = exports.Formation = exports.Character = exports.DefStaticStatus = void 0;
 const utils = require("@zwa73/utils");
+const OnDamageModify_1 = require("./OnDamageModify");
+/**默认的属性 */
+exports.DefStaticStatus = {
+    最大生命: 0,
+    攻击: 0,
+    速度: 0,
+    防御: 0,
+    暴击率: 0.05,
+    暴击伤害: 1.5,
+    初始怒气: 0,
+    闪避: 0,
+};
+OnDamageModify_1.ModifyTypeList.forEach(item => exports.DefStaticStatus[item] = 0);
 /**角色 */
 class Character {
+    /**角色名称 */
+    name;
     /**角色处在的战场 */
     battlefield = exports.DefaultBattlefield;
     /**角色的静态属性 */
@@ -12,24 +27,27 @@ class Character {
     dynmaicStatus;
     /**所有的附加状态 */
     buffTable = {};
-    constructor({ maxHealth = 1, attack = 0, speed = 0, defense = 0, critRate = 0.05, critDamage = 1.5, startEnergy = 0, dodge = 0 }) {
-        this.staticStatus = { maxHealth, attack, speed, defense,
-            critRate, critDamage, startEnergy, dodge };
+    constructor(name, opt) {
+        this.name = name;
+        this.staticStatus = Object.assign({}, exports.DefStaticStatus, opt);
         this.dynmaicStatus = {
-            health: maxHealth,
-            energy: startEnergy,
+            health: this.staticStatus.最大生命,
+            energy: this.staticStatus.初始怒气,
         };
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field) {
         let modify = 1;
-        for (let key in this.buffTable) {
-            let stackData = this.buffTable[key];
+        for (let buffName in this.buffTable) {
+            let stackData = this.buffTable[buffName];
             let buff = stackData.buff;
-            if (buff.statusMultModify)
-                modify += buff.statusMultModify[field] || 0;
-            if (buff.stackStatausMultModify && stackData.stackCount)
-                modify += stackData.stackCount * (buff.stackStatausMultModify[field] || 0);
+            let stack = stackData.stack;
+            if (buff.damageConstraint != null)
+                continue;
+            if (buff.multModify)
+                modify += buff.multModify[field] || 0;
+            if (buff.stackMultModify && stack)
+                modify += stack * (buff.stackMultModify[field] || 0);
         }
         return this.staticStatus[field] * modify;
     }
@@ -48,35 +66,13 @@ class Character {
         arr.sort((a, b) => (b.weight || 0) - (a.weight || 0));
         return arr;
     }
-    addBuff(buff, stackCount) {
+    addBuff(buff, stack) {
         if (this.buffTable[buff.name] == null || buff.canSatck != true)
-            this.buffTable[buff.name] = { buff, stackCount };
+            this.buffTable[buff.name] = { buff, stack };
         else {
             let cadd = this.buffTable[buff.name];
-            cadd.stackCount += stackCount;
+            cadd.stack += stack;
         }
-    }
-    /**获取所有伤害时生效的增益 */
-    getOnDamageModify() {
-        let list = [];
-        for (let key in this.buffTable) {
-            let stackData = this.buffTable[key];
-            let buff = stackData.buff;
-            if (buff.modifyOnDamages != null) {
-                buff.modifyOnDamages.forEach(item => list.push({
-                    mod: item,
-                    stack: 1,
-                }));
-            }
-            if (buff.stackModifyOnDamages != null && stackData.stackCount != null) {
-                let num = stackData.stackCount;
-                buff.stackModifyOnDamages.forEach(item => list.push({
-                    mod: item,
-                    stack: num,
-                }));
-            }
-        }
-        return list;
     }
     /**释放某个技能
      * @param skill  技能
@@ -96,7 +92,7 @@ class Character {
     getHurt(damage) {
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.health -= dmg;
-        console.log(dmg);
+        console.log(this.name + " 受到", dmg, "点伤害");
     }
     /**受到攻击 */
     getHit(attack) {
@@ -105,7 +101,7 @@ class Character {
     }
     /**克隆角色 */
     clone() {
-        return new Character(utils.deepClone(this.staticStatus));
+        return new Character(this.name, utils.deepClone(this.staticStatus));
     }
 }
 exports.Character = Character;

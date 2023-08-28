@@ -1,4 +1,4 @@
-import { Character } from "./CombatSimulation";
+import { Character, StackBuff, StaticStatus, StaticStatusKey } from "./CombatSimulation";
 import { ModifyType, testConstraints } from "./OnDamageModify";
 import { SkillCategory, SkillType, SkillRange } from "./Skill";
 
@@ -52,6 +52,35 @@ export type DamageInfo={
     dmgType:DamageType;
 }
 
+
+function calcOnDamageModify(multMod:Record<StaticStatusKey,number|undefined>,
+    addMod:Record<StaticStatusKey,number|undefined>,buffList:StackBuff[]){
+    for(let item of buffList){
+        let basedMultTable = item.buff.multModify||{};
+        let stackMultTable = item.buff.stackMultModify||{};
+        let basedAddTable  = item.buff.addModify||{};
+        let stackAddTable  = item.buff.stackAddModify||{};
+        let stack = item.stack;
+        for(let flag of Object.keys(basedMultTable) as StaticStatusKey[]){
+            if(multMod[flag]==null) multMod[flag]=1;
+            multMod[flag]!+=basedMultTable[flag]!;
+        }
+        for(let flag of Object.keys(stackMultTable) as StaticStatusKey[]){
+            if(multMod[flag]==null) multMod[flag]=1;
+            multMod[flag]!+=stackMultTable[flag]!*stack;
+        }
+        for(let flag of Object.keys(basedAddTable) as StaticStatusKey[]){
+            if(addMod[flag]==null) addMod[flag]=0;
+            addMod[flag]!+=basedAddTable[flag]!;
+        }
+        for(let flag of Object.keys(stackAddTable) as StaticStatusKey[]){
+            if(addMod[flag]==null) addMod[flag]=0;
+            addMod[flag]!+=stackAddTable[flag]!*stack;
+        }
+    }
+}
+
+
 /**伤害 */
 export class Damage{
     /**伤害详细类型 */
@@ -81,61 +110,69 @@ export class Damage{
     }
     /**计算伤害 */
     calcOverdamage(target:Character):number{
+        const {dmgType,skillCategory} = this.info;
         let dmg = this.factor;
         if(this.hasSpecEffect(固定)) return dmg;
 
-        //计算修正
-        const sourceModlist = this.source.getOnDamageModify()
-            .filter(item=>!item.mod.isHurtMod && testConstraints(this.info,item.mod.constraint));
-        const targetModlist = target.getOnDamageModify()
-            .filter(item=>  item.mod.isHurtMod && testConstraints(this.info,item.mod.constraint));
-        const sourceMod:Record<ModifyType,number|undefined> = {} as any;
-        const targetMod:Record<ModifyType,number|undefined> = {} as any;
-        for(let item of sourceModlist){
-            let flag = item.mod.modifyType;
-            if(sourceMod[flag]==null) sourceMod[flag]=1;
-            sourceMod[flag]!+=item.mod.number*item.stack;
-        }
-        for(let item of targetModlist){
-            let flag = item.mod.modifyType;
-            if(targetMod[flag]==null) targetMod[flag]=1;
-            targetMod[flag]!+=item.mod.number*item.stack;
-        }
-
+        //计算伤害约束的buff
+        const sourceBuffList = Object.values(this.source.buffTable)
+            .filter(item=>
+                !item.buff.isHurtMod && item.buff.damageConstraint &&
+                testConstraints(this.info,item.buff.damageConstraint));
+        const targetMultList = Object.values(target.buffTable)
+            .filter(item=>
+                item.buff.isHurtMod && item.buff.damageConstraint &&
+                testConstraints(this.info,item.buff.damageConstraint));
+        const sourceMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
+        const sourceAddMod:Record<StaticStatusKey,number|undefined> = {} as any;
+        const targetMultMod:Record<StaticStatusKey,number|undefined> = {} as any;
+        const targetAddMod:Record<StaticStatusKey,number|undefined> = {} as any;
+        calcOnDamageModify(sourceMultMod,sourceAddMod,sourceBuffList);
+        calcOnDamageModify(targetMultMod,targetAddMod,targetMultList);
         //系数
-        dmg+=(sourceMod.伤害系数||0)+(targetMod.伤害系数||0);
+        dmg=(dmg+(sourceAddMod.伤害系数||0)+(targetAddMod.伤害系数||0))*
+            (sourceMultMod.伤害系数||1)*(targetMultMod.伤害系数||1);
 
         //攻击
-        let def = this.hasSpecEffect(穿防)||this.hasSpecEffect(治疗)? 0:target.getStaticStatus("defense");
-        let atk = this.source.getStaticStatus("attack")*(sourceMod.攻击力||1)*(targetMod.攻击力||1) - def;
+        let def = this.hasSpecEffect(穿防)||this.hasSpecEffect(治疗)? 0:target.getStaticStatus("防御");
+        let atk = (this.source.getStaticStatus("攻击")+(sourceAddMod.攻击||0)+(targetAddMod.攻击||0))*
+            (sourceMultMod.攻击||1)*(targetMultMod.攻击||1) - def;
         dmg*=atk>1? atk:1;
 
         //附加伤害
-        let adddmg=(sourceMod[`${this.info.dmgType}附伤`]||0)+(sourceMod[`${this.info.dmgType}附伤`]||0);
+        let adddmg=((sourceAddMod[`${dmgType}附伤`]||0)+(targetAddMod[`${dmgType}附伤`]||0))*
+            (targetMultMod[`${dmgType}附伤`]||1)*(targetMultMod[`${dmgType}附伤`]||1);
 
         //泛伤
-        dmg   *=(sourceMod.所有伤害||1)*(targetMod.所有伤害||1);
-        adddmg*=(sourceMod.所有伤害||1)*(targetMod.所有伤害||1);
+        dmg   =(dmg+(sourceAddMod.所有伤害||0)+(targetAddMod.所有伤害||0))*
+            (sourceMultMod.所有伤害||1)*(targetMultMod.所有伤害||1);
+        adddmg=(adddmg+(sourceAddMod.所有伤害||0)+(targetAddMod.所有伤害||0))*
+            (sourceMultMod.所有伤害||1)*(targetMultMod.所有伤害||1);
 
         //技伤
-        dmg*=(sourceMod.技能伤害||1)*(targetMod.技能伤害||1);
+        dmg=(dmg+(sourceAddMod.技能伤害||0)+(targetAddMod.技能伤害||0))*
+            (sourceMultMod.技能伤害||1)*(targetMultMod.技能伤害||1);
 
         //属性伤害
         let tlist:DamageType[] = DamageIncludeMap[this.info.dmgType]||[this.info.dmgType];
         for(let t of tlist){
             let flag:ModifyType = `${t}伤害`;
-            dmg   *=(sourceMod[flag]||1)*(sourceMod[flag]||1);
-            adddmg*=(sourceMod[flag]||1)*(sourceMod[flag]||1);
+            dmg   =(dmg+(sourceAddMod[flag]||0)+(targetAddMod[flag]||0))
+                *(sourceMultMod[flag]||1)*(targetMultMod[flag]||1);
+            adddmg=(adddmg+(sourceAddMod[flag]||0)+(targetAddMod[flag]||0))
+                *(sourceMultMod[flag]||1)*(targetMultMod[flag]||1);
         }
 
         //类别伤害
-        for(let t of tlist)
-            dmg*=(sourceMod[`${this.info.skillCategory}伤害`]||1)*(sourceMod[`${this.info.skillCategory}伤害`]||1);
+        dmg=(dmg+(sourceAddMod[`${skillCategory}伤害`]||0)+(targetAddMod[`${skillCategory}伤害`]||0))*
+            (sourceMultMod[`${skillCategory}伤害`]||1)*(targetMultMod[`${skillCategory}伤害`]||1);
 
+        //合并附伤
+        dmg+=adddmg;
         //浮动
         if(!this.hasSpecEffect(稳定))
             dmg = dmg+(Math.random()*dmg*0.1)-dmg*0.05;
-        return dmg+adddmg;
+        return Math.floor(dmg);
     }
     /**复制一份伤害 */
     clone(){
