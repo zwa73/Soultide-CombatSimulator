@@ -1,19 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Damage = exports.DamageSpecMap = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = exports.DamageIncludeMap = exports.DamageTypeList = void 0;
+exports.Damage = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = void 0;
 //———————————————————— 伤害 ————————————————————//
 /**伤害类型枚举 */
-exports.DamageTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
+const DamageBaseTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
     "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
-/**undefine值的伤害类型Record */
-const DamageTypeUndefineRecord = exports.DamageTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
 /**伤害包含关系表 */
-exports.DamageIncludeMap = Object.keys(DamageTypeUndefineRecord).reduce((acc, key) => ({ ...acc, [key]: [key] }), {});
-exports.DamageIncludeMap.雷电 = ["雷电", "电击"];
-exports.DamageIncludeMap.冰霜 = ["冰霜", "极寒"];
-exports.DamageIncludeMap.火焰 = ["火焰", "燃烧"];
-exports.DamageIncludeMap.魔法 = ["魔法", "暗蚀"];
-exports.DamageIncludeMap.物理 = ["物理", "流血"];
+const DamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: [key] }), {});
+DamageIncludeMap.雷电伤害 = ["雷电伤害", "电击伤害"];
+DamageIncludeMap.冰霜伤害 = ["冰霜伤害", "极寒伤害"];
+DamageIncludeMap.火焰伤害 = ["火焰伤害", "燃烧伤害"];
+DamageIncludeMap.魔法伤害 = ["魔法伤害", "暗蚀伤害"];
+DamageIncludeMap.物理伤害 = ["物理伤害", "流血伤害"];
+/**附伤关系表 */
+const AddiDamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}附伤`] }), {});
 /**伤害特效 */
 var SpecEffect;
 (function (SpecEffect) {
@@ -33,10 +33,11 @@ var SpecEffect;
 ;
 exports.治疗 = SpecEffect.治疗, exports.固定 = SpecEffect.固定, exports.稳定 = SpecEffect.稳定, exports.穿盾 = SpecEffect.穿盾, exports.穿防 = SpecEffect.穿防, exports.暴击 = SpecEffect.暴击;
 /**伤害特殊效果表 */
-exports.DamageSpecMap = DamageTypeUndefineRecord;
-exports.DamageSpecMap.治疗 = [exports.治疗];
-exports.DamageSpecMap.固定 = [exports.固定, exports.稳定, exports.穿防];
-exports.DamageSpecMap.燃烧 = [exports.穿盾];
+const DamageSpecMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
+;
+DamageSpecMap.治疗伤害 = [exports.治疗];
+DamageSpecMap.固定伤害 = [exports.固定, exports.稳定, exports.穿防];
+DamageSpecMap.燃烧伤害 = [exports.穿盾];
 /**伤害 */
 class Damage {
     /**伤害详细类型 */
@@ -104,7 +105,7 @@ class Damage {
     }
     /**含有某个特效 */
     hasSpecEffect(flag) {
-        return this.specEffects.includes(flag) || exports.DamageSpecMap[this.info.dmgType]?.includes(flag);
+        return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
     }
     /**计算伤害 */
     calcOverdamage(target) {
@@ -124,18 +125,18 @@ class Damage {
         let needAdd = this.info.skillType != "非技能";
         let adddmg = 0;
         if (needAdd)
-            adddmg = this.modValue(0, `${dmgType}附伤`, modTableSet);
+            adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], modTableSet);
         //泛伤
-        dmg = this.modValue(dmg, `所有伤害`, modTableSet);
-        if (this.info.skillType != "非技能")
-            adddmg = this.modValue(adddmg, `所有伤害`, modTableSet);
+        dmg = this.modValue(dmg, "所有伤害", modTableSet);
+        if (needAdd)
+            adddmg = this.modValue(adddmg, "所有伤害", modTableSet);
         //技伤
         dmg = this.modValue(dmg, `技能伤害`, modTableSet);
         //属性伤害
-        for (let t of exports.DamageIncludeMap[this.info.dmgType]) {
-            dmg = this.modValue(dmg, `${t}伤害`, modTableSet);
+        for (let t of DamageIncludeMap[this.info.dmgType]) {
+            dmg = this.modValue(dmg, t, modTableSet);
             if (needAdd)
-                adddmg = this.modValue(adddmg, `${t}伤害`, modTableSet);
+                adddmg = this.modValue(adddmg, t, modTableSet);
         }
         //类别伤害
         dmg = this.modValue(dmg, `${skillCategory}伤害`, modTableSet);

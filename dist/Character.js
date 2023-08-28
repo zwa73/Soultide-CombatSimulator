@@ -21,13 +21,13 @@ class Character {
         this.name = name;
         this.staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
         this.dynmaicStatus = {
-            当前生命: this.staticStatus.最大生命,
-            当前怒气: this.staticStatus.初始怒气,
+            当前生命: this.staticStatus.最大生命 || 0,
+            当前怒气: this.staticStatus.初始怒气 || 0,
         };
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field) {
-        let mod = this.buffTable.getStaticStatus(this.staticStatus[field], field);
+        let mod = this.buffTable.getStaticStatus(this.staticStatus[field] || 0, field);
         return mod;
     }
     /**添加一个buff

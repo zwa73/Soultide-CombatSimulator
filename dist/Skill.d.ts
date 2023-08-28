@@ -4,18 +4,18 @@ import { Battlefield } from "./CombatSimulation";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
 import { BuffTable } from "./Modify";
 /**技能类型 */
-export declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
+declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 /**技能范围 */
-export declare const SkillRangeList: readonly ["单体", "群体", "无范围"];
+declare const SkillRangeList: readonly ["单体", "群体", "无范围"];
 export type SkillRange = typeof SkillRangeList[number];
 /**技能子类型 */
-export declare const SkillSubtypeList: readonly ["伤害技能", "治疗技能", "其他技能"];
+declare const SkillSubtypeList: readonly ["伤害技能", "治疗技能", "其他技能"];
 export type SkillSubtype = typeof SkillSubtypeList[number];
 /**技能目标 */
 export type SkillTarget = "友军" | "我方" | "敌方" | "敌方前排" | "敌方后排";
 /**技能类别 */
-export declare const SkillCategoryList: readonly ["普攻", "核心", "秘术", "奥义", "无类别"];
+declare const SkillCategoryList: readonly ["普攻", "核心", "秘术", "奥义", "无类别"];
 export type SkillCategory = typeof SkillCategoryList[number];
 export type SkillData = {
     skill: Skill;
@@ -65,3 +65,4 @@ export declare function genDamage(skill: Skill, skillData: SkillData, factor: nu
 export declare function genAttack(skill: Skill, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
 export declare function genSkillInfo(skillName: SkillName, skillType: SkillType, skillSubtype: SkillSubtype, skillRange: SkillRange, skillCategory: SkillCategory): SkillInfo;
 export declare function checkTargets(targets: Character[], needMin: number, needMax: number): void;
+export {};

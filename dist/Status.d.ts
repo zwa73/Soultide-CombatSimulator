@@ -23,7 +23,7 @@ export type StaticStatus = {
     怒气回复: number;
 } & Record<ModifyType, number>;
 /**默认的属性 */
-export declare const DefStaticStatus: StaticStatus;
+export declare const DefStaticStatus: StaticStatusOption;
 /**静态属性键 */
 export type StaticStatusKey = keyof StaticStatus;
 /**静态属性 选项*/

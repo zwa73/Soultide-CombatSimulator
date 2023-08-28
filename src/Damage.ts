@@ -8,22 +8,25 @@ import { StaticStatusKey, StaticStatusOption } from "./Status";
 
 
 /**伤害类型枚举 */
-export const DamageTypeList = ["雷电","冰霜","火焰","魔法","物理",
+const DamageBaseTypeList = ["雷电","冰霜","火焰","魔法","物理",
     "电击","极寒","燃烧","暗蚀","流血","治疗","固定"] as const;
 /**伤害类型 */
-export type DamageType = `${typeof DamageTypeList[number]}`;
-/**undefine值的伤害类型Record */
-const DamageTypeUndefineRecord:Record<DamageType,undefined> = DamageTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;
+export type DamageType = `${typeof DamageBaseTypeList[number]}伤害`;
+/**附伤类型 additional damage */
+export type AddiDamageType = `${typeof DamageBaseTypeList[number]}附伤`;
 
 /**伤害包含关系表 */
-export const DamageIncludeMap:Record<DamageType,DamageType[]>=
-    Object.keys(DamageTypeUndefineRecord).reduce((acc, key) => ({ ...acc, [key]: [key] }), {}) as any;
-DamageIncludeMap.雷电 = ["雷电","电击"];
-DamageIncludeMap.冰霜 = ["冰霜","极寒"];
-DamageIncludeMap.火焰 = ["火焰","燃烧"];
-DamageIncludeMap.魔法 = ["魔法","暗蚀"];
-DamageIncludeMap.物理 = ["物理","流血"];
+const DamageIncludeMap:Record<DamageType,DamageType[]>=
+    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: [key] }), {}) as any;
+DamageIncludeMap.雷电伤害 = ["雷电伤害","电击伤害"];
+DamageIncludeMap.冰霜伤害 = ["冰霜伤害","极寒伤害"];
+DamageIncludeMap.火焰伤害 = ["火焰伤害","燃烧伤害"];
+DamageIncludeMap.魔法伤害 = ["魔法伤害","暗蚀伤害"];
+DamageIncludeMap.物理伤害 = ["物理伤害","流血伤害"];
 
+/**附伤关系表 */
+const AddiDamageIncludeMap:Record<DamageType,AddiDamageType>=
+    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}附伤`] }), {}) as any;
 
 /**伤害特效 */
 export enum SpecEffect{
@@ -43,10 +46,11 @@ export enum SpecEffect{
 export const {治疗,固定,稳定,穿盾,穿防,暴击}=SpecEffect;
 
 /**伤害特殊效果表 */
-export const DamageSpecMap:Record<DamageType,SpecEffect[]|undefined> = DamageTypeUndefineRecord;
-DamageSpecMap.治疗 = [治疗];
-DamageSpecMap.固定 = [固定,稳定,穿防];
-DamageSpecMap.燃烧 = [穿盾];
+const DamageSpecMap:Record<DamageType,SpecEffect[]|undefined> =
+    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;;
+DamageSpecMap.治疗伤害 = [治疗];
+DamageSpecMap.固定伤害 = [固定,稳定,穿防];
+DamageSpecMap.燃烧伤害 = [穿盾];
 
 /**伤害具体类型 */
 export type DamageInfo={
@@ -149,18 +153,19 @@ export class Damage{
         //附加伤害
         let needAdd = this.info.skillType!="非技能";
         let adddmg=0;
-        if(needAdd) adddmg = this.modValue(0,`${dmgType}附伤`,modTableSet);
+        if(needAdd) adddmg = this.modValue(0,AddiDamageIncludeMap[dmgType],modTableSet);
 
         //泛伤
-        dmg   =this.modValue(dmg   ,`所有伤害`,modTableSet);
-        if(this.info.skillType!="非技能") adddmg=this.modValue(adddmg,`所有伤害`,modTableSet);
+        dmg   =this.modValue(dmg,"所有伤害",modTableSet);
+        if(needAdd) adddmg=this.modValue(adddmg,"所有伤害",modTableSet);
+
         //技伤
         dmg=this.modValue(dmg,`技能伤害`,modTableSet);
 
         //属性伤害
         for(let t of DamageIncludeMap[this.info.dmgType]){
-            dmg   =this.modValue(dmg    ,`${t}伤害`,modTableSet);
-            if(needAdd) adddmg=this.modValue(adddmg ,`${t}伤害`,modTableSet);
+            dmg   =this.modValue(dmg, t, modTableSet);
+            if(needAdd) adddmg=this.modValue(adddmg, t, modTableSet);
         }
 
         //类别伤害

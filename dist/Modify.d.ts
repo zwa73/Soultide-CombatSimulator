@@ -1,11 +1,9 @@
-import { DamageInfo, DamageType } from "./Damage";
+import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
 /**加成类型 区分乘区 */
-export type ModifyType = `${DamageType}伤害` | `${SkillCategory}伤害` | `${DamageType}附伤` | "技能伤害" | "暴击伤害" | "攻击" | "所有伤害" | "伤害系数";
-/**所有可能的加成类型枚举 */
-export declare const ModifyTypeList: ModifyType[];
+export type ModifyType = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "暴击伤害" | "攻击" | "所有伤害" | "伤害系数";
 /**伤害具体类型约束 */
 export type DamageInfoConstraint = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | "受攻击时" | SkillName;
 /**伤害约束表 */

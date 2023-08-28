@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkTargets = exports.genSkillInfo = exports.genAttack = exports.genDamage = exports.genDamageInfo = exports.SkillCategoryList = exports.SkillSubtypeList = exports.SkillRangeList = exports.SkillMaintypeList = void 0;
+exports.checkTargets = exports.genSkillInfo = exports.genAttack = exports.genDamage = exports.genDamageInfo = void 0;
 const Attack_1 = require("./Attack");
 const Damage_1 = require("./Damage");
 //———————————————————— 技能 ————————————————————//
 /**技能类型 */
-exports.SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
+const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
 /**技能范围 */
-exports.SkillRangeList = ["单体", "群体", "无范围"];
+const SkillRangeList = ["单体", "群体", "无范围"];
 /**技能子类型 */
-exports.SkillSubtypeList = ["伤害技能", "治疗技能", "其他技能"];
+const SkillSubtypeList = ["伤害技能", "治疗技能", "其他技能"];
 /**技能类别 */
-exports.SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "无类别"];
+const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "无类别"];
 function genDamageInfo(info, dmgType) {
     return {
         skillName: info.skillName,

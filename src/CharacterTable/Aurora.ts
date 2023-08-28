@@ -9,7 +9,7 @@ export namespace Aurora{
             checkTargets(targetList,1,1);
             user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
             user.dynmaicStatus.当前怒气=0;
-            let atk = genAttack(this,skillData,1,"雷电");
+            let atk = genAttack(this,skillData,1,"雷电伤害");
             for(let i=0;i<3;i++)
                 targetList[0].getHit(atk);
         }

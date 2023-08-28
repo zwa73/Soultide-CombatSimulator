@@ -6,25 +6,23 @@ import { BuffTable } from "./Modify";
 
 //———————————————————— 技能 ————————————————————//
 
-
-
 /**技能类型 */
-export const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","非"] as const;
+const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","非"] as const;
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 
 /**技能范围 */
-export const SkillRangeList = ["单体","群体","无范围"] as const;
+const SkillRangeList = ["单体","群体","无范围"] as const;
 export type SkillRange = typeof SkillRangeList[number];
 
 /**技能子类型 */
-export const SkillSubtypeList = ["伤害技能","治疗技能","其他技能"] as const;
+const SkillSubtypeList = ["伤害技能","治疗技能","其他技能"] as const;
 export type SkillSubtype = typeof SkillSubtypeList[number];
 
 /**技能目标 */
 export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后排";
 
 /**技能类别 */
-export const SkillCategoryList = ["普攻","核心","秘术","奥义","无类别"] as const;
+const SkillCategoryList = ["普攻","核心","秘术","奥义","无类别"] as const;
 export type SkillCategory = typeof SkillCategoryList[number];
 
 export type SkillData={

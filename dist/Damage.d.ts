@@ -1,11 +1,11 @@
 import { Character } from "./Character";
 import { SkillData, SkillInfo } from "./Skill";
 /**伤害类型枚举 */
-export declare const DamageTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
+declare const DamageBaseTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害类型 */
-export type DamageType = `${typeof DamageTypeList[number]}`;
-/**伤害包含关系表 */
-export declare const DamageIncludeMap: Record<DamageType, DamageType[]>;
+export type DamageType = `${typeof DamageBaseTypeList[number]}伤害`;
+/**附伤类型 additional damage */
+export type AddiDamageType = `${typeof DamageBaseTypeList[number]}附伤`;
 /**伤害特效 */
 export declare enum SpecEffect {
     /**造成治疗 */
@@ -22,8 +22,6 @@ export declare enum SpecEffect {
     暴击 = "\u66B4\u51FB"
 }
 export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect, 穿盾: SpecEffect, 穿防: SpecEffect, 暴击: SpecEffect;
-/**伤害特殊效果表 */
-export declare const DamageSpecMap: Record<DamageType, SpecEffect[] | undefined>;
 /**伤害具体类型 */
 export type DamageInfo = {
     /**伤害类型 */
@@ -72,3 +70,4 @@ export declare class Damage {
     /**复制一份伤害 */
     clone(): Damage;
 }
+export {};

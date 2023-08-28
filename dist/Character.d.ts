@@ -3,7 +3,7 @@ import { Battlefield } from "./CombatSimulation";
 import { Damage } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill } from "./Skill";
-import { DynmaicStatus, StaticStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+import { DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
 /**角色 */
 export declare class Character {
     /**角色名称 */
@@ -11,7 +11,7 @@ export declare class Character {
     /**角色处在的战场 */
     battlefield: Battlefield;
     /**角色的静态属性 */
-    staticStatus: StaticStatus;
+    staticStatus: StaticStatusOption;
     /**角色的当前属性 */
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */

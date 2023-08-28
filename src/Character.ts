@@ -4,9 +4,7 @@ import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
 import { Damage } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData } from "./Skill";
-import { DefStaticStatus, DynmaicStatus, StaticStatus, StaticStatusKey, StaticStatusOption } from "./Status";
-
-
+import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
 
 
 /**角色 */
@@ -16,7 +14,7 @@ export class Character {
     /**角色处在的战场 */
     battlefield:Battlefield=DefaultBattlefield;
     /**角色的静态属性 */
-    staticStatus:StaticStatus;
+    staticStatus:StaticStatusOption;
     /**角色的当前属性 */
     dynmaicStatus:DynmaicStatus;
     /**所有的附加状态 */
@@ -26,13 +24,13 @@ export class Character {
         this.name=name;
         this.staticStatus = Object.assign({},DefStaticStatus,opt);
         this.dynmaicStatus = {
-            当前生命:this.staticStatus.最大生命,
-            当前怒气:this.staticStatus.初始怒气,
+            当前生命:this.staticStatus.最大生命||0,
+            当前怒气:this.staticStatus.初始怒气||0,
         }
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field:StaticStatusKey){
-        let mod = this.buffTable.getStaticStatus(this.staticStatus[field],field);
+        let mod = this.buffTable.getStaticStatus(this.staticStatus[field]||0,field);
         return mod;
     }
     /**添加一个buff
