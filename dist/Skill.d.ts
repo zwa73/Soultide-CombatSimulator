@@ -28,6 +28,8 @@ export type SkillData = {
     buffTable: BuffTable;
     /**是触发的技能 */
     isTiggerSkill: boolean;
+    /**额外的表 */
+    dataTable: Record<string, any>;
 };
 export type SkillInfo = {
     /**技能名 */
@@ -58,7 +60,7 @@ export type Skill = {
     readonly beforeCast?: (skillData: SkillData) => void;
 };
 export declare function genDamageInfo(info: SkillInfo, dmgType: DamageType): DamageInfo;
-export declare function genDamage(info: SkillInfo, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Damage;
-export declare function genAttack(info: SkillInfo, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
+export declare function genDamage(skill: Skill, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Damage;
+export declare function genAttack(skill: Skill, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
 export declare function genSkillInfo(skillName: SkillName, skillType: SkillType, skillSubtype: SkillSubtype, skillRange: SkillRange, skillCategory: SkillCategory): SkillInfo;
 export declare function checkTargets(targets: Character[], needMin: number, needMax: number): void;

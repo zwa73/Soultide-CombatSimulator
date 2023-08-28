@@ -38,6 +38,8 @@ export type SkillData={
     buffTable:BuffTable;
     /**是触发的技能 */
     isTiggerSkill:boolean;
+    /**额外的表 */
+    dataTable:Record<string,any>;
 }
 export type SkillInfo={
     /**技能名 */
@@ -77,11 +79,11 @@ export function genDamageInfo(info:SkillInfo,dmgType:DamageType):DamageInfo{
         dmgType:dmgType,
     }
 }
-export function genDamage(info:SkillInfo,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Damage{
-    return new Damage({char:skillData.user,skill:skillData},factor,genDamageInfo(info,dmgType),...specEffects);
+export function genDamage(skill:Skill,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Damage{
+    return new Damage({char:skillData.user,skill:skillData},factor,genDamageInfo(skill.info,dmgType),...specEffects);
 }
-export function genAttack(info:SkillInfo,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
-    return new Attack(skillData.user,genDamage(info,skillData,factor,dmgType,...specEffects));
+export function genAttack(skill:Skill,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
+    return new Attack(skillData.user,genDamage(skill,skillData,factor,dmgType,...specEffects));
 }
 export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
     return {skillName,skillType,skillSubtype,skillRange,skillCategory};

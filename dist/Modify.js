@@ -31,9 +31,9 @@ class BuffTable {
     _table = {};
     constructor() { }
     /**添加一个Buff */
-    addBuff(buff, stack) {
+    addBuff(buff, stack, countdown) {
         if (this._table[buff.name] == null || buff.canSatck != true)
-            this._table[buff.name] = { buff, stack };
+            this._table[buff.name] = { buff, stack, duration: countdown };
         else {
             let cadd = this._table[buff.name];
             cadd.stack += stack;
@@ -45,13 +45,30 @@ class BuffTable {
             return 0;
         return this._table[key].stack;
     }
+    /**获取buff持续时间 */
+    getBuffDuration(key) {
+        if (this._table[key] == null || this._table[key].duration <= 0)
+            return 0;
+        return this._table[key].duration;
+    }
     /**是否含有某个有效的buff */
     hasBuff(key) {
-        return this.getBuffStack(key) > 0;
+        return this.getBuffStack(key) > 0 && this.getBuffDuration(key) > 0;
+    }
+    /**结算回合 */
+    endRound() {
+        for (let k in this._table) {
+            let buff = this._table[k];
+            if (buff.duration > 0)
+                buff.duration -= 1;
+            if (buff.duration <= 0)
+                this.removeBuff(k);
+        }
     }
     /**移除某个buff */
     removeBuff(key) {
         this._table[key].stack = 0;
+        this._table[key].duration = 0;
     }
     /**获取某个计算完增益的属性 不包含伤害约束属性
      * @param base  基础值

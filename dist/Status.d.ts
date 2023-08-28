@@ -17,6 +17,10 @@ export type StaticStatus = {
     初始怒气: number;
     /**闪避 */
     闪避: number;
+    /**最大怒气 */
+    最大怒气: number;
+    /**怒气回复 */
+    怒气回复: number;
 } & Record<ModifyType, number>;
 /**默认的属性 */
 export declare const DefStaticStatus: StaticStatus;

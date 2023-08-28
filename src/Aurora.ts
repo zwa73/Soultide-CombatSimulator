@@ -7,9 +7,9 @@ export namespace Aurora{
         cast(skillData){
             const {user,targetList}=skillData;
             checkTargets(targetList,1,1);
-            user.addBuff(噩廻,user.dynmaicStatus.当前怒气);
+            user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
             user.dynmaicStatus.当前怒气=0;
-            let atk = genAttack(this.info,skillData,1,"雷电");
+            let atk = genAttack(this,skillData,1,"雷电");
             for(let i=0;i<3;i++)
                 targetList[0].getHit(atk);
         }
@@ -23,6 +23,6 @@ export namespace Aurora{
         stackAddModify:{
             伤害系数:0.03,
         },
-        damageConstraint:["奥义","雷电技能"] as const,
+        damageConstraint:["奥义","雷电技能"],
     };
 }

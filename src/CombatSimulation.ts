@@ -34,8 +34,8 @@ export class Character {
         return mod;
     }
     /**添加一个buff */
-    addBuff(buff:Buff,stack:number=1){
-        this.buffTable.addBuff(buff,stack);
+    addBuff(buff:Buff,stack:number=1,countdown:number=Infinity){
+        this.buffTable.addBuff(buff,stack,countdown);
     }
     /**释放某个技能
      * @param skill  技能
@@ -49,7 +49,8 @@ export class Character {
             targetList:target,
             battlefield:this.battlefield,
             buffTable:new BuffTable(),
-            isTiggerSkill:isTiggerSkill
+            isTiggerSkill:isTiggerSkill,
+            dataTable:{}
         }
         skill.beforeCast? skill.beforeCast(skillData):undefined;
         this.buffTable.getTiggers("释放技能前").forEach(t=> skillData=t.tigger(skillData));
@@ -63,6 +64,13 @@ export class Character {
      */
     tiggerSkill(skill:Skill,target:Character[]){
         this.useSkill(skill,target,true);
+    }
+    /**结算回合 */
+    endRound(){
+        this.buffTable.endRound();
+        this.dynmaicStatus.当前怒气 += this.getStaticStatus("怒气回复");
+        let maxEnergy = this.getStaticStatus("最大怒气");
+        if(this.dynmaicStatus.当前怒气>maxEnergy) this.dynmaicStatus.当前怒气 = maxEnergy;
     }
     /**受到伤害 */
     getHurt(damage:Damage){

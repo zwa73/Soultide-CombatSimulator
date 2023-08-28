@@ -19,7 +19,7 @@ export declare class Character {
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey): number;
     /**添加一个buff */
-    addBuff(buff: Buff, stack?: number): void;
+    addBuff(buff: Buff, stack?: number, countdown?: number): void;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
@@ -31,6 +31,8 @@ export declare class Character {
      * @param target 目标
      */
     tiggerSkill(skill: Skill, target: Character[]): void;
+    /**结算回合 */
+    endRound(): void;
     /**受到伤害 */
     getHurt(damage: Damage): void;
     /**受到攻击 */

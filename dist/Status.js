@@ -12,5 +12,7 @@ exports.DefStaticStatus = {
     暴击伤害: 1.5,
     初始怒气: 0,
     闪避: 0,
+    最大怒气: 120,
+    怒气回复: 16,
 };
 Modify_1.ModifyTypeList.forEach(item => exports.DefStaticStatus[item] = 0);

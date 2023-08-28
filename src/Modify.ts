@@ -52,8 +52,8 @@ export type Buff={
     readonly name:string;
     /**可叠加 */
     readonly canSatck?:boolean;
-    /**结束时间点 数字为经过回合数 hook字段为下一次hook触发时 默认则不结束*/
-    readonly endWith?:number|AnyHook;
+    /**结束时间点 下一次hook触发时结束*/
+    readonly endWith?:AnyHook;
     /**倍率增益 */
     readonly multModify?:StaticStatusOption;
     /**叠加的倍率增益 */
@@ -68,20 +68,22 @@ export type Buff={
     readonly tiggerList?:AnyTigger[];
 }
 /**叠加的buff */
-export type StackBuff={
+export type BuffStack={
     /**buff类型 */
     buff:Buff,
     /**叠加层数 */
     stack:number,
+    /**持续时间倒计时 */
+    duration:number,
 }
 /**buff表 */
 export class BuffTable{
-    private _table:Record<string,StackBuff>={};
+    private _table:Record<string,BuffStack>={};
     constructor(){}
     /**添加一个Buff */
-    addBuff(buff:Buff,stack:number){
+    addBuff(buff:Buff,stack:number,countdown:number){
         if(this._table[buff.name]==null || buff.canSatck!=true)
-            this._table[buff.name]={buff,stack};
+            this._table[buff.name]={ buff, stack, duration: countdown };
         else{
             let cadd = this._table[buff.name];
             cadd.stack+=stack;
@@ -93,13 +95,30 @@ export class BuffTable{
             return 0;
         return this._table[key].stack;
     }
+    /**获取buff持续时间 */
+    getBuffDuration(key:string):number{
+        if(this._table[key]==null || this._table[key].duration<=0)
+            return 0;
+        return this._table[key].duration;
+    }
     /**是否含有某个有效的buff */
     hasBuff(key:string):boolean{
-        return this.getBuffStack(key)>0;
+        return this.getBuffStack(key)>0 && this.getBuffDuration(key)>0;
+    }
+    /**结算回合 */
+    endRound(){
+        for(let k in this._table){
+            let buff = this._table[k];
+            if(buff.duration>0)
+                buff.duration-=1;
+            if(buff.duration<=0)
+                this.removeBuff(k);
+        }
     }
     /**移除某个buff */
     removeBuff(key:string){
         this._table[key].stack=0;
+        this._table[key].duration=0;
     }
     /**获取某个计算完增益的属性 不包含伤害约束属性
      * @param base  基础值
