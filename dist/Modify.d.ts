@@ -4,16 +4,18 @@ import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
 /**加成类型 区分乘区 */
 export type ModifyType = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "暴击伤害" | "攻击" | "所有伤害" | "伤害系数";
-/**伤害具体类型约束 */
-export type DamageInfoConstraint = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | "受攻击时" | SkillName;
-/**伤害约束表 */
-export type DamageInfoConstraintList = ReadonlyArray<DamageInfoConstraint>;
+/**伤害具体类型约束 Damage Info Constraint*/
+export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | "受攻击时" | SkillName;
+/**伤害约束 或 数组或单独的伤害约束组成*/
+export type DamageConsOr = ReadonlyArray<DamageConsType> | DamageConsType;
+/**伤害约束 与 N个伤害约束或组成*/
+export type DamageConsAnd = ReadonlyArray<DamageConsOr>;
 /**判断 info 是否包含 target 的所有约束字段
  * @param isHurt 是受到攻击一方的buff 即匹配 "受攻击时" 约束
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export declare function matchCons(isHurt: boolean, info: DamageInfo, cons: DamageInfoConstraintList): boolean;
+export declare function matchCons(isHurt: boolean, info: DamageInfo, cons: DamageConsAnd): boolean;
 /**累加的调整值表 */
 export type ModTableSet = {
     /**倍率调整表 */
@@ -38,7 +40,7 @@ export type Buff = {
     /**叠加的数值增益 */
     readonly stackAddModify?: StaticStatusOption;
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    readonly damageConstraint?: DamageInfoConstraintList;
+    readonly damageConstraint?: DamageConsAnd;
     /**触发器 */
     readonly tiggerList?: AnyTigger[];
 };

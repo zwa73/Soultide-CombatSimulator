@@ -12,9 +12,14 @@ function matchCons(isHurt, info, cons) {
     if (isHurt)
         infos.push("受攻击时");
     //遍历约束
-    for (let con of cons)
-        if (!infos.includes(con))
+    for (let con of cons) {
+        let arr = Array.isArray(con) ? con : [con];
+        for (let or of arr) {
+            if (infos.includes(or))
+                continue;
             return false;
+        }
+    }
     return true;
 }
 exports.matchCons = matchCons;

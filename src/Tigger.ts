@@ -1,4 +1,4 @@
-import { Skill, SkillData } from "./Skill";
+import { SkillData } from "./Skill";
 
 
 export type TiggerBase={

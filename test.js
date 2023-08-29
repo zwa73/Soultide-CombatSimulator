@@ -1,4 +1,4 @@
-const {DamageCalculator,Aurora,Character, Colcher} = require("./dist");
+const {DamageCalculator,Aurora,Character, Colcher} = require("./index");
 let char = new Character("char1",{
     攻击:10,
     初始怒气:1000,

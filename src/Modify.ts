@@ -12,10 +12,12 @@ export type ModifyType = DamageType|`${SkillCategory}伤害`|AddiDamageType|
 
 
 
-/**伤害具体类型约束 */
-export type DamageInfoConstraint=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|"受攻击时"|SkillName;
-/**伤害约束表 */
-export type DamageInfoConstraintList=ReadonlyArray<DamageInfoConstraint>
+/**伤害具体类型约束 Damage Info Constraint*/
+export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|"受攻击时"|SkillName;
+/**伤害约束 或 数组或单独的伤害约束组成*/
+export type DamageConsOr  = ReadonlyArray<DamageConsType>|DamageConsType;
+/**伤害约束 与 N个伤害约束或组成*/
+export type DamageConsAnd = ReadonlyArray<DamageConsOr>
 
 
 /**判断 info 是否包含 target 的所有约束字段
@@ -23,13 +25,18 @@ export type DamageInfoConstraintList=ReadonlyArray<DamageInfoConstraint>
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export function matchCons(isHurt:boolean,info:DamageInfo,cons:DamageInfoConstraintList){
-    let infos:DamageInfoConstraint[]=[];
+export function matchCons(isHurt:boolean,info:DamageInfo,cons:DamageConsAnd){
+    let infos:DamageConsType[]=[];
     Object.values(info).forEach(element => infos.push(element));
     if(isHurt) infos.push("受攻击时");
     //遍历约束
-    for(let con of cons)
-        if(!infos.includes(con)) return false;
+    for(let con of cons){
+        let arr = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
+        for(let or of arr){
+            if(infos.includes(or)) continue;
+            return false;
+        }
+    }
     return true;
 }
 
@@ -59,7 +66,7 @@ export type Buff={
     /**叠加的数值增益 */
     readonly stackAddModify?:StaticStatusOption;
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    readonly damageConstraint?:DamageInfoConstraintList;
+    readonly damageConstraint?:DamageConsAnd;
     /**触发器 */
     readonly tiggerList?:AnyTigger[];
 }
