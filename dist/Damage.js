@@ -67,18 +67,20 @@ class Damage {
      */
     calcOnDamageModify(target) {
         //计算伤害约束的buff
-        const defset = { addModTable: {}, multModTable: {} };
         const charTableSet = this.source.char
-            ? this.source.char.buffTable.getDamageConsModTable(false, this.info)
-            : defset;
+            ? this.source.char.buffTable.getModTableSet(false, this.info)
+            : Modify_1.DefModTableSet;
         //console.log("charTableSet",charTableSet)
         const skillTableSet = this.source.skill
-            ? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
-            : defset;
+            ? this.source.skill.buffTable.getModTableSet(false, this.info)
+            : Modify_1.DefModTableSet;
+        const attackTableSet = this.source.attack
+            ? this.source.attack.buffTable.getModTableSet(false, this.info)
+            : Modify_1.DefModTableSet;
         //console.log("skillTableSet",skillTableSet)
-        const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
+        const targetTableSet = target.buffTable.getModTableSet(true, this.info);
         //console.log("targetTableSet",targetTableSet)
-        return (0, Modify_1.mergeModTableSet)(charTableSet, skillTableSet, targetTableSet);
+        return (0, Modify_1.multModTableSet)((0, Modify_1.addModTableSet)(charTableSet, skillTableSet, attackTableSet), targetTableSet);
     }
     /**对数值进行增益
      * @param base       基础值

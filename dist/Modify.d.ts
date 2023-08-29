@@ -24,6 +24,10 @@ export type ModTableSet = {
     /**加值调整表 */
     addModTable: StaticStatusOption;
 };
+export type ModSet = {
+    add: number;
+    mult: number;
+};
 /**附加状态 */
 export type Buff = {
     /**名称 */
@@ -74,20 +78,33 @@ export declare class BuffTable {
     endRound(): void;
     /**移除某个buff */
     removeBuff(key: string): void;
-    /**获取某个计算完增益的属性 不包含伤害约束属性
+    /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getStaticStatus(base: number, field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
+    modValue(base: number, field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     * @param isHurt     是受到攻击触发的buff
+     * @param damageInfo 伤害信息
+     */
+    getModSet(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): ModSet;
     /**获取伤害约束的Buff调整值表
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getDamageConsModTable(isHurt?: boolean, damageInfo?: DamageInfo): ModTableSet;
+    getModTableSet(isHurt?: boolean, damageInfo?: DamageInfo): ModTableSet;
     /**获取所有对应触发器 */
     getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
     clone(): BuffTable;
 }
-export declare function mergeModTableSet(...sets: ModTableSet[]): ModTableSet;
+/**对ModTableSet进行加运算 乘区加算 加值加算*/
+export declare function addModTableSet(...sets: ModTableSet[]): ModTableSet;
+/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
+export declare function multModTableSet(...sets: ModTableSet[]): ModTableSet;
+export declare function addModSet(...sets: ModSet[]): ModSet;
+export declare function multModSet(...sets: ModSet[]): ModSet;
+export declare const DefModSet: ModSet;
+export declare const DefModTableSet: ModTableSet;

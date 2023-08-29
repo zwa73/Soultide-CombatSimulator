@@ -28,19 +28,13 @@ export type DamageConsAnd = ReadonlyArray<DamageConsOr>
  */
 export function matchCons(isHurt:boolean=false,info?:DamageInfo,cons?:DamageConsAnd){
     if(cons==null || cons.length<=0) cons=[];
-    let addCons = [];
     //判断 "受击时" 或 "平常时"
-    let hasHurtFlag = false;
-    for(let con of cons){
-        let orlist = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
-        for(let or of orlist){
-            if(or.includes("受击时") || or.includes("平常时")){
-                hasHurtFlag=true;
-                break;
-            }
-        }
-        if(hasHurtFlag) break;
-    }
+    const hasHurtFlag = cons.some(con => {
+        const orlist = Array.isArray(con) ? con as DamageConsType[] : [con] as DamageConsType[];
+        return orlist.some(or => or.includes("受击时") || or.includes("平常时"));
+    });
+    //判断 hurtflag
+    if(!hasHurtFlag) cons = [...cons,"平常时"];
 
     //展开info
     let infos:DamageConsType[]=[];
@@ -49,11 +43,6 @@ export function matchCons(isHurt:boolean=false,info?:DamageInfo,cons?:DamageCons
     if(isHurt) infos.push("受击时");
     else infos.push("平常时");
 
-    //判断 hurtflag
-    if(!hasHurtFlag){
-        if(!infos.includes("平常时"))
-            return false;
-    }
 
     //遍历约束 判断infos是否包含所有的And
     for(let con of cons){
@@ -74,6 +63,10 @@ export type ModTableSet = {
     multModTable:StaticStatusOption,
     /**加值调整表 */
     addModTable:StaticStatusOption,
+}
+export type ModSet = {
+    add:number,
+    mult:number
 }
 
 /**附加状态 */
@@ -154,13 +147,22 @@ export class BuffTable{
         this._table[key].stack=0;
         this._table[key].duration=0;
     }
-    /**获取某个计算完增益的属性 不包含伤害约束属性
+    /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getStaticStatus(base:number,field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo):number{
+    modValue(base:number,field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo):number{
+        let modset = this.getModSet(field,isHurt,damageInfo);
+        return (base+modset.add)*modset.mult;
+    }
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     * @param isHurt     是受到攻击触发的buff
+     * @param damageInfo 伤害信息
+     */
+    getModSet(field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo):ModSet{
         let mult = 1;
         let add  = 0;
         for(let buffName in this._table){
@@ -180,13 +182,13 @@ export class BuffTable{
             if(buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field]||0);
         }
-        return (base+add)*mult;
+        return {add,mult};
     }
     /**获取伤害约束的Buff调整值表
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getDamageConsModTable(isHurt?:boolean,damageInfo?:DamageInfo):ModTableSet{
+    getModTableSet(isHurt?:boolean,damageInfo?:DamageInfo):ModTableSet{
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
             .filter(item=>matchCons(isHurt,damageInfo,item.buff.damageCons));
@@ -254,25 +256,64 @@ export class BuffTable{
         return nbuff;
     }
 };
-export function mergeModTableSet(...sets:ModTableSet[]):ModTableSet{
+
+
+function addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+        if (baseTable[flag] == null) baseTable[flag] = 0;
+        baseTable[flag]! += modTable[flag]!;
+    }
+}
+function addMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+        if (baseTable[flag] == null) baseTable[flag] = 1;
+        baseTable[flag]! += (modTable[flag]!-1);
+    }
+}
+function multMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+        if (baseTable[flag] == null) baseTable[flag] = 1;
+        baseTable[flag]! *= modTable[flag]!;
+    }
+}
+function addTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
+    addMultTable(baseSet.multModTable, modSet.multModTable);
+    addAddTable(baseSet.addModTable, modSet.addModTable);
+}
+function multTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
+    multMultTable(baseSet.multModTable, modSet.multModTable);
+    addAddTable(baseSet.addModTable, modSet.addModTable);
+}
+/**对ModTableSet进行加运算 乘区加算 加值加算*/
+export function addModTableSet(...sets:ModTableSet[]):ModTableSet{
     const outset:ModTableSet = { addModTable: {}, multModTable: {} };
-    function mergeMultMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-        for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
-            if (baseTable[flag] == null) baseTable[flag] = 1;
-            baseTable[flag]! *= modTable[flag]!;
-        }
-    }
-    function mergeAddMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-        for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
-            if (baseTable[flag] == null) baseTable[flag] = 0;
-            baseTable[flag]! += modTable[flag]!;
-        }
-    }
-    function mergeTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
-        mergeMultMod(baseSet.multModTable, modSet.multModTable);
-        mergeAddMod(baseSet.addModTable, modSet.addModTable);
-    }
     for(let set of sets)
-        mergeTableSet(outset,set);
+        addTableSet(outset,set);
     return outset;
 }
+/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
+export function multModTableSet(...sets:ModTableSet[]):ModTableSet{
+    const outset:ModTableSet = { addModTable: {}, multModTable: {} };
+    for(let set of sets)
+        multTableSet(outset,set);
+    return outset;
+}
+
+export function addModSet(...sets:ModSet[]):ModSet{
+    let baseSet:ModSet={add:0,mult:1};
+    for(let set of sets){
+        baseSet.add += set.add;
+        baseSet.mult += (set.mult-1);
+    }
+    return baseSet;
+}
+export function multModSet(...sets:ModSet[]):ModSet{
+    let baseSet:ModSet={add:0,mult:1};
+    for(let set of sets){
+        baseSet.add += set.add;
+        baseSet.mult *= set.mult;
+    }
+    return baseSet;
+}
+export const DefModSet:ModSet = {add:0,mult:1};
+export const DefModTableSet: ModTableSet = { addModTable: {}, multModTable: {} };

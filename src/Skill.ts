@@ -37,6 +37,8 @@ export type SkillData={
     buffTable:BuffTable;
     /**是触发的技能 */
     isTiggerSkill:boolean;
+    /**唯一ID */
+    uid:string;
     /**额外的表 */
     dataTable:Record<string,any>;
 }
@@ -82,7 +84,7 @@ export function genDamage(skill:Skill,skillData:SkillData,factor:number,dmgType:
     return new Damage({char:skillData.user,skill:skillData},factor,genDamageInfo(skill.info,dmgType),...specEffects);
 }
 export function genAttack(skill:Skill,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
-    return new Attack(skillData.user,genDamage(skill,skillData,factor,dmgType,...specEffects));
+    return new Attack({char:skillData.user,skill:skillData},genDamage(skill,skillData,factor,dmgType,...specEffects));
 }
 export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
     return {skillName,skillType,skillSubtype,skillRange,skillCategory};

@@ -28,7 +28,7 @@ function genDamage(skill, skillData, factor, dmgType, ...specEffects) {
 }
 exports.genDamage = genDamage;
 function genAttack(skill, skillData, factor, dmgType, ...specEffects) {
-    return new Attack_1.Attack(skillData.user, genDamage(skill, skillData, factor, dmgType, ...specEffects));
+    return new Attack_1.Attack({ char: skillData.user, skill: skillData }, genDamage(skill, skillData, factor, dmgType, ...specEffects));
 }
 exports.genAttack = genAttack;
 function genSkillInfo(skillName, skillType, skillSubtype, skillRange, skillCategory) {

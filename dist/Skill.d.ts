@@ -29,6 +29,8 @@ export type SkillData = {
     buffTable: BuffTable;
     /**是触发的技能 */
     isTiggerSkill: boolean;
+    /**唯一ID */
+    uid: string;
     /**额外的表 */
     dataTable: Record<string, any>;
 };

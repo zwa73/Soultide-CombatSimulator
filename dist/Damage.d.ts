@@ -1,5 +1,6 @@
+import { Attack, AttackSource } from "./Attack";
 import { Character } from "./Character";
-import { SkillData, SkillInfo } from "./Skill";
+import { SkillInfo } from "./Skill";
 /**伤害类型枚举 */
 declare const DamageBaseTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害类型 */
@@ -29,11 +30,9 @@ export type DamageInfo = {
 } & SkillInfo;
 /**伤害来源 */
 export type DamageSource = {
-    /**角色来源 */
-    char?: Character;
-    /**技能来源 */
-    skill?: SkillData;
-};
+    /**攻击来源 */
+    attack?: Attack;
+} & AttackSource;
 /**伤害 */
 export declare class Damage {
     /**伤害详细类型 */

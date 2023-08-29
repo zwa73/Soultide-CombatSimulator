@@ -1,6 +1,7 @@
+import { Attack, AttackSource } from "./Attack";
 import { Character } from "./Character";
-import { ModTableSet, mergeModTableSet } from "./Modify";
-import { SkillData, SkillInfo } from "./Skill";
+import { DefModTableSet, ModTableSet, addModTableSet, multModTableSet } from "./Modify";
+import { SkillInfo } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 
 //———————————————————— 伤害 ————————————————————//
@@ -58,13 +59,12 @@ export type DamageInfo={
     dmgType:DamageType;
 }&SkillInfo;
 
+
 /**伤害来源 */
 export type DamageSource={
-    /**角色来源 */
-    char?:Character,
-    /**技能来源 */
-    skill?:SkillData,
-}
+    /**攻击来源 */
+    attack?:Attack,
+}&AttackSource;
 
 
 /**伤害 */
@@ -100,18 +100,20 @@ export class Damage {
 	 */
 	private calcOnDamageModify(target: Character): ModTableSet {
 		//计算伤害约束的buff
-		const defset: ModTableSet = { addModTable: {}, multModTable: {} };
 		const charTableSet = this.source.char
-			? this.source.char.buffTable.getDamageConsModTable(false, this.info)
-			: defset;
+			? this.source.char.buffTable.getModTableSet(false, this.info)
+			: DefModTableSet;
         //console.log("charTableSet",charTableSet)
 		const skillTableSet = this.source.skill
-			? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
-			: defset;
+			? this.source.skill.buffTable.getModTableSet(false, this.info)
+			: DefModTableSet;
+        const attackTableSet = this.source.attack
+			? this.source.attack.buffTable.getModTableSet(false, this.info)
+			: DefModTableSet;
         //console.log("skillTableSet",skillTableSet)
-		const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
+		const targetTableSet = target.buffTable.getModTableSet(true, this.info);
 		//console.log("targetTableSet",targetTableSet)
-        return mergeModTableSet(charTableSet,skillTableSet,targetTableSet);
+        return multModTableSet(addModTableSet(charTableSet,skillTableSet,attackTableSet),targetTableSet);
 	}
 	/**对数值进行增益
 	 * @param base       基础值

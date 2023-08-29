@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Character = void 0;
+const utils = require("@zwa73/utils");
 const CombatSimulation_1 = require("./CombatSimulation");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
@@ -30,7 +31,7 @@ class Character {
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, isHurt, damageInfo) {
-        let mod = this.buffTable.getStaticStatus(0, field, isHurt, damageInfo);
+        let mod = this.buffTable.modValue(0, field, isHurt, damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -54,7 +55,8 @@ class Character {
             battlefield: this.battlefield,
             buffTable: new Modify_1.BuffTable(),
             isTiggerSkill: isTiggerSkill,
-            dataTable: {}
+            dataTable: {},
+            uid: utils.genUUID()
         };
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
         this.buffTable.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
@@ -85,7 +87,7 @@ class Character {
     }
     /**受到攻击 */
     getHit(attack) {
-        let dmg = attack.calcDamage();
+        let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
     }
     /**克隆角色 */

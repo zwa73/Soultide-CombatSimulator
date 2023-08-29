@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mergeModTableSet = exports.BuffTable = exports.matchCons = void 0;
+exports.DefModTableSet = exports.DefModSet = exports.multModSet = exports.addModSet = exports.multModTableSet = exports.addModTableSet = exports.BuffTable = exports.matchCons = void 0;
 /**判断 info 是否包含 target 的所有约束字段
  * cons 如不包含 "受击时" 或 "平常时" 则视为包含 "平常时"
  * @param isHurt 是受到攻击一方的buff 即匹配 "受击时" 约束 否则匹配 "平常时"
@@ -10,20 +10,14 @@ exports.mergeModTableSet = exports.BuffTable = exports.matchCons = void 0;
 function matchCons(isHurt = false, info, cons) {
     if (cons == null || cons.length <= 0)
         cons = [];
-    let addCons = [];
     //判断 "受击时" 或 "平常时"
-    let hasHurtFlag = false;
-    for (let con of cons) {
-        let orlist = Array.isArray(con) ? con : [con];
-        for (let or of orlist) {
-            if (or.includes("受击时") || or.includes("平常时")) {
-                hasHurtFlag = true;
-                break;
-            }
-        }
-        if (hasHurtFlag)
-            break;
-    }
+    const hasHurtFlag = cons.some(con => {
+        const orlist = Array.isArray(con) ? con : [con];
+        return orlist.some(or => or.includes("受击时") || or.includes("平常时"));
+    });
+    //判断 hurtflag
+    if (!hasHurtFlag)
+        cons = [...cons, "平常时"];
     //展开info
     let infos = [];
     if (info != null)
@@ -32,11 +26,6 @@ function matchCons(isHurt = false, info, cons) {
         infos.push("受击时");
     else
         infos.push("平常时");
-    //判断 hurtflag
-    if (!hasHurtFlag) {
-        if (!infos.includes("平常时"))
-            return false;
-    }
     //遍历约束 判断infos是否包含所有的And
     for (let con of cons) {
         let orlist = Array.isArray(con) ? con : [con];
@@ -98,13 +87,22 @@ class BuffTable {
         this._table[key].stack = 0;
         this._table[key].duration = 0;
     }
-    /**获取某个计算完增益的属性 不包含伤害约束属性
+    /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getStaticStatus(base, field, isHurt, damageInfo) {
+    modValue(base, field, isHurt, damageInfo) {
+        let modset = this.getModSet(field, isHurt, damageInfo);
+        return (base + modset.add) * modset.mult;
+    }
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     * @param isHurt     是受到攻击触发的buff
+     * @param damageInfo 伤害信息
+     */
+    getModSet(field, isHurt, damageInfo) {
         let mult = 1;
         let add = 0;
         for (let buffName in this._table) {
@@ -122,13 +120,13 @@ class BuffTable {
             if (buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field] || 0);
         }
-        return (base + add) * mult;
+        return { add, mult };
     }
     /**获取伤害约束的Buff调整值表
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getDamageConsModTable(isHurt, damageInfo) {
+    getModTableSet(isHurt, damageInfo) {
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
             .filter(item => matchCons(isHurt, damageInfo, item.buff.damageCons));
@@ -199,28 +197,68 @@ class BuffTable {
 }
 exports.BuffTable = BuffTable;
 ;
-function mergeModTableSet(...sets) {
+function addAddTable(baseTable, modTable) {
+    for (let flag of Object.keys(modTable)) {
+        if (baseTable[flag] == null)
+            baseTable[flag] = 0;
+        baseTable[flag] += modTable[flag];
+    }
+}
+function addMultTable(baseTable, modTable) {
+    for (let flag of Object.keys(modTable)) {
+        if (baseTable[flag] == null)
+            baseTable[flag] = 1;
+        baseTable[flag] += (modTable[flag] - 1);
+    }
+}
+function multMultTable(baseTable, modTable) {
+    for (let flag of Object.keys(modTable)) {
+        if (baseTable[flag] == null)
+            baseTable[flag] = 1;
+        baseTable[flag] *= modTable[flag];
+    }
+}
+function addTableSet(baseSet, modSet) {
+    addMultTable(baseSet.multModTable, modSet.multModTable);
+    addAddTable(baseSet.addModTable, modSet.addModTable);
+}
+function multTableSet(baseSet, modSet) {
+    multMultTable(baseSet.multModTable, modSet.multModTable);
+    addAddTable(baseSet.addModTable, modSet.addModTable);
+}
+/**对ModTableSet进行加运算 乘区加算 加值加算*/
+function addModTableSet(...sets) {
     const outset = { addModTable: {}, multModTable: {} };
-    function mergeMultMod(baseTable, modTable) {
-        for (let flag of Object.keys(modTable)) {
-            if (baseTable[flag] == null)
-                baseTable[flag] = 1;
-            baseTable[flag] *= modTable[flag];
-        }
-    }
-    function mergeAddMod(baseTable, modTable) {
-        for (let flag of Object.keys(modTable)) {
-            if (baseTable[flag] == null)
-                baseTable[flag] = 0;
-            baseTable[flag] += modTable[flag];
-        }
-    }
-    function mergeTableSet(baseSet, modSet) {
-        mergeMultMod(baseSet.multModTable, modSet.multModTable);
-        mergeAddMod(baseSet.addModTable, modSet.addModTable);
-    }
     for (let set of sets)
-        mergeTableSet(outset, set);
+        addTableSet(outset, set);
     return outset;
 }
-exports.mergeModTableSet = mergeModTableSet;
+exports.addModTableSet = addModTableSet;
+/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
+function multModTableSet(...sets) {
+    const outset = { addModTable: {}, multModTable: {} };
+    for (let set of sets)
+        multTableSet(outset, set);
+    return outset;
+}
+exports.multModTableSet = multModTableSet;
+function addModSet(...sets) {
+    let baseSet = { add: 0, mult: 1 };
+    for (let set of sets) {
+        baseSet.add += set.add;
+        baseSet.mult += (set.mult - 1);
+    }
+    return baseSet;
+}
+exports.addModSet = addModSet;
+function multModSet(...sets) {
+    let baseSet = { add: 0, mult: 1 };
+    for (let set of sets) {
+        baseSet.add += set.add;
+        baseSet.mult *= set.mult;
+    }
+    return baseSet;
+}
+exports.multModSet = multModSet;
+exports.DefModSet = { add: 0, mult: 1 };
+exports.DefModTableSet = { addModTable: {}, multModTable: {} };

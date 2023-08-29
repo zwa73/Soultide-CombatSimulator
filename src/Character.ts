@@ -1,4 +1,4 @@
-import { deepClone } from "@zwa73/utils";
+import * as utils from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
 import { Damage, DamageInfo } from "./Damage";
@@ -35,7 +35,7 @@ export class Character {
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo){
-        let mod = this.buffTable.getStaticStatus(0,field,isHurt,damageInfo);
+        let mod = this.buffTable.modValue(0,field,isHurt,damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -59,7 +59,8 @@ export class Character {
             battlefield:this.battlefield,
             buffTable:new BuffTable(),
             isTiggerSkill:isTiggerSkill,
-            dataTable:{}
+            dataTable:{},
+            uid:utils.genUUID()
         }
         skill.beforeCast? skill.beforeCast(skillData):undefined;
         this.buffTable.getTiggers("释放技能前").forEach(t=> skillData=t.tigger(skillData));
@@ -89,7 +90,7 @@ export class Character {
     }
     /**受到攻击 */
     getHit(attack:Attack){
-        let dmg = attack.calcDamage();
+        let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
     }
     /**克隆角色 */
