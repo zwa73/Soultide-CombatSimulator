@@ -1,4 +1,5 @@
 import { Attack, AttackSource } from "./Attack";
+import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { SkillInfo } from "./Skill";
 /**伤害类型枚举 */
@@ -27,7 +28,7 @@ export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect,
 export type DamageInfo = {
     /**伤害类型 */
     dmgType: DamageType;
-} & SkillInfo;
+} & Writeable<SkillInfo>;
 /**伤害来源 */
 export type DamageSource = {
     /**攻击来源 */

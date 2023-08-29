@@ -1,3 +1,4 @@
+import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield } from "./CombatSimulation";
 import { Damage, DamageInfo } from "./Damage";
@@ -16,7 +17,7 @@ export declare class Character {
     buffTable: BuffTable;
     constructor(name: string, status: StaticStatusOption);
     /**获取角色的基础属性 */
-    getBaseStatus(): Buff;
+    getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
     /**添加一个buff

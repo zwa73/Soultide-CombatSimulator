@@ -1,4 +1,5 @@
 import { Attack, AttackSource } from "./Attack";
+import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { DefModTableSet, ModTableSet, addModTableSet, multModTableSet } from "./Modify";
 import { SkillInfo } from "./Skill";
@@ -11,6 +12,7 @@ import { StaticStatusKey, StaticStatusOption } from "./Status";
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电","冰霜","火焰","魔法","物理",
     "电击","极寒","燃烧","暗蚀","流血","治疗","固定"] as const;
+
 /**伤害类型 */
 export type DamageType = `${typeof DamageBaseTypeList[number]}伤害`;
 /**附伤类型 additional damage */
@@ -46,6 +48,7 @@ export enum SpecEffect{
 };
 export const {治疗,固定,稳定,穿盾,穿防,暴击}=SpecEffect;
 
+
 /**伤害特殊效果表 */
 const DamageSpecMap:Record<DamageType,SpecEffect[]|undefined> =
     DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;;
@@ -57,7 +60,7 @@ DamageSpecMap.燃烧伤害 = [穿盾];
 export type DamageInfo={
     /**伤害类型 */
     dmgType:DamageType;
-}&SkillInfo;
+}&Writeable<SkillInfo>;
 
 
 /**伤害来源 */
@@ -65,6 +68,8 @@ export type DamageSource={
     /**攻击来源 */
     attack?:Attack,
 }&AttackSource;
+
+
 
 
 /**伤害 */

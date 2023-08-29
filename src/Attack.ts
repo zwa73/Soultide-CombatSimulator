@@ -1,6 +1,6 @@
 import { Character } from "./Character";
 import { Damage, 暴击 } from "./Damage";
-import { BuffTable, DefModSet, ModSet, addModSet, multModSet } from "./Modify";
+import { BuffTable, DefModSet, addModSet, multModSet } from "./Modify";
 import { SkillData } from "./Skill";
 
 

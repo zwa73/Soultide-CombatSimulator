@@ -1,10 +1,12 @@
 import * as utils from "@zwa73/utils";
+import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
 import { Damage, DamageInfo } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+
 
 
 /**角色 */
@@ -34,7 +36,7 @@ export class Character {
         }
     }
     /**获取角色的基础属性 */
-    getBaseStatus():Buff{
+    getBaseStatus():Writeable<Buff>{
         //@ts-ignore
         return this.buffTable.getBuff(this.name+"基础属性")!;
     }
