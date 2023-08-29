@@ -61,36 +61,34 @@ class Damage {
         this.info = info;
         this.specEffects = specEffects;
     }
-    /**计算攻击时应用的加值与倍率
-     * @param target  受伤角色
+    /**计算攻击时 来源的 应用的加值与倍率
      * @returns [ multModMap, addModMap ]
      */
-    calcOnDamageModify(target) {
+    calcSourceModTableSet() {
         //计算伤害约束的buff
         const charTableSet = this.source.char
-            ? this.source.char.buffTable.getModTableSet(false, this.info)
+            ? this.source.char.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
         //console.log("charTableSet",charTableSet)
         const skillTableSet = this.source.skill
-            ? this.source.skill.buffTable.getModTableSet(false, this.info)
+            ? this.source.skill.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
         const attackTableSet = this.source.attack
-            ? this.source.attack.buffTable.getModTableSet(false, this.info)
+            ? this.source.attack.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
-        //console.log("skillTableSet",skillTableSet)
-        const targetTableSet = target.buffTable.getModTableSet(true, this.info);
         //console.log("targetTableSet",targetTableSet)
-        return (0, Modify_1.multModTableSet)((0, Modify_1.addModTableSet)(charTableSet, skillTableSet, attackTableSet), targetTableSet);
+        return (0, Modify_1.addModTableSet)(charTableSet, skillTableSet, attackTableSet);
     }
     /**对数值进行增益
      * @param base       基础值
-     * @param flag       增益名
-     * @param multModMap 倍率Map
-     * @param addModMap  加值Map
+     * @param flag       标签
+     * @param tableSet   来源的调整值
+     * @param targetFlag 目标的标签
+     * @param tableSet   目标的调整值
      */
-    modValue(base, flag, tableSet) {
-        return ((base + (tableSet.addModTable[flag] || 0)) *
-            (tableSet.multModTable[flag] || 1));
+    modValue(base, flag, tableSet, targetFlag, targetTableSet) {
+        return ((base + (tableSet.addModTable[flag] || 0) + (targetTableSet.addModTable[targetFlag] || 0)) *
+            (tableSet.multModTable[flag] || 1) * (targetTableSet.multModTable[targetFlag] || 1));
     }
     /**含有某个特效 */
     hasSpecEffect(flag) {
@@ -103,33 +101,39 @@ class Damage {
         //console.log("基础系数",this.factor)
         if (this.hasSpecEffect(exports.固定))
             return dmg;
-        const modTableSet = this.calcOnDamageModify(target);
+        const targetModTableSet = target.buffTable.getModTableSet(this.info);
+        const sourceModTableSet = this.calcSourceModTableSet();
         //console.log(modTableSet);
         //系数
-        dmg = this.modValue(dmg, "伤害系数", modTableSet);
+        dmg = this.modValue(dmg, "伤害系数", sourceModTableSet, "受到伤害系数", targetModTableSet);
         //攻击
         let def = this.hasSpecEffect(exports.穿防) || this.hasSpecEffect(exports.治疗) ? 0 : target.getStaticStatus("防御");
-        let atk = this.modValue(0, "攻击", modTableSet);
+        let atk = this.modValue(0, "攻击", sourceModTableSet, "受到攻击", targetModTableSet);
         dmg *= atk - def > 1 ? atk - def : 1;
         //附加伤害
         let needAdd = this.isSkillDamage();
         let adddmg = 0;
         if (needAdd)
-            adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], modTableSet);
+            adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], sourceModTableSet, `受到${AddiDamageIncludeMap[dmgType]}`, targetModTableSet);
         //泛伤
-        dmg = this.modValue(dmg, "所有伤害", modTableSet);
+        dmg = this.modValue(dmg, "所有伤害", sourceModTableSet, "受到所有伤害", targetModTableSet);
         if (needAdd)
-            adddmg = this.modValue(adddmg, "所有伤害", modTableSet);
+            adddmg = this.modValue(adddmg, "所有伤害", sourceModTableSet, "受到所有伤害", targetModTableSet);
         //技伤
-        dmg = this.modValue(dmg, `技能伤害`, modTableSet);
+        dmg = this.modValue(dmg, `技能伤害`, sourceModTableSet, "受到技能伤害", targetModTableSet);
         //属性伤害
         for (let t of DamageIncludeMap[this.info.dmgType]) {
-            dmg = this.modValue(dmg, t, modTableSet);
+            dmg = this.modValue(dmg, t, sourceModTableSet, `受到${t}`, targetModTableSet);
             if (needAdd)
-                adddmg = this.modValue(adddmg, t, modTableSet);
+                adddmg = this.modValue(adddmg, t, sourceModTableSet, `受到${t}`, targetModTableSet);
         }
         //类别伤害
-        dmg = this.modValue(dmg, `${skillCategory}伤害`, modTableSet);
+        dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet, `受到${skillCategory}伤害`, targetModTableSet);
+        //暴击伤害
+        if (this.hasSpecEffect(exports.暴击)) {
+            let critdmg = this.modValue(0, `暴击伤害`, sourceModTableSet, `受到暴击伤害`, targetModTableSet);
+            dmg = dmg * critdmg;
+        }
         //合并附伤
         dmg += adddmg;
         //浮动

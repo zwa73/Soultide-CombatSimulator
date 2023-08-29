@@ -51,16 +51,16 @@ export declare class Damage {
      * @param specEffects 特殊效果
      */
     constructor(source: DamageSource, factor: number, info: DamageInfo, ...specEffects: SpecEffect[]);
-    /**计算攻击时应用的加值与倍率
-     * @param target  受伤角色
+    /**计算攻击时 来源的 应用的加值与倍率
      * @returns [ multModMap, addModMap ]
      */
-    private calcOnDamageModify;
+    private calcSourceModTableSet;
     /**对数值进行增益
      * @param base       基础值
-     * @param flag       增益名
-     * @param multModMap 倍率Map
-     * @param addModMap  加值Map
+     * @param flag       标签
+     * @param tableSet   来源的调整值
+     * @param targetFlag 目标的标签
+     * @param tableSet   目标的调整值
      */
     private modValue;
     /**含有某个特效 */

@@ -2,30 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefModTableSet = exports.DefModSet = exports.multModSet = exports.addModSet = exports.multModTableSet = exports.addModTableSet = exports.BuffTable = exports.matchCons = void 0;
 /**判断 info 是否包含 target 的所有约束字段
- * cons 如不包含 "受击时" 或 "平常时" 则视为包含 "平常时"
- * @param isHurt 是受到攻击一方的buff 即匹配 "受击时" 约束 否则匹配 "平常时"
  * @param info   伤害信息
  * @param cons   约束列表
  */
-function matchCons(isHurt = false, info, cons) {
+function matchCons(info, cons) {
     if (cons == null || cons.length <= 0)
         cons = [];
-    //判断 "受击时" 或 "平常时"
-    const hasHurtFlag = cons.some(con => {
-        const orlist = Array.isArray(con) ? con : [con];
-        return orlist.some(or => or.includes("受击时") || or.includes("平常时"));
-    });
-    //判断 hurtflag
-    if (!hasHurtFlag)
-        cons = [...cons, "平常时"];
     //展开info
     let infos = [];
     if (info != null)
         Object.values(info).forEach(element => infos.push(element));
-    if (isHurt)
-        infos.push("受击时");
-    else
-        infos.push("平常时");
     //遍历约束 判断infos是否包含所有的And
     for (let con of cons) {
         let orlist = Array.isArray(con) ? con : [con];
@@ -115,8 +101,8 @@ class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    modValue(base, field, isHurt, damageInfo) {
-        let modset = this.getModSet(field, isHurt, damageInfo);
+    modValue(base, field, damageInfo) {
+        let modset = this.getModSet(field, damageInfo);
         return (base + modset.add) * modset.mult;
     }
     /**获取某个属性的调整值
@@ -124,14 +110,14 @@ class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSet(field, isHurt, damageInfo) {
+    getModSet(field, damageInfo) {
         let mult = 1;
         let add = 0;
         for (let buffName in this._table) {
             let stackData = this._table[buffName];
             let buff = stackData.buff;
             let stack = stackData.stack;
-            if (buff.damageCons != null && matchCons(isHurt, damageInfo, buff.damageCons))
+            if (buff.damageCons != null && matchCons(damageInfo, buff.damageCons))
                 continue;
             if (buff.multModify)
                 mult += buff.multModify[field] || 0;
@@ -148,10 +134,10 @@ class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModTableSet(isHurt, damageInfo) {
+    getModTableSet(damageInfo) {
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
-            .filter(item => matchCons(isHurt, damageInfo, item.buff.damageCons));
+            .filter(item => matchCons(damageInfo, item.buff.damageCons));
         //console.log("vaildList",vaildList)
         const multModTable = {};
         const addModTable = {};

@@ -2,21 +2,21 @@ import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
+type ModiftTypeDef = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
+type ModifyTypeBase = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "暴击伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
 /**加成类型 区分乘区 */
-export type ModifyType = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "暴击伤害" | "攻击" | "所有伤害" | "伤害系数";
+export type ModifyType = ModifyTypeBase | `受到${ModifyTypeBase}` | ModiftTypeDef;
 /**伤害具体类型约束 Damage Info Constraint*/
-export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | "受击时" | "平常时" | SkillName;
+export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | SkillName;
 /**伤害约束 或 数组或单独的伤害约束组成*/
 export type DamageConsOr = ReadonlyArray<DamageConsType> | DamageConsType;
 /**伤害约束 与 N个伤害约束或组成*/
 export type DamageConsAnd = ReadonlyArray<DamageConsOr>;
 /**判断 info 是否包含 target 的所有约束字段
- * cons 如不包含 "受击时" 或 "平常时" 则视为包含 "平常时"
- * @param isHurt 是受到攻击一方的buff 即匹配 "受击时" 约束 否则匹配 "平常时"
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export declare function matchCons(isHurt?: boolean, info?: DamageInfo, cons?: DamageConsAnd): boolean;
+export declare function matchCons(info?: DamageInfo, cons?: DamageConsAnd): boolean;
 /**累加的调整值表 */
 export type ModTableSet = {
     /**倍率调整表 */
@@ -90,18 +90,18 @@ export declare class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    modValue(base: number, field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
+    modValue(base: number, field: StaticStatusKey, damageInfo?: DamageInfo): number;
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSet(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): ModSet;
+    getModSet(field: StaticStatusKey, damageInfo?: DamageInfo): ModSet;
     /**获取伤害约束的Buff调整值表
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModTableSet(isHurt?: boolean, damageInfo?: DamageInfo): ModTableSet;
+    getModTableSet(damageInfo?: DamageInfo): ModTableSet;
     /**获取所有对应触发器 */
     getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
     clone(): BuffTable;
@@ -114,3 +114,4 @@ export declare function addModSet(...sets: ModSet[]): ModSet;
 export declare function multModSet(...sets: ModSet[]): ModSet;
 export declare const DefModSet: ModSet;
 export declare const DefModTableSet: ModTableSet;
+export {};

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Character = void 0;
 const utils = require("@zwa73/utils");
 const CombatSimulation_1 = require("./CombatSimulation");
+const Damage_1 = require("./Damage");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
 /**角色 */
@@ -35,8 +36,8 @@ class Character {
         return this.buffTable.getBuff(this.name + "基础属性");
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field, isHurt, damageInfo) {
-        let mod = this.buffTable.modValue(0, field, isHurt, damageInfo);
+    getStaticStatus(field, damageInfo) {
+        let mod = this.buffTable.modValue(0, field, damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -103,7 +104,7 @@ class Character {
         if (isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
                 .forEach(t => damage = t.tigger(damage, this));
-        console.log(this.name + " 受到", dmg, "点伤害");
+        console.log(this.name + " 受到", dmg, "点伤害", `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
     }
     /**受到攻击 */
     getHit(attack) {

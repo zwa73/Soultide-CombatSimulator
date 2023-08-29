@@ -19,7 +19,7 @@ export declare class Character {
     /**获取角色的基础属性 */
     getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
+    getStaticStatus(field: StaticStatusKey, damageInfo?: DamageInfo): number;
     /**添加一个buff
      * @param buff      buff
      * @param stack     层数        默认1

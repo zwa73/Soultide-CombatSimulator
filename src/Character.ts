@@ -2,7 +2,7 @@ import * as utils from "@zwa73/utils";
 import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
-import { Damage, DamageInfo } from "./Damage";
+import { Damage, DamageInfo, 暴击 } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
@@ -41,8 +41,8 @@ export class Character {
         return this.buffTable.getBuff(this.name+"基础属性")!;
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo){
-        let mod = this.buffTable.modValue(0,field,isHurt,damageInfo);
+    getStaticStatus(field:StaticStatusKey,damageInfo?:DamageInfo){
+        let mod = this.buffTable.modValue(0,field,damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -112,7 +112,7 @@ export class Character {
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
                 .forEach(t=> damage=t.tigger(damage,this));
 
-        console.log(this.name+" 受到",dmg,"点伤害")
+        console.log(this.name+" 受到",dmg,"点伤害",`${damage.hasSpecEffect(暴击)? "暴击":""}`)
     }
     /**受到攻击 */
     getHit(attack:Attack){
