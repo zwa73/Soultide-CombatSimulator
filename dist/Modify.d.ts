@@ -32,8 +32,10 @@ export type ModSet = {
 export type Buff = {
     /**名称 */
     readonly name: string;
-    /**可叠加 */
+    /**可叠加 重复获得时 层数叠加 默认覆盖*/
     readonly canSatck?: boolean;
+    /**叠加上限 可以存在的最大层数 默认无限*/
+    readonly stackLimit?: number;
     /**结束时间点 下一次hook触发时结束*/
     readonly endWith?: AnyHook;
     /**倍率增益 */

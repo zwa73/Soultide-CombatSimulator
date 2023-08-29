@@ -1,5 +1,5 @@
-import { Buff } from "../Modify";
-import { Skill, checkTargets, genAttack, genSkillInfo } from "../Skill";
+import { Buff } from "@src/Modify";
+import { Skill, checkTargets, genAttack, genSkillInfo } from "@src/Skill";
 
 export namespace Aurora{
     export const 失心童话:Skill={
@@ -14,7 +14,7 @@ export namespace Aurora{
                 targetList[0].getHit(atk);
         }
     }
-    const 噩廻:Buff={
+    export const 噩廻:Buff={
         name:"噩廻",
         canSatck:true,
         stackMultModify: {

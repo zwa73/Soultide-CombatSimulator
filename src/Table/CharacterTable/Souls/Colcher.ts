@@ -1,5 +1,5 @@
-import { Buff } from "../Modify";
-import { Skill, checkTargets, genSkillInfo } from "../Skill";
+import { Buff } from "@src/Modify";
+import { Skill, checkTargets, genSkillInfo } from "@src/Skill";
 
 export namespace Colcher{
     export const 王女的祝福:Skill={

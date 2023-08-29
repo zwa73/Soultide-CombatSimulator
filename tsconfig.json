@@ -8,10 +8,8 @@
     "declaration": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "Utils":       ["./src/Utils"]      ,
-      "JsonClass":   ["./src/JsonClass"]  ,
-      "Compiler":    ["./src/Compiler"]
+      "@src/*": ["./src/*"],
+      "@/*": ["./*"]
     }
   },
   "include": ["./src/**/*.ts", "./src/**/*.js"],

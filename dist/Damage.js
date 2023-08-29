@@ -100,6 +100,7 @@ class Damage {
     calcOverdamage(target) {
         const { dmgType, skillCategory } = this.info;
         let dmg = this.factor;
+        console.log("基础系数", this.factor);
         if (this.hasSpecEffect(exports.固定))
             return dmg;
         const modTableSet = this.calcOnDamageModify(target);
