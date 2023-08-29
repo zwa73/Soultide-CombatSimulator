@@ -25,6 +25,6 @@ var Aurora;
         stackAddModify: {
             伤害系数: 0.03,
         },
-        damageConstraint: ["奥义", "雷电技能"],
+        damageCons: ["奥义", "雷电技能"],
     };
 })(Aurora = exports.Aurora || (exports.Aurora = {}));

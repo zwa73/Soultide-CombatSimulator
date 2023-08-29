@@ -13,7 +13,7 @@ export type ModifyType = DamageType|`${SkillCategory}伤害`|AddiDamageType|
 
 
 /**伤害具体类型约束 Damage Info Constraint*/
-export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|"受攻击时"|SkillName;
+export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|"受击时"|"平常时"|SkillName;
 /**伤害约束 或 数组或单独的伤害约束组成*/
 export type DamageConsOr  = ReadonlyArray<DamageConsType>|DamageConsType;
 /**伤害约束 与 N个伤害约束或组成*/
@@ -21,18 +21,45 @@ export type DamageConsAnd = ReadonlyArray<DamageConsOr>
 
 
 /**判断 info 是否包含 target 的所有约束字段
- * @param isHurt 是受到攻击一方的buff 即匹配 "受攻击时" 约束
+ * cons 如不包含 "受击时" 或 "平常时" 则视为包含 "平常时"
+ * @param isHurt 是受到攻击一方的buff 即匹配 "受击时" 约束 否则匹配 "平常时"
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export function matchCons(isHurt:boolean,info:DamageInfo,cons:DamageConsAnd){
-    let infos:DamageConsType[]=[];
-    Object.values(info).forEach(element => infos.push(element));
-    if(isHurt) infos.push("受攻击时");
-    //遍历约束
+export function matchCons(isHurt:boolean=false,info?:DamageInfo,cons?:DamageConsAnd){
+    if(cons==null || cons.length<=0) cons=[];
+    let addCons = [];
+    //判断 "受击时" 或 "平常时"
+    let hasHurtFlag = false;
     for(let con of cons){
-        let arr = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
-        for(let or of arr){
+        let orlist = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
+        for(let or of orlist){
+            if(or.includes("受击时") || or.includes("平常时")){
+                hasHurtFlag=true;
+                break;
+            }
+        }
+        if(hasHurtFlag) break;
+    }
+
+    //展开info
+    let infos:DamageConsType[]=[];
+    if(info!=null)
+        Object.values(info).forEach(element => infos.push(element));
+    if(isHurt) infos.push("受击时");
+    else infos.push("平常时");
+
+    //判断 hurtflag
+    if(!hasHurtFlag){
+        if(!infos.includes("平常时"))
+            return false;
+    }
+
+    //遍历约束 判断infos是否包含所有的And
+    for(let con of cons){
+        let orlist = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
+        //判断infos是否包含任意的Or
+        for(let or of orlist){
             if(infos.includes(or)) continue;
             return false;
         }
@@ -66,7 +93,7 @@ export type Buff={
     /**叠加的数值增益 */
     readonly stackAddModify?:StaticStatusOption;
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
-    readonly damageConstraint?:DamageConsAnd;
+    readonly damageCons?:DamageConsAnd;
     /**触发器 */
     readonly tiggerList?:AnyTigger[];
 }
@@ -128,10 +155,12 @@ export class BuffTable{
         this._table[key].duration=0;
     }
     /**获取某个计算完增益的属性 不包含伤害约束属性
-     * @param base  基础值
-     * @param field 所要应用的调整字段
+     * @param base       基础值
+     * @param field      所要应用的调整字段
+     * @param isHurt     是受到攻击触发的buff
+     * @param damageInfo 伤害信息
      */
-    getStaticStatus(base:number,field:StaticStatusKey):number{
+    getStaticStatus(base:number,field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo):number{
         let mult = 1;
         let add  = 0;
         for(let buffName in this._table){
@@ -139,7 +168,7 @@ export class BuffTable{
             let buff = stackData.buff;
             let stack = stackData.stack;
 
-            if(buff.damageConstraint!=null) continue;
+            if(buff.damageCons!=null && matchCons(isHurt,damageInfo,buff.damageCons)) continue;
 
             if(buff.multModify)
                 mult += buff.multModify[field]||0;
@@ -157,19 +186,23 @@ export class BuffTable{
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getDamageConsModTable(isHurt:boolean,damageInfo:DamageInfo):ModTableSet{
+    getDamageConsModTable(isHurt?:boolean,damageInfo?:DamageInfo):ModTableSet{
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
-            .filter(item=>
-                item.buff.damageConstraint &&
-                matchCons(isHurt,damageInfo,item.buff.damageConstraint));
-
+            .filter(item=>matchCons(isHurt,damageInfo,item.buff.damageCons));
+        //console.log("vaildList",vaildList)
         const multModTable:StaticStatusOption={};
         const addModTable :StaticStatusOption={};
         //叠加乘区
-        function stackArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
+        function stackMultArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
             for(let flag of Object.keys(modMap) as StaticStatusKey[]){
                 if(baseMap[flag]==null) baseMap[flag]=1;
+                baseMap[flag]!+=modMap[flag]!*stack;
+            }
+        }
+        function stackAddArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
+            for(let flag of Object.keys(modMap) as StaticStatusKey[]){
+                if(baseMap[flag]==null) baseMap[flag]=0;
                 baseMap[flag]!+=modMap[flag]!*stack;
             }
         }
@@ -180,11 +213,13 @@ export class BuffTable{
             const stackAddTable  = item.buff.stackAddModify||{};
             const stack = item.stack;
             //叠加同乘区
-            stackArean(multModTable, basedMultTable, 1      );
-            stackArean(multModTable, stackMultTable, stack  );
-            stackArean(addModTable , basedAddTable , 1      );
-            stackArean(addModTable , stackAddTable , stack  );
+            stackMultArean(multModTable, basedMultTable, 1      );
+            stackMultArean(multModTable, stackMultTable, stack  );
+            stackAddArean (addModTable , basedAddTable , 1      );
+            stackAddArean (addModTable , stackAddTable , stack  );
         }
+        //console.log("addModTable",addModTable)
+
         return {
             /**倍率调整表 */
             multModTable: multModTable,
@@ -219,3 +254,25 @@ export class BuffTable{
         return nbuff;
     }
 };
+export function mergeModTableSet(...sets:ModTableSet[]):ModTableSet{
+    const outset:ModTableSet = { addModTable: {}, multModTable: {} };
+    function mergeMultMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+        for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+            if (baseTable[flag] == null) baseTable[flag] = 1;
+            baseTable[flag]! *= modTable[flag]!;
+        }
+    }
+    function mergeAddMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+        for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+            if (baseTable[flag] == null) baseTable[flag] = 0;
+            baseTable[flag]! += modTable[flag]!;
+        }
+    }
+    function mergeTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
+        mergeMultMod(baseSet.multModTable, modSet.multModTable);
+        mergeAddMod(baseSet.addModTable, modSet.addModTable);
+    }
+    for(let set of sets)
+        mergeTableSet(outset,set);
+    return outset;
+}

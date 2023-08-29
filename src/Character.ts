@@ -1,7 +1,7 @@
 import { deepClone } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
-import { Damage } from "./Damage";
+import { Damage, DamageInfo } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
@@ -13,8 +13,6 @@ export class Character {
     name:string;
     /**角色处在的战场 */
     battlefield:Battlefield=DefaultBattlefield;
-    /**角色的静态属性 */
-    staticStatus:StaticStatusOption;
     /**角色的当前属性 */
     dynmaicStatus:DynmaicStatus;
     /**所有的附加状态 */
@@ -22,15 +20,22 @@ export class Character {
 
     constructor(name:string,opt:StaticStatusOption){
         this.name=name;
-        this.staticStatus = Object.assign({},DefStaticStatus,opt);
+        let staticStatus:StaticStatusOption = Object.assign({},DefStaticStatus,opt);
+        let baseBuff:Buff = {
+            name:name+"基础属性",
+            addModify:staticStatus
+        }
+        //console.log(name,"staticStatus",staticStatus)
+        this.addBuff(baseBuff);
+
         this.dynmaicStatus = {
-            当前生命:this.staticStatus.最大生命||0,
-            当前怒气:this.staticStatus.初始怒气||0,
+            当前生命:staticStatus.最大生命||0,
+            当前怒气:staticStatus.初始怒气||0,
         }
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field:StaticStatusKey){
-        let mod = this.buffTable.getStaticStatus(this.staticStatus[field]||0,field);
+    getStaticStatus(field:StaticStatusKey,isHurt?:boolean,damageInfo?:DamageInfo){
+        let mod = this.buffTable.getStaticStatus(0,field,isHurt,damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -89,6 +94,9 @@ export class Character {
     }
     /**克隆角色 */
     clone():Character{
-        return new Character(this.name,deepClone(this.staticStatus));
+        let char = new Character(this.name,{});
+        let bt = this.buffTable.clone();
+        char.buffTable = bt;
+        return char;
     }
 }

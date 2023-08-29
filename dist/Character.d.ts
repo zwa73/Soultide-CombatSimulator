@@ -1,6 +1,6 @@
 import { Attack } from "./Attack";
 import { Battlefield } from "./CombatSimulation";
-import { Damage } from "./Damage";
+import { Damage, DamageInfo } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill } from "./Skill";
 import { DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
@@ -10,15 +10,13 @@ export declare class Character {
     name: string;
     /**角色处在的战场 */
     battlefield: Battlefield;
-    /**角色的静态属性 */
-    staticStatus: StaticStatusOption;
     /**角色的当前属性 */
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */
     buffTable: BuffTable;
     constructor(name: string, opt: StaticStatusOption);
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field: StaticStatusKey): number;
+    getStaticStatus(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
     /**添加一个buff
      * @param buff      buff
      * @param stack     层数        默认1

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Character = void 0;
-const utils_1 = require("@zwa73/utils");
 const CombatSimulation_1 = require("./CombatSimulation");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
@@ -11,23 +10,27 @@ class Character {
     name;
     /**角色处在的战场 */
     battlefield = CombatSimulation_1.DefaultBattlefield;
-    /**角色的静态属性 */
-    staticStatus;
     /**角色的当前属性 */
     dynmaicStatus;
     /**所有的附加状态 */
     buffTable = new Modify_1.BuffTable();
     constructor(name, opt) {
         this.name = name;
-        this.staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
+        let staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
+        let baseBuff = {
+            name: name + "基础属性",
+            addModify: staticStatus
+        };
+        //console.log(name,"staticStatus",staticStatus)
+        this.addBuff(baseBuff);
         this.dynmaicStatus = {
-            当前生命: this.staticStatus.最大生命 || 0,
-            当前怒气: this.staticStatus.初始怒气 || 0,
+            当前生命: staticStatus.最大生命 || 0,
+            当前怒气: staticStatus.初始怒气 || 0,
         };
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field) {
-        let mod = this.buffTable.getStaticStatus(this.staticStatus[field] || 0, field);
+    getStaticStatus(field, isHurt, damageInfo) {
+        let mod = this.buffTable.getStaticStatus(0, field, isHurt, damageInfo);
         return mod;
     }
     /**添加一个buff
@@ -87,7 +90,10 @@ class Character {
     }
     /**克隆角色 */
     clone() {
-        return new Character(this.name, (0, utils_1.deepClone)(this.staticStatus));
+        let char = new Character(this.name, {});
+        let bt = this.buffTable.clone();
+        char.buffTable = bt;
+        return char;
     }
 }
 exports.Character = Character;

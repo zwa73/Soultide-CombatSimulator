@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Damage = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = void 0;
+const Modify_1 = require("./Modify");
 //———————————————————— 伤害 ————————————————————//
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
@@ -70,33 +71,14 @@ class Damage {
         const charTableSet = this.source.char
             ? this.source.char.buffTable.getDamageConsModTable(false, this.info)
             : defset;
+        //console.log("charTableSet",charTableSet)
         const skillTableSet = this.source.skill
             ? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
             : defset;
+        //console.log("skillTableSet",skillTableSet)
         const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
-        const modTableSet = { multModTable: {}, addModTable: {} };
-        function mergeMultMod(baseTable, modTable) {
-            for (let flag of Object.keys(modTable)) {
-                if (baseTable[flag] == null)
-                    baseTable[flag] = 1;
-                baseTable[flag] *= modTable[flag];
-            }
-        }
-        function mergeAddMod(baseTable, modTable) {
-            for (let flag of Object.keys(modTable)) {
-                if (baseTable[flag] == null)
-                    baseTable[flag] = 0;
-                baseTable[flag] += modTable[flag];
-            }
-        }
-        function mergeTableSet(baseSet, modSet) {
-            mergeMultMod(baseSet.multModTable, modSet.multModTable);
-            mergeAddMod(baseSet.addModTable, modSet.addModTable);
-        }
-        mergeTableSet(modTableSet, charTableSet);
-        mergeTableSet(modTableSet, targetTableSet);
-        mergeTableSet(modTableSet, skillTableSet);
-        return modTableSet;
+        //console.log("targetTableSet",targetTableSet)
+        return (0, Modify_1.mergeModTableSet)(charTableSet, skillTableSet, targetTableSet);
     }
     /**对数值进行增益
      * @param base       基础值
@@ -105,7 +87,7 @@ class Damage {
      * @param addModMap  加值Map
      */
     modValue(base, flag, tableSet) {
-        return ((base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) *
+        return ((base + (tableSet.addModTable[flag] || 0)) *
             (tableSet.multModTable[flag] || 1));
     }
     /**含有某个特效 */

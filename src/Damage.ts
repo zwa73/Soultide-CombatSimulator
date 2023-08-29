@@ -1,5 +1,5 @@
 import { Character } from "./Character";
-import { ModTableSet } from "./Modify";
+import { ModTableSet, mergeModTableSet } from "./Modify";
 import { SkillData, SkillInfo } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 
@@ -104,31 +104,14 @@ export class Damage {
 		const charTableSet = this.source.char
 			? this.source.char.buffTable.getDamageConsModTable(false, this.info)
 			: defset;
+        //console.log("charTableSet",charTableSet)
 		const skillTableSet = this.source.skill
 			? this.source.skill.buffTable.getDamageConsModTable(false, this.info)
 			: defset;
+        //console.log("skillTableSet",skillTableSet)
 		const targetTableSet = target.buffTable.getDamageConsModTable(true, this.info);
-		const modTableSet: ModTableSet = { multModTable: {}, addModTable: {} };
-		function mergeMultMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-			for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
-				if (baseTable[flag] == null) baseTable[flag] = 1;
-				baseTable[flag]! *= modTable[flag]!;
-			}
-		}
-		function mergeAddMod(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-			for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
-				if (baseTable[flag] == null) baseTable[flag] = 0;
-				baseTable[flag]! += modTable[flag]!;
-			}
-		}
-		function mergeTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
-			mergeMultMod(baseSet.multModTable, modSet.multModTable);
-			mergeAddMod(baseSet.addModTable, modSet.addModTable);
-		}
-		mergeTableSet(modTableSet, charTableSet);
-		mergeTableSet(modTableSet, targetTableSet);
-		mergeTableSet(modTableSet, skillTableSet);
-		return modTableSet;
+		//console.log("targetTableSet",targetTableSet)
+        return mergeModTableSet(charTableSet,skillTableSet,targetTableSet);
 	}
 	/**对数值进行增益
 	 * @param base       基础值
@@ -138,7 +121,7 @@ export class Damage {
 	 */
 	private modValue(base: number, flag: StaticStatusKey, tableSet: ModTableSet) {
 		return (
-			(base + (this.source.char ? this.source.char.getStaticStatus(flag) : 0) + (tableSet.addModTable[flag] || 0)) *
+			(base + (tableSet.addModTable[flag] || 0)) *
 			(tableSet.multModTable[flag] || 1)
 		);
 	}
