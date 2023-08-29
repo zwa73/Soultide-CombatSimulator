@@ -14,7 +14,9 @@ export declare class Character {
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */
     buffTable: BuffTable;
-    constructor(name: string, opt: StaticStatusOption);
+    constructor(name: string, status: StaticStatusOption);
+    /**获取角色的基础属性 */
+    getBaseStatus(): Buff;
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey, isHurt?: boolean, damageInfo?: DamageInfo): number;
     /**添加一个buff

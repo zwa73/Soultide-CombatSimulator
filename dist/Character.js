@@ -15,9 +15,9 @@ class Character {
     dynmaicStatus;
     /**所有的附加状态 */
     buffTable = new Modify_1.BuffTable();
-    constructor(name, opt) {
+    constructor(name, status) {
         this.name = name;
-        let staticStatus = Object.assign({}, Status_1.DefStaticStatus, opt);
+        let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
         let baseBuff = {
             name: name + "基础属性",
             addModify: staticStatus
@@ -28,6 +28,11 @@ class Character {
             当前生命: staticStatus.最大生命 || 0,
             当前怒气: staticStatus.初始怒气 || 0,
         };
+    }
+    /**获取角色的基础属性 */
+    getBaseStatus() {
+        //@ts-ignore
+        return this.buffTable.getBuff(this.name + "基础属性");
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, isHurt, damageInfo) {
@@ -60,6 +65,10 @@ class Character {
         };
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
         this.buffTable.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
+        //消耗怒气
+        if (!isTiggerSkill)
+            this.dynmaicStatus.当前怒气 -= skill.cost || 0;
+        //产生效果
         skill.cast(skillData);
         this.buffTable.getTiggers("释放技能后").forEach(t => skillData = t.tigger(skillData));
         skill.afterCast ? skill.afterCast(skillData) : undefined;
@@ -81,8 +90,19 @@ class Character {
     }
     /**受到伤害 */
     getHurt(damage) {
+        damage.source.char?.buffTable.getTiggers("造成伤害前")
+            .forEach(t => damage = t.tigger(damage, this));
+        let isSkillDamage = damage.isSkillDamage();
+        if (isSkillDamage)
+            damage.source.char?.buffTable.getTiggers("造成技能伤害前")
+                .forEach(t => damage = t.tigger(damage, this));
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命 -= dmg;
+        damage.source.char?.buffTable.getTiggers("造成伤害后")
+            .forEach(t => damage = t.tigger(damage, this));
+        if (isSkillDamage)
+            damage.source.char?.buffTable.getTiggers("造成技能伤害后")
+                .forEach(t => damage = t.tigger(damage, this));
         console.log(this.name + " 受到", dmg, "点伤害");
     }
     /**受到攻击 */

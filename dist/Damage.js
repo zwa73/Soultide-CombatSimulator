@@ -100,11 +100,11 @@ class Damage {
     calcOverdamage(target) {
         const { dmgType, skillCategory } = this.info;
         let dmg = this.factor;
-        console.log("基础系数", this.factor);
+        //console.log("基础系数",this.factor)
         if (this.hasSpecEffect(exports.固定))
             return dmg;
         const modTableSet = this.calcOnDamageModify(target);
-        console.log(modTableSet);
+        //console.log(modTableSet);
         //系数
         dmg = this.modValue(dmg, "伤害系数", modTableSet);
         //攻击
@@ -112,7 +112,7 @@ class Damage {
         let atk = this.modValue(0, "攻击", modTableSet);
         dmg *= atk - def > 1 ? atk - def : 1;
         //附加伤害
-        let needAdd = this.info.skillType != "非技能";
+        let needAdd = this.isSkillDamage();
         let adddmg = 0;
         if (needAdd)
             adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], modTableSet);
@@ -136,6 +136,10 @@ class Damage {
         if (!this.hasSpecEffect(exports.稳定))
             dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
         return Math.floor(dmg);
+    }
+    /**是技能伤害 */
+    isSkillDamage() {
+        return this.info.skillType != "非技能";
     }
     /**复制一份伤害 */
     clone() {

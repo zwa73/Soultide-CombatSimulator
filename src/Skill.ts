@@ -44,19 +44,25 @@ export type SkillData={
 }
 export type SkillInfo={
     /**技能名 */
-    skillName:SkillName;
+    readonly skillName:SkillName;
     /**技能的类型 */
-    skillType:SkillType;
+    readonly skillType:SkillType;
     /**技能的子类型 */
-    skillSubtype:SkillSubtype;
+    readonly skillSubtype:SkillSubtype;
     /**技能范围 */
-    skillRange:SkillRange;
+    readonly skillRange:SkillRange;
     /**技能类别 */
-    skillCategory:SkillCategory;
+    readonly skillCategory:SkillCategory;
 }
+/**技能名 */
 export type SkillName = `技能:${string}`;
+
+/**能 */
 export type Skill={
+    /**技能的类型详情 */
     readonly info:SkillInfo;
+    /**技能的怒气消耗 */
+    readonly cost:number;
     /**使用技能
      * @param skillData 技能参数
      */

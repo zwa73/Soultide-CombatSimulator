@@ -52,40 +52,62 @@ class BuffTable {
         if (this._table[buff.name] == null || buff.canSatck != true)
             this._table[buff.name] = { buff, stack, duration };
         else {
-            let cadd = this._table[buff.name];
-            cadd.stack += stack;
+            let stakcbuff = this._table[buff.name];
+            stakcbuff.stack += stack;
+            if (buff.stackLimit != null && stakcbuff.stack > buff.stackLimit)
+                stakcbuff.stack = buff.stackLimit;
         }
+        this.checkBuff(buff);
     }
     /**获取一个Buff的层数 */
-    getBuffStack(key) {
+    getBuffStack(buff) {
+        let key = buff.name;
         if (this._table[key] == null || this._table[key].stack <= 0)
             return 0;
         return this._table[key].stack;
     }
+    /**获取一个Buff */
+    getBuff(key) {
+        return this._table[key].buff;
+    }
     /**获取buff持续时间 */
-    getBuffDuration(key) {
+    getBuffDuration(buff) {
+        let key = buff.name;
         if (this._table[key] == null || this._table[key].duration <= 0)
             return 0;
         return this._table[key].duration;
     }
     /**是否含有某个有效的buff */
-    hasBuff(key) {
-        return this.getBuffStack(key) > 0 && this.getBuffDuration(key) > 0;
+    hasBuff(buff) {
+        return this.getBuffStack(buff) > 0 && this.getBuffDuration(buff) > 0;
+    }
+    /**检查buff是否有效 无效则移除*/
+    checkBuff(buff) {
+        let stackBuff = this._table[buff.name];
+        if (stackBuff.duration <= 0) {
+            this.removeBuff(stackBuff.buff);
+            return false;
+        }
+        if (stackBuff.stack <= 0) {
+            this.removeBuff(stackBuff.buff);
+            return false;
+        }
+        return true;
     }
     /**结算回合 */
     endRound() {
         for (let k in this._table) {
-            let buff = this._table[k];
-            if (buff.duration > 0)
-                buff.duration -= 1;
-            if (buff.duration <= 0)
-                this.removeBuff(k);
+            let stackbuff = this._table[k];
+            if (stackbuff.duration > 0)
+                stackbuff.duration -= 1;
+            this.checkBuff(stackbuff.buff);
         }
     }
     /**移除某个buff */
-    removeBuff(key) {
-        this._table[key].stack = 0;
-        this._table[key].duration = 0;
+    removeBuff(buff) {
+        this._table[buff.name].stack = 0;
+        this._table[buff.name].duration = 0;
+        delete this._table[buff.name];
     }
     /**获取某个计算完增益的属性
      * @param base       基础值
@@ -173,9 +195,9 @@ class BuffTable {
         //触发器数组
         let arr = [];
         for (const key in this._table) {
-            if (!this.hasBuff(key))
-                continue;
             let obj = this._table[key];
+            if (!this.hasBuff(obj.buff))
+                continue;
             if (obj.buff.tiggerList == null)
                 continue;
             for (const tigger of obj.buff.tiggerList) {

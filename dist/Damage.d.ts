@@ -23,7 +23,7 @@ export declare enum SpecEffect {
     暴击 = "\u66B4\u51FB"
 }
 export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect, 穿盾: SpecEffect, 穿防: SpecEffect, 暴击: SpecEffect;
-/**伤害具体类型 */
+/**伤害类型详情 */
 export type DamageInfo = {
     /**伤害类型 */
     dmgType: DamageType;
@@ -66,6 +66,8 @@ export declare class Damage {
     hasSpecEffect(flag: SpecEffect): boolean | undefined;
     /**计算伤害 */
     calcOverdamage(target: Character): number;
+    /**是技能伤害 */
+    isSkillDamage(): boolean;
     /**复制一份伤害 */
     clone(): Damage;
 }

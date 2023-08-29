@@ -53,7 +53,7 @@ DamageSpecMap.治疗伤害 = [治疗];
 DamageSpecMap.固定伤害 = [固定,稳定,穿防];
 DamageSpecMap.燃烧伤害 = [穿盾];
 
-/**伤害具体类型 */
+/**伤害类型详情 */
 export type DamageInfo={
     /**伤害类型 */
     dmgType:DamageType;
@@ -135,21 +135,21 @@ export class Damage {
 	calcOverdamage(target: Character): number {
 		const { dmgType, skillCategory } = this.info;
 		let dmg = this.factor;
-        console.log("基础系数",this.factor)
+        //console.log("基础系数",this.factor)
 		if (this.hasSpecEffect(固定)) return dmg;
 
 		const modTableSet = this.calcOnDamageModify(target);
-		console.log(modTableSet);
+		//console.log(modTableSet);
 		//系数
 		dmg = this.modValue(dmg, "伤害系数", modTableSet);
 
 		//攻击
 		let def = this.hasSpecEffect(穿防) || this.hasSpecEffect(治疗)? 0 : target.getStaticStatus("防御");
-		let atk = this.modValue(0, "攻击", modTableSet);
+        let atk = this.modValue(0, "攻击", modTableSet);
 		dmg *= atk - def > 1 ? atk - def : 1;
 
 		//附加伤害
-		let needAdd = this.info.skillType != "非技能";
+		let needAdd = this.isSkillDamage();
 		let adddmg = 0;
 		if (needAdd) adddmg = this.modValue(0, AddiDamageIncludeMap[dmgType], modTableSet);
 
@@ -174,6 +174,10 @@ export class Damage {
 		if (!this.hasSpecEffect(稳定)) dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
 		return Math.floor(dmg);
 	}
+    /**是技能伤害 */
+    isSkillDamage():boolean{
+        return this.info.skillType != "非技能";
+    }
 	/**复制一份伤害 */
 	clone() {
 		return new Damage(this.source, this.factor, this.info, ...this.specEffects);

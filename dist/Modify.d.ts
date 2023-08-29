@@ -71,15 +71,19 @@ export declare class BuffTable {
      */
     addBuff(buff: Buff, stack?: number, duration?: number): void;
     /**获取一个Buff的层数 */
-    getBuffStack(key: string): number;
+    getBuffStack(buff: Buff): number;
+    /**获取一个Buff */
+    private getBuff;
     /**获取buff持续时间 */
-    getBuffDuration(key: string): number;
+    getBuffDuration(buff: Buff): number;
     /**是否含有某个有效的buff */
-    hasBuff(key: string): boolean;
+    hasBuff(buff: Buff): boolean;
+    /**检查buff是否有效 无效则移除*/
+    private checkBuff;
     /**结算回合 */
     endRound(): void;
     /**移除某个buff */
-    removeBuff(key: string): void;
+    removeBuff(buff: Buff): void;
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
