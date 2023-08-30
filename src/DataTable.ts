@@ -2,11 +2,12 @@ import { CharGener } from "./Character";
 import { Buff, BuffName } from "./Modify";
 import { Skill, SkillName } from "./Skill";
 import { StaticStatusOption } from "./Status";
+import { AnyTrigger } from "./Trigger";
 
 /**技能表 */
 export const SkillTable:Record<SkillName,Skill> = {};
 export const BuffTable:Record<BuffName,Buff> = {};
-export const GlobalTiggerTable = {};
+export const GlobalTiggerTable:Record<string,AnyTrigger> = {};
 
 
 /**数据表 */

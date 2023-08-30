@@ -5,7 +5,7 @@ const DataTable_1 = require("../DataTable");
 const Modify_1 = require("../Modify");
 exports.GenericBuff = {
     暗蚀: {
-        info: (0, Modify_1.genBuffInfo)("状态:暗蚀"),
+        info: (0, Modify_1.genBuffInfo)("效果:暗蚀"),
         canSatck: true,
         stackLimit: 10,
         stackMultModify: {

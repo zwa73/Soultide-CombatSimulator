@@ -180,7 +180,7 @@ class BuffTable {
             addModTable: addModTable
         };
     }
-    /**获取所有对应触发器 */
+    /**获取buffTable中所有对应触发器 不包括全局触发器*/
     getTiggers(hook) {
         //触发器数组
         let arr = [];
@@ -188,9 +188,9 @@ class BuffTable {
             let obj = this._table[key];
             if (!this.hasBuff(obj.buff))
                 continue;
-            if (obj.buff.tiggerList == null)
+            if (obj.buff.triggerList == null)
                 continue;
-            for (const tigger of obj.buff.tiggerList) {
+            for (const tigger of obj.buff.triggerList) {
                 if (tigger.hook == hook)
                     arr.push(tigger);
             }

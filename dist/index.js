@@ -19,6 +19,6 @@ __exportStar(require("./Attack"), exports);
 __exportStar(require("./Damage"), exports);
 __exportStar(require("./Skill"), exports);
 __exportStar(require("./Status"), exports);
-__exportStar(require("./Tigger"), exports);
+__exportStar(require("./Trigger"), exports);
 __exportStar(require("./Character"), exports);
 __exportStar(require("./Table"), exports);

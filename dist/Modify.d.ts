@@ -1,7 +1,7 @@
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
-import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
+import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 type ModiftTypeDef = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
 type ModifyTypeBase = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
 /**加成类型 区分乘区 */
@@ -33,7 +33,7 @@ export type BuffInfo = {
     readonly buffName: BuffName;
 };
 export declare function genBuffInfo(buffName: BuffName): BuffInfo;
-/**附加状态 */
+/**附加效果 */
 export type Buff = {
     /**名称 */
     readonly info: BuffInfo;
@@ -54,9 +54,9 @@ export type Buff = {
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?: DamageConsAnd;
     /**触发器 */
-    readonly tiggerList?: AnyTigger[];
+    readonly triggerList?: AnyTrigger[];
 };
-export type BuffName = `状态:${string}`;
+export type BuffName = `效果:${string}`;
 /**叠加的buff */
 export type BuffStack = {
     /**buff类型 */
@@ -108,8 +108,8 @@ export declare class BuffTable {
      * @param damageInfo 伤害信息
      */
     getModTableSet(damageInfo?: DamageInfo): ModTableSet;
-    /**获取所有对应触发器 */
-    getTiggers<T extends AnyHook>(hook: T): HookTiggerMap[T][];
+    /**获取buffTable中所有对应触发器 不包括全局触发器*/
+    getTiggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
     clone(): BuffTable;
 }
 /**对ModTableSet进行加运算 乘区加算 加值加算*/

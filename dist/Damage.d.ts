@@ -24,7 +24,7 @@ export declare enum SpecEffect {
     暴击 = "\u66B4\u51FB"
 }
 export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect, 穿盾: SpecEffect, 穿防: SpecEffect, 暴击: SpecEffect;
-/**伤害类型详情 */
+/**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
 export type DamageInfo = {
     /**伤害类型 */
     dmgType: DamageType;

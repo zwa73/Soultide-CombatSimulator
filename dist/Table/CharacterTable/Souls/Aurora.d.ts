@@ -22,5 +22,5 @@ export declare const Aurora: {
     /**续存战意 5层效果 */
     续存战意B: Buff;
     baseStatus: Partial<import("../../../Status").StaticStatus>;
-    genChar: (name: string, status: StaticStatusOption) => Character;
+    genChar(name?: string, status?: StaticStatusOption): Character;
 };

@@ -6,6 +6,7 @@ const CombatSimulation_1 = require("./CombatSimulation");
 const Damage_1 = require("./Damage");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
+const DataTable_1 = require("./DataTable");
 /**角色 */
 class Character {
     /**角色名称 */
@@ -33,20 +34,12 @@ class Character {
     /**获取角色的基础属性 */
     getBaseStatus() {
         //@ts-ignore
-        return this.buffTable.getBuff((this.name + "基础属性"));
+        return this._buffTable.getBuff((this.name + "基础属性"));
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, damageInfo) {
         let mod = this.buffTable.modValue(0, field, damageInfo);
         return mod;
-    }
-    /**添加一个buff
-     * @param buff      buff
-     * @param stack     层数        默认1
-     * @param duration  持续回合    默认无限
-     */
-    addBuff(buff, stack = 1, countdown = Infinity) {
-        this.buffTable.addBuff(buff, stack, countdown);
     }
     /**释放某个技能
      * @param skill  技能
@@ -60,18 +53,18 @@ class Character {
             targetList: target,
             battlefield: this.battlefield,
             buffTable: new Modify_1.BuffTable(),
-            isTiggerSkill: isTiggerSkill,
+            isTriggerSkill: isTiggerSkill,
             dataTable: {},
             uid: utils.genUUID()
         };
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
-        this.buffTable.getTiggers("释放技能前").forEach(t => skillData = t.tigger(skillData));
+        this.getTiggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
         //消耗怒气
         if (!isTiggerSkill)
             this.dynmaicStatus.当前怒气 -= skill.cost || 0;
         //产生效果
         skill.cast(skillData);
-        this.buffTable.getTiggers("释放技能后").forEach(t => skillData = t.tigger(skillData));
+        this.getTiggers("释放技能后").forEach(t => skillData = t.trigger(skillData));
         skill.afterCast ? skill.afterCast(skillData) : undefined;
     }
     /**被动的触发某个技能
@@ -92,18 +85,18 @@ class Character {
     /**受到伤害 */
     getHurt(damage) {
         damage.source.char?.buffTable.getTiggers("造成伤害前")
-            .forEach(t => damage = t.tigger(damage, this));
+            .forEach(t => damage = t.trigger(damage, this));
         let isSkillDamage = damage.isSkillDamage();
         if (isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害前")
-                .forEach(t => damage = t.tigger(damage, this));
+                .forEach(t => damage = t.trigger(damage, this));
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命 -= dmg;
         damage.source.char?.buffTable.getTiggers("造成伤害后")
-            .forEach(t => damage = t.tigger(damage, this));
+            .forEach(t => damage = t.trigger(damage, this));
         if (isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
-                .forEach(t => damage = t.tigger(damage, this));
+                .forEach(t => damage = t.trigger(damage, this));
         console.log(this.name + " 受到", dmg, "点伤害", `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
     }
     /**受到攻击 */
@@ -117,6 +110,31 @@ class Character {
         let bt = this.buffTable.clone();
         char.buffTable = bt;
         return char;
+    }
+    /**获取所有对应触发器 包括全局触发器 */
+    getTiggers(hook) {
+        //触发器数组
+        const tiggers = this.buffTable.getTiggers(hook);
+        for (const key in DataTable_1.GlobalTiggerTable) {
+            let tigger = DataTable_1.GlobalTiggerTable[key];
+            if (tigger.hook == hook)
+                tiggers.push(tigger);
+        }
+        tiggers.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+        return tiggers;
+    }
+    //———————————————————— util ————————————————————//
+    /**获取一个Buff的层数 */
+    getBuffStack(buff) {
+        return this.buffTable.getBuffStack(buff);
+    }
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff, stack = 1, countdown = Infinity) {
+        return this.buffTable.addBuff(buff, stack, countdown);
     }
 }
 exports.Character = Character;

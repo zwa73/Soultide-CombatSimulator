@@ -36,7 +36,7 @@ export type SkillData={
     /**只应用于此次技能的Buff */
     buffTable:BuffTable;
     /**是触发的技能 */
-    isTiggerSkill:boolean;
+    isTriggerSkill:boolean;
     /**唯一ID */
     uid:string;
     /**额外的表 */
@@ -57,7 +57,7 @@ export type SkillInfo={
 /**技能名 */
 export type SkillName = `技能:${string}`;
 
-/**能 */
+/**技能 */
 export type Skill={
     /**技能的类型详情 */
     readonly info:SkillInfo;
@@ -76,21 +76,28 @@ export type Skill={
      */
     readonly beforeCast?:(skillData:SkillData)=>void;
 }
-export function genDamageInfo(info:SkillInfo,dmgType:DamageType):DamageInfo{
+export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
     return {
-        skillName:info.skillName,
-        skillCategory:info.skillCategory,
-        skillRange:info.skillRange,
-        skillType:info.skillType,
-        skillSubtype:info.skillSubtype,
+        skillName:info? info.skillName:undefined,
+        skillCategory:info? info.skillCategory:undefined,
+        skillRange:info? info.skillRange:undefined,
+        skillType:info? info.skillType:"非技能",
+        skillSubtype:info? info.skillSubtype:undefined,
         dmgType:dmgType,
     }
 }
-export function genDamage(skill:Skill,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Damage{
-    return new Damage({char:skillData.user,skill:skillData},factor,genDamageInfo(skill.info,dmgType),...specEffects);
+export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Character,...specEffects:SpecEffect[]):Damage{
+    return new Damage({char:char},factor,genDamageInfo(dmgType),...specEffects);
 }
-export function genAttack(skill:Skill,skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
-    return new Attack({char:skillData.user,skill:skillData},genDamage(skill,skillData,factor,dmgType,...specEffects));
+export function genDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
+    return new Damage({
+        char:skillData?.user,
+        skill:skillData
+    },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
+}
+export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
+    return new Attack({char:skillData.user,skill:skillData},
+        genDamage(factor,dmgType,skillData,...specEffects));
 }
 export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
     return {skillName,skillType,skillSubtype,skillRange,skillCategory};

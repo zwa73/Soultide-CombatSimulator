@@ -10,7 +10,7 @@ exports.稻草人 = {
     },
     genChar(name, status) {
         let opt = Object.assign({}, exports.稻草人.baseStatus, status);
-        return new Character_1.Character("稻草人", opt);
+        return new Character_1.Character(name || "稻草人", opt);
     }
 };
 (0, DataTable_1.regDataTable)(exports.稻草人);

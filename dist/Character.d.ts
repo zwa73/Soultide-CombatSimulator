@@ -5,6 +5,7 @@ import { Damage, DamageInfo } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill } from "./Skill";
 import { DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+import { AnyHook, HookTriggerMap } from "./Trigger";
 /**角色 */
 export declare class Character {
     /**角色名称 */
@@ -20,12 +21,6 @@ export declare class Character {
     getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
     getStaticStatus(field: StaticStatusKey, damageInfo?: DamageInfo): number;
-    /**添加一个buff
-     * @param buff      buff
-     * @param stack     层数        默认1
-     * @param duration  持续回合    默认无限
-     */
-    addBuff(buff: Buff, stack?: number, countdown?: number): void;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
@@ -45,6 +40,16 @@ export declare class Character {
     getHit(attack: Attack): void;
     /**克隆角色 */
     clone(): Character;
+    /**获取所有对应触发器 包括全局触发器 */
+    getTiggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
+    /**获取一个Buff的层数 */
+    getBuffStack(buff: Buff): number;
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff: Buff, stack?: number, countdown?: number): void;
 }
 /**角色生成器 */
 export interface CharGener {
@@ -52,5 +57,5 @@ export interface CharGener {
      * @param name 角色名
      * @param stat 角色属性
      */
-    (name: string, stat: StaticStatusOption): Character;
+    (name?: string, stat?: StaticStatusOption): Character;
 }

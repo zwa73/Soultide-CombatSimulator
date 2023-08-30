@@ -56,12 +56,12 @@ DamageSpecMap.治疗伤害 = [治疗];
 DamageSpecMap.固定伤害 = [固定,稳定,穿防];
 DamageSpecMap.燃烧伤害 = [穿盾];
 
-/**伤害类型详情 */
+/**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
 export type DamageInfo={
     /**伤害类型 */
     dmgType:DamageType;
-}& Omit<Partial<Writeable<SkillInfo>>,"skillType">
- & Pick<Writeable<SkillInfo>,"skillType">;
+}&Omit<Partial<Writeable<SkillInfo>>,"skillType">&
+Pick<Writeable<SkillInfo>,"skillType">;
 
 
 /**伤害来源 */

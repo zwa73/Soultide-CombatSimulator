@@ -11,7 +11,7 @@ export declare const Souls: {
         续存战意A: import("../../../Modify").Buff;
         续存战意B: import("../../../Modify").Buff;
         baseStatus: Partial<import("../../..").StaticStatus>;
-        genChar: (name: string, status: Partial<import("../../..").StaticStatus>) => import("../../..").Character;
+        genChar(name?: string | undefined, status?: Partial<import("../../..").StaticStatus> | undefined): import("../../..").Character;
     };
     Colcher: {
         王女的祝福: import("../../..").Skill;

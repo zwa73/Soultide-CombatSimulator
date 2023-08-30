@@ -4,6 +4,7 @@ exports.Colcher = void 0;
 const DataTable_1 = require("../../../DataTable");
 const Modify_1 = require("../../../Modify");
 const Skill_1 = require("../../../Skill");
+const Trigger_1 = require("../../../Trigger");
 exports.Colcher = {
     王女的祝福: {
         info: (0, Skill_1.genSkillInfo)("技能:王女的祝福", "魔法技能", "辅助技能", "单体技能", "奥义技能"),
@@ -15,14 +16,15 @@ exports.Colcher = {
         }
     },
     回音: {
-        info: (0, Modify_1.genBuffInfo)("状态:回音"),
-        tiggerList: [{
+        info: (0, Modify_1.genBuffInfo)("效果:回音"),
+        triggerList: [{
+                info: (0, Trigger_1.genTriggerInfo)("触发:回音"),
                 hook: "释放技能后",
                 weight: -1000,
-                tigger(skillData) {
+                trigger(skillData) {
                     if (skillData.skill.info.skillName == "技能:王女的祝福")
                         return skillData;
-                    if (skillData.isTiggerSkill)
+                    if (skillData.isTriggerSkill)
                         return skillData;
                     if (skillData.skill.info.skillCategory != "奥义技能")
                         return skillData;

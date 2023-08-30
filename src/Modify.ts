@@ -1,7 +1,7 @@
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
-import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
+import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 
 //———————————————————— 调整值 ————————————————————//
 
@@ -67,7 +67,7 @@ export function genBuffInfo(buffName:BuffName):BuffInfo{
     return {buffName};
 }
 
-/**附加状态 */
+/**附加效果 */
 export type Buff={
     /**名称 */
     readonly info:BuffInfo;
@@ -88,9 +88,9 @@ export type Buff={
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?:DamageConsAnd;
     /**触发器 */
-    readonly tiggerList?:AnyTigger[];
+    readonly triggerList?:AnyTrigger[];
 }
-export type BuffName = `状态:${string}`;
+export type BuffName = `效果:${string}`;
 
 /**叠加的buff */
 export type BuffStack={
@@ -253,17 +253,17 @@ export class BuffTable{
             addModTable: addModTable
         };
     }
-    /**获取所有对应触发器 */
-    getTiggers<T extends AnyHook>(hook:T):HookTiggerMap[T][] {
+    /**获取buffTable中所有对应触发器 不包括全局触发器*/
+    getTiggers<T extends AnyHook>(hook:T):HookTriggerMap[T][] {
         //索引触发器类型
-        type TT = HookTiggerMap[T];
+        type TT = HookTriggerMap[T];
         //触发器数组
         let arr:TT[]=[];
         for (const key in this._table){
             let obj = this._table[key as BuffName];
             if(!this.hasBuff(obj.buff)) continue;
-            if(obj.buff.tiggerList==null) continue;
-            for(const tigger of obj.buff.tiggerList){
+            if(obj.buff.triggerList==null) continue;
+            for(const tigger of obj.buff.triggerList){
                 if(tigger.hook==hook)
                     arr.push(tigger as TT);
             }

@@ -28,7 +28,7 @@ export type SkillData = {
     /**只应用于此次技能的Buff */
     buffTable: BuffTable;
     /**是触发的技能 */
-    isTiggerSkill: boolean;
+    isTriggerSkill: boolean;
     /**唯一ID */
     uid: string;
     /**额外的表 */
@@ -48,7 +48,7 @@ export type SkillInfo = {
 };
 /**技能名 */
 export type SkillName = `技能:${string}`;
-/**能 */
+/**技能 */
 export type Skill = {
     /**技能的类型详情 */
     readonly info: SkillInfo;
@@ -67,9 +67,10 @@ export type Skill = {
      */
     readonly beforeCast?: (skillData: SkillData) => void;
 };
-export declare function genDamageInfo(info: SkillInfo, dmgType: DamageType): DamageInfo;
-export declare function genDamage(skill: Skill, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Damage;
-export declare function genAttack(skill: Skill, skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
+export declare function genDamageInfo(dmgType: DamageType, info?: SkillInfo): DamageInfo;
+export declare function genNonSkillDamage(factor: number, dmgType: DamageType, char?: Character, ...specEffects: SpecEffect[]): Damage;
+export declare function genDamage(factor: number, dmgType: DamageType, skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
+export declare function genAttack(skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
 export declare function genSkillInfo(skillName: SkillName, skillType: SkillType, skillSubtype: SkillSubtype, skillRange: SkillRange, skillCategory: SkillCategory): SkillInfo;
 export declare function checkTargets(targets: Character[], needMin: number, needMax: number): void;
 export {};

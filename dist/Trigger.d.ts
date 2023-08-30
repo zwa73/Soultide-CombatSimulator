@@ -2,80 +2,80 @@ import { Character } from "./Character";
 import { Damage } from "./Damage";
 import { SkillData } from "./Skill";
 export type TriggerBase = {
-    /**权重 默认0*/
-    weight?: number;
+    readonly info: TriggerInfo;
     /**触发点 */
-    hook: AnyHook;
+    readonly hook: AnyHook;
+    /**权重 默认0*/
+    readonly weight?: number;
     /**触发函数 */
-    trigger(...args: any): any;
+    readonly trigger: (...args: any) => any;
 };
-/**使用技能前 */
+/**释放技能前 */
 export interface TUseSkillBefore extends TriggerBase {
-    hook: "释放技能后";
+    readonly hook: "释放技能前";
     /**触发 使用技能前 触发器
      * @param skillData 技能参数
      */
-    trigger(skillData: SkillData): SkillData;
+    readonly trigger: (skillData: SkillData) => SkillData;
 }
-/**使用技能后 */
+/**释放技能后 */
 export interface TUseSkillAfter extends TriggerBase {
-    hook: "释放技能前";
+    readonly hook: "释放技能后";
     /**触发 使用技能后 触发器
      * @param skillData 技能参数
      */
-    trigger(skillData: SkillData): SkillData;
+    readonly trigger: (skillData: SkillData) => SkillData;
 }
 /**造成伤害前 */
 export interface TDealDamageBefore extends TriggerBase {
-    hook: "造成伤害前";
+    readonly hook: "造成伤害前";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    trigger(damage: Damage, target: Character): Damage;
+    readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 /**造成伤害后 */
 export interface TDealDamageAfter extends TriggerBase {
-    hook: "造成伤害后";
+    readonly hook: "造成伤害后";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    trigger(damage: Damage, target: Character): Damage;
+    readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 /**造成技能伤害前 */
 export interface TDealSkillDamageBefore extends TriggerBase {
-    hook: "造成技能伤害前";
+    readonly hook: "造成技能伤害前";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    trigger(damage: Damage, target: Character): Damage;
+    readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 /**造成技能伤害后 */
 export interface TDealSkillDamageAfter extends TriggerBase {
-    hook: "造成技能伤害后";
+    readonly hook: "造成技能伤害后";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    trigger(damage: Damage, target: Character): Damage;
+    readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 export type TriggerName = `触发:${string}`;
 export type TriggerInfo = {
-    triggerName: TriggerName;
-    triggerHook: AnyHook;
+    readonly triggerName: TriggerName;
 };
 /**生成触发器info */
-export declare function genTriggerInfo(triggerName: TriggerName, triggerHook: AnyHook): TriggerInfo;
+export declare function genTriggerInfo(triggerName: TriggerName): TriggerInfo;
 /**触发器表 */
 export type HookTriggerMap = {
-    释放技能后: TUseSkillBefore;
-    释放技能前: TUseSkillAfter;
-    造成伤害后: TDealDamageBefore;
-    造成伤害前: TDealDamageAfter;
-    造成技能伤害后: TDealSkillDamageBefore;
-    造成技能伤害前: TDealSkillDamageAfter;
+    readonly 释放技能后: TUseSkillBefore;
+    readonly 释放技能前: TUseSkillAfter;
+    readonly 造成伤害后: TDealDamageBefore;
+    readonly 造成伤害前: TDealDamageAfter;
+    readonly 造成技能伤害后: TDealSkillDamageBefore;
+    readonly 造成技能伤害前: TDealSkillDamageAfter;
 };
 export type AnyHook = keyof HookTriggerMap;
 export type AnyTrigger = HookTriggerMap[keyof HookTriggerMap];
