@@ -1,13 +1,15 @@
-import { Buff } from "@src/Modify";
+import { regDataTable } from "@src/DataTable";
+import { Buff, genBuffInfo } from "@src/Modify";
 
-export namespace GenericBuff{
-    export const 暗蚀:Buff={
-        name:"暗蚀",
+export const GenericBuff={
+    暗蚀:{
+        info: genBuffInfo("状态:暗蚀"),
         canSatck:true,
         stackLimit:10,
         stackMultModify:{
             受到所有伤害:0.04,
         },
         damageCons:[],
-    }
+    } as Buff,
 }
+regDataTable(GenericBuff);

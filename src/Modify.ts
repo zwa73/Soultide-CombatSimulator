@@ -58,10 +58,19 @@ export type ModSet = {
     mult:number
 }
 
+/**buff的详细信息 */
+export type BuffInfo={
+    readonly buffName:BuffName;
+}
+
+export function genBuffInfo(buffName:BuffName):BuffInfo{
+    return {buffName};
+}
+
 /**附加状态 */
 export type Buff={
     /**名称 */
-    readonly name:BuffName;
+    readonly info:BuffInfo;
     /**可叠加 重复获得时 层数叠加 默认覆盖*/
     readonly canSatck?:boolean;
     /**叠加上限 可以存在的最大层数 默认无限*/
@@ -102,10 +111,10 @@ export class BuffTable{
      * @param duration  持续回合    默认无限
      */
     addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
-        if(this._table[buff.name]==null || buff.canSatck!=true)
-            this._table[buff.name]={ buff, stack, duration };
+        if(this._table[buff.info.buffName]==null || buff.canSatck!=true)
+            this._table[buff.info.buffName]={ buff, stack, duration };
         else{
-            let stakcbuff = this._table[buff.name];
+            let stakcbuff = this._table[buff.info.buffName];
             stakcbuff.stack+=stack;
             if(buff.stackLimit!=null && stakcbuff.stack>buff.stackLimit)
                 stakcbuff.stack = buff.stackLimit;
@@ -114,7 +123,7 @@ export class BuffTable{
     }
     /**获取一个Buff的层数 */
     getBuffStack(buff:Buff):number{
-        let key = buff.name;
+        let key = buff.info.buffName;
         if(this._table[key]==null || this._table[key].stack<=0)
             return 0;
         return this._table[key].stack;
@@ -125,7 +134,7 @@ export class BuffTable{
     }
     /**获取buff持续时间 */
     getBuffDuration(buff:Buff):number{
-        let key = buff.name;
+        let key = buff.info.buffName;
         if(this._table[key]==null || this._table[key].duration<=0)
             return 0;
         return this._table[key].duration;
@@ -136,7 +145,7 @@ export class BuffTable{
     }
     /**检查buff是否有效 无效则移除*/
     private checkBuff(buff:Buff):boolean{
-        let stackBuff = this._table[buff.name];
+        let stackBuff = this._table[buff.info.buffName];
         if(stackBuff.duration<=0){
             this.removeBuff(stackBuff.buff);
             return false;
@@ -158,9 +167,9 @@ export class BuffTable{
     }
     /**移除某个buff */
     removeBuff(buff:Buff){
-        this._table[buff.name].stack=0;
-        this._table[buff.name].duration=0;
-        delete this._table[buff.name];
+        this._table[buff.info.buffName].stack=0;
+        this._table[buff.info.buffName].duration=0;
+        delete this._table[buff.info.buffName];
     }
     /**获取某个计算完增益的属性
      * @param base       基础值

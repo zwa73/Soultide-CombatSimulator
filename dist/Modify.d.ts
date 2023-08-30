@@ -28,10 +28,15 @@ export type ModSet = {
     add: number;
     mult: number;
 };
+/**buff的详细信息 */
+export type BuffInfo = {
+    readonly buffName: BuffName;
+};
+export declare function genBuffInfo(buffName: BuffName): BuffInfo;
 /**附加状态 */
 export type Buff = {
     /**名称 */
-    readonly name: BuffName;
+    readonly info: BuffInfo;
     /**可叠加 重复获得时 层数叠加 默认覆盖*/
     readonly canSatck?: boolean;
     /**叠加上限 可以存在的最大层数 默认无限*/

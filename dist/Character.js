@@ -20,7 +20,7 @@ class Character {
         this.name = name;
         let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
         let baseBuff = {
-            name: (name + "基础属性"),
+            info: (0, Modify_1.genBuffInfo)((name + "基础属性")),
             addModify: staticStatus
         };
         //console.log(name,"staticStatus",staticStatus)

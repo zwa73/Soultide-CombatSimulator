@@ -3,7 +3,7 @@ import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
-import { Buff, BuffName, BuffTable } from "./Modify";
+import { Buff, BuffName, BuffTable, genBuffInfo } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
 
@@ -24,7 +24,7 @@ export class Character {
         this.name=name;
         let staticStatus:StaticStatusOption = Object.assign({},DefStaticStatus,status);
         let baseBuff:Buff = {
-            name:(name+"基础属性")as BuffName,
+            info: genBuffInfo((name+"基础属性")as BuffName),
             addModify:staticStatus
         }
         //console.log(name,"staticStatus",staticStatus)
@@ -126,4 +126,13 @@ export class Character {
         char.buffTable = bt;
         return char;
     }
+}
+
+/**角色生成器 */
+export interface CharGener {
+    /**角色生成器
+     * @param name 角色名
+     * @param stat 角色属性
+     */
+    (name:string,stat:StaticStatusOption):Character;
 }

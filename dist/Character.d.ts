@@ -46,3 +46,11 @@ export declare class Character {
     /**克隆角色 */
     clone(): Character;
 }
+/**角色生成器 */
+export interface CharGener {
+    /**角色生成器
+     * @param name 角色名
+     * @param stat 角色属性
+     */
+    (name: string, stat: StaticStatusOption): Character;
+}

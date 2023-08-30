@@ -1,5 +1,6 @@
 const { Souls, Monsters, GenericBuff } = require("./index");
-let char = Souls.Aurora.genChar({
+
+let char = Souls.Aurora.genChar("Aurora",{
     初始怒气:72,
     攻击:6088,
 });
