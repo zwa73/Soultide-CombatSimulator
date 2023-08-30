@@ -12,18 +12,18 @@ export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 
 /**技能范围 */
 const SkillRangeList = ["单体","群体","无范围"] as const;
-export type SkillRange = typeof SkillRangeList[number];
+export type SkillRange = `${typeof SkillRangeList[number]}技能`;
 
 /**技能子类型 */
-const SkillSubtypeList = ["伤害技能","治疗技能","其他技能"] as const;
-export type SkillSubtype = typeof SkillSubtypeList[number];
+const SkillSubtypeList = ["伤害","治疗","辅助"] as const;
+export type SkillSubtype = `${typeof SkillSubtypeList[number]}技能`;
 
 /**技能目标 */
 export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后排";
 
 /**技能类别 */
-const SkillCategoryList = ["普攻","核心","秘术","奥义","无类别"] as const;
-export type SkillCategory = typeof SkillCategoryList[number];
+const SkillCategoryList = ["普攻","核心","秘术","奥义","其他"] as const;
+export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
 
 export type SkillData={
     skill:Skill;

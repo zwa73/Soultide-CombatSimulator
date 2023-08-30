@@ -3,7 +3,7 @@ import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./CombatSimulation";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
-import { Buff, BuffTable } from "./Modify";
+import { Buff, BuffName, BuffTable } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
 
@@ -24,7 +24,7 @@ export class Character {
         this.name=name;
         let staticStatus:StaticStatusOption = Object.assign({},DefStaticStatus,status);
         let baseBuff:Buff = {
-            name:name+"基础属性",
+            name:(name+"基础属性")as BuffName,
             addModify:staticStatus
         }
         //console.log(name,"staticStatus",staticStatus)
@@ -38,7 +38,7 @@ export class Character {
     /**获取角色的基础属性 */
     getBaseStatus():Writeable<Buff>{
         //@ts-ignore
-        return this.buffTable.getBuff(this.name+"基础属性")!;
+        return this.buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field:StaticStatusKey,damageInfo?:DamageInfo){

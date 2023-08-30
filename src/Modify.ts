@@ -7,7 +7,7 @@ import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
 
 type ModiftTypeDef  = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复";
 type ModifyTypeBase = DamageType|`${SkillCategory}伤害`|AddiDamageType|
-    "技能伤害"|"暴击伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数";
+    "技能伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数";
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeBase|`受到${ModifyTypeBase}`|ModiftTypeDef;
 
@@ -61,7 +61,7 @@ export type ModSet = {
 /**附加状态 */
 export type Buff={
     /**名称 */
-    readonly name:string;
+    readonly name:BuffName;
     /**可叠加 重复获得时 层数叠加 默认覆盖*/
     readonly canSatck?:boolean;
     /**叠加上限 可以存在的最大层数 默认无限*/
@@ -81,6 +81,8 @@ export type Buff={
     /**触发器 */
     readonly tiggerList?:AnyTigger[];
 }
+export type BuffName = `状态:${string}`;
+
 /**叠加的buff */
 export type BuffStack={
     /**buff类型 */
@@ -92,7 +94,7 @@ export type BuffStack={
 }
 /**buff表 */
 export class BuffTable{
-    private _table:Record<string,BuffStack>={};
+    private _table:Record<BuffName,BuffStack>={};
     constructor(){}
     /**添加一个buff
      * @param buff      buff
@@ -118,7 +120,7 @@ export class BuffTable{
         return this._table[key].stack;
     }
     /**获取一个Buff */
-    private getBuff(key:string):Buff|undefined{
+    private getBuff(key:BuffName):Buff|undefined{
         return this._table[key].buff;
     }
     /**获取buff持续时间 */
@@ -148,7 +150,7 @@ export class BuffTable{
     /**结算回合 */
     endRound(){
         for(let k in this._table){
-            let stackbuff = this._table[k];
+            let stackbuff = this._table[k as BuffName];
             if(stackbuff.duration>0)
                 stackbuff.duration-=1;
             this.checkBuff(stackbuff.buff);
@@ -179,7 +181,7 @@ export class BuffTable{
         let mult = 1;
         let add  = 0;
         for(let buffName in this._table){
-            let stackData = this._table[buffName];
+            let stackData = this._table[buffName as BuffName];
             let buff = stackData.buff;
             let stack = stackData.stack;
 
@@ -249,7 +251,7 @@ export class BuffTable{
         //触发器数组
         let arr:TT[]=[];
         for (const key in this._table){
-            let obj = this._table[key];
+            let obj = this._table[key as BuffName];
             if(!this.hasBuff(obj.buff)) continue;
             if(obj.buff.tiggerList==null) continue;
             for(const tigger of obj.buff.tiggerList){
@@ -263,8 +265,9 @@ export class BuffTable{
     clone():BuffTable{
         let nbuff = new BuffTable();
         for(let i in this._table){
-            nbuff._table[i].buff = this._table[i].buff;
-            nbuff._table[i].stack = this._table[i].stack;
+            let bn = i as BuffName;
+            nbuff._table[bn].buff  = this._table[bn].buff;
+            nbuff._table[bn].stack = this._table[bn].stack;
         }
         return nbuff;
     }

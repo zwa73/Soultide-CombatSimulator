@@ -28,7 +28,7 @@ export declare const 治疗: SpecEffect, 固定: SpecEffect, 稳定: SpecEffect,
 export type DamageInfo = {
     /**伤害类型 */
     dmgType: DamageType;
-} & Writeable<SkillInfo>;
+} & Omit<Partial<Writeable<SkillInfo>>, "skillType"> & Pick<Writeable<SkillInfo>, "skillType">;
 /**伤害来源 */
 export type DamageSource = {
     /**攻击来源 */

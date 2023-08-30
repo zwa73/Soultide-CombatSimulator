@@ -9,9 +9,9 @@ const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "�
 /**技能范围 */
 const SkillRangeList = ["单体", "群体", "无范围"];
 /**技能子类型 */
-const SkillSubtypeList = ["伤害技能", "治疗技能", "其他技能"];
+const SkillSubtypeList = ["伤害", "治疗", "辅助"];
 /**技能类别 */
-const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "无类别"];
+const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "其他"];
 function genDamageInfo(info, dmgType) {
     return {
         skillName: info.skillName,

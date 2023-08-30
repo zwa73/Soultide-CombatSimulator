@@ -5,7 +5,7 @@ const Skill_1 = require("../../../Skill");
 var Colcher;
 (function (Colcher) {
     Colcher.王女的祝福 = {
-        info: (0, Skill_1.genSkillInfo)("技能:王女的祝福", "魔法技能", "其他技能", "单体", "奥义"),
+        info: (0, Skill_1.genSkillInfo)("技能:王女的祝福", "魔法技能", "辅助技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
             const { user, targetList } = skillData;
@@ -14,7 +14,7 @@ var Colcher;
         }
     };
     Colcher.回音 = {
-        name: "回音",
+        name: "状态:回音",
         tiggerList: [{
                 hook: "释放技能后",
                 weight: -1000,
@@ -23,7 +23,7 @@ var Colcher;
                         return skillData;
                     if (skillData.isTiggerSkill)
                         return skillData;
-                    if (skillData.skill.info.skillCategory != "奥义")
+                    if (skillData.skill.info.skillCategory != "奥义技能")
                         return skillData;
                     skillData.user.buffTable.removeBuff(Colcher.回音);
                     skillData.user.tiggerSkill(skillData.skill, skillData.targetList);

@@ -197,8 +197,9 @@ class BuffTable {
     clone() {
         let nbuff = new BuffTable();
         for (let i in this._table) {
-            nbuff._table[i].buff = this._table[i].buff;
-            nbuff._table[i].stack = this._table[i].stack;
+            let bn = i;
+            nbuff._table[bn].buff = this._table[bn].buff;
+            nbuff._table[bn].stack = this._table[bn].stack;
         }
         return nbuff;
     }

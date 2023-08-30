@@ -20,7 +20,7 @@ class Character {
         this.name = name;
         let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
         let baseBuff = {
-            name: name + "基础属性",
+            name: (name + "基础属性"),
             addModify: staticStatus
         };
         //console.log(name,"staticStatus",staticStatus)
@@ -33,7 +33,7 @@ class Character {
     /**获取角色的基础属性 */
     getBaseStatus() {
         //@ts-ignore
-        return this.buffTable.getBuff(this.name + "基础属性");
+        return this.buffTable.getBuff((this.name + "基础属性"));
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, damageInfo) {

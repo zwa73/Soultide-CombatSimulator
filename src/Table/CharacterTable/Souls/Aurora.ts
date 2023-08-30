@@ -5,7 +5,7 @@ import { StaticStatusOption } from "@src/Status";
 
 export namespace Aurora{
     export const 失心童话:Skill={
-        info:genSkillInfo("技能:失心童话","雷电技能","伤害技能","单体","奥义"),
+        info:genSkillInfo("技能:失心童话","雷电技能","伤害技能","单体技能","奥义技能"),
         cost:64,
         cast(skillData){
             const {user,targetList}=skillData;
@@ -18,7 +18,7 @@ export namespace Aurora{
         }
     }
     export const 噩廻:Buff={
-        name:"噩廻",
+        name:"状态:噩廻",
         canSatck:true,
         stackMultModify: {
             攻击    :0.002,
@@ -26,11 +26,11 @@ export namespace Aurora{
         stackAddModify:{
             伤害系数:0.03,
         },
-        damageCons:["奥义","雷电技能"],
+        damageCons:["奥义技能","雷电技能"],
     };
     /**荆雷奔袭技能 */
     export const 荆雷奔袭:Skill={
-        info:genSkillInfo("技能:荆雷奔袭","雷电技能","伤害技能","单体","核心"),
+        info:genSkillInfo("技能:荆雷奔袭","雷电技能","伤害技能","单体技能","核心技能"),
         cost:16,
         cast(skillData){
             const {user,targetList}=skillData;
@@ -43,7 +43,7 @@ export namespace Aurora{
     }
     /**荆雷奔袭攻击力效果 */
     export const 荆雷奔袭A:Buff={
-        name:"荆雷奔袭A",
+        name:"状态:荆雷奔袭A",
         multModify:{
             雷电伤害:0.25,
         },
@@ -51,7 +51,7 @@ export namespace Aurora{
     };
     /**电棘丛生被动效果 */
     export const 电棘丛生:Buff={
-        name:"电棘丛生",
+        name:"状态:电棘丛生",
         tiggerList:[{
             hook:"造成技能伤害前",
             tigger(skillData){
@@ -69,12 +69,12 @@ export namespace Aurora{
     };
     /**电棘丛生攻击计数器 */
     export const 电棘丛生A:Buff={
-        name:"电棘丛生A",
+        name:"状态:电棘丛生A",
         canSatck:true,
     };
     /**电棘丛生攻击力效果 */
     export const 电棘丛生B:Buff={
-        name:"电棘丛生B",
+        name:"状态:电棘丛生B",
         canSatck:true,
         stackLimit:3,
         stackMultModify:{
@@ -83,7 +83,7 @@ export namespace Aurora{
     };
     /**续存战意被动效果 */
     export const 续存战意:Buff={
-        name:"续存战意",
+        name:"状态:续存战意",
         tiggerList:[{
             hook:"释放技能后",
             tigger(skillData){
@@ -97,7 +97,7 @@ export namespace Aurora{
     };
     /**续存战意 每层效果 */
     export const 续存战意A:Buff={
-        name:"续存战意A",
+        name:"状态:续存战意A",
         canSatck:true,
         stackLimit:5,
         stackMultModify:{
@@ -106,7 +106,7 @@ export namespace Aurora{
     };
     /**续存战意 5层效果 */
     export const 续存战意B:Buff={
-        name:"续存战意B",
+        name:"状态:续存战意B",
         multModify:{
             攻击:0.075,
         }

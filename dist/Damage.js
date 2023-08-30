@@ -128,7 +128,8 @@ class Damage {
                 adddmg = this.modValue(adddmg, t, sourceModTableSet, `受到${t}`, targetModTableSet);
         }
         //类别伤害
-        dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet, `受到${skillCategory}伤害`, targetModTableSet);
+        if (skillCategory != undefined)
+            dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet, `受到${skillCategory}伤害`, targetModTableSet);
         //暴击伤害
         if (this.hasSpecEffect(exports.暴击)) {
             let critdmg = this.modValue(0, `暴击伤害`, sourceModTableSet, `受到暴击伤害`, targetModTableSet);

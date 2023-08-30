@@ -60,7 +60,8 @@ DamageSpecMap.燃烧伤害 = [穿盾];
 export type DamageInfo={
     /**伤害类型 */
     dmgType:DamageType;
-}&Writeable<SkillInfo>;
+}& Omit<Partial<Writeable<SkillInfo>>,"skillType">
+ & Pick<Writeable<SkillInfo>,"skillType">;
 
 
 /**伤害来源 */
@@ -174,8 +175,9 @@ export class Damage {
 		}
 
 		//类别伤害
-		dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet,
-            `受到${skillCategory}伤害`, targetModTableSet);
+		if(skillCategory!=undefined)
+			dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet,
+				`受到${skillCategory}伤害`, targetModTableSet);
 
         //暴击伤害
         if(this.hasSpecEffect(暴击)){

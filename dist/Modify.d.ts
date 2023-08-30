@@ -3,7 +3,7 @@ import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from ".
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTigger, HookTiggerMap } from "./Tigger";
 type ModiftTypeDef = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
-type ModifyTypeBase = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "暴击伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
+type ModifyTypeBase = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeBase | `受到${ModifyTypeBase}` | ModiftTypeDef;
 /**伤害具体类型约束 Damage Info Constraint*/
@@ -31,7 +31,7 @@ export type ModSet = {
 /**附加状态 */
 export type Buff = {
     /**名称 */
-    readonly name: string;
+    readonly name: BuffName;
     /**可叠加 重复获得时 层数叠加 默认覆盖*/
     readonly canSatck?: boolean;
     /**叠加上限 可以存在的最大层数 默认无限*/
@@ -51,6 +51,7 @@ export type Buff = {
     /**触发器 */
     readonly tiggerList?: AnyTigger[];
 };
+export type BuffName = `状态:${string}`;
 /**叠加的buff */
 export type BuffStack = {
     /**buff类型 */

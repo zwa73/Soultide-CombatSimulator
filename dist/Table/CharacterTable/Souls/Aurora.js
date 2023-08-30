@@ -6,7 +6,7 @@ const Skill_1 = require("../../../Skill");
 var Aurora;
 (function (Aurora) {
     Aurora.失心童话 = {
-        info: (0, Skill_1.genSkillInfo)("技能:失心童话", "雷电技能", "伤害技能", "单体", "奥义"),
+        info: (0, Skill_1.genSkillInfo)("技能:失心童话", "雷电技能", "伤害技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
             const { user, targetList } = skillData;
@@ -19,7 +19,7 @@ var Aurora;
         }
     };
     Aurora.噩廻 = {
-        name: "噩廻",
+        name: "状态:噩廻",
         canSatck: true,
         stackMultModify: {
             攻击: 0.002,
@@ -27,11 +27,11 @@ var Aurora;
         stackAddModify: {
             伤害系数: 0.03,
         },
-        damageCons: ["奥义", "雷电技能"],
+        damageCons: ["奥义技能", "雷电技能"],
     };
     /**荆雷奔袭技能 */
     Aurora.荆雷奔袭 = {
-        info: (0, Skill_1.genSkillInfo)("技能:荆雷奔袭", "雷电技能", "伤害技能", "单体", "核心"),
+        info: (0, Skill_1.genSkillInfo)("技能:荆雷奔袭", "雷电技能", "伤害技能", "单体技能", "核心技能"),
         cost: 16,
         cast(skillData) {
             const { user, targetList } = skillData;
@@ -44,7 +44,7 @@ var Aurora;
     };
     /**荆雷奔袭攻击力效果 */
     Aurora.荆雷奔袭A = {
-        name: "荆雷奔袭A",
+        name: "状态:荆雷奔袭A",
         multModify: {
             雷电伤害: 0.25,
         },
@@ -52,7 +52,7 @@ var Aurora;
     };
     /**电棘丛生被动效果 */
     Aurora.电棘丛生 = {
-        name: "电棘丛生",
+        name: "状态:电棘丛生",
         tiggerList: [{
                 hook: "造成技能伤害前",
                 tigger(skillData) {
@@ -71,12 +71,12 @@ var Aurora;
     };
     /**电棘丛生攻击计数器 */
     Aurora.电棘丛生A = {
-        name: "电棘丛生A",
+        name: "状态:电棘丛生A",
         canSatck: true,
     };
     /**电棘丛生攻击力效果 */
     Aurora.电棘丛生B = {
-        name: "电棘丛生B",
+        name: "状态:电棘丛生B",
         canSatck: true,
         stackLimit: 3,
         stackMultModify: {
@@ -85,7 +85,7 @@ var Aurora;
     };
     /**续存战意被动效果 */
     Aurora.续存战意 = {
-        name: "续存战意",
+        name: "状态:续存战意",
         tiggerList: [{
                 hook: "释放技能后",
                 tigger(skillData) {
@@ -99,7 +99,7 @@ var Aurora;
     };
     /**续存战意 每层效果 */
     Aurora.续存战意A = {
-        name: "续存战意A",
+        name: "状态:续存战意A",
         canSatck: true,
         stackLimit: 5,
         stackMultModify: {
@@ -108,7 +108,7 @@ var Aurora;
     };
     /**续存战意 5层效果 */
     Aurora.续存战意B = {
-        name: "续存战意B",
+        name: "状态:续存战意B",
         multModify: {
             攻击: 0.075,
         }
