@@ -6,6 +6,8 @@ import { Damage, DamageInfo, 暴击 } from "./Damage";
 import { Buff, BuffName, BuffTable, genBuffInfo } from "./Modify";
 import { Skill, SkillData } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+import { AnyHook, HookTriggerMap } from "./Trigger";
+import { GlobalTiggerTable } from "./DataTable";
 
 
 
@@ -38,20 +40,12 @@ export class Character {
     /**获取角色的基础属性 */
     getBaseStatus():Writeable<Buff>{
         //@ts-ignore
-        return this.buffTable.getBuff((this.name+"基础属性") as BuffName)!;
+        return this._buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field:StaticStatusKey,damageInfo?:DamageInfo){
         let mod = this.buffTable.modValue(0,field,damageInfo);
         return mod;
-    }
-    /**添加一个buff
-     * @param buff      buff
-     * @param stack     层数        默认1
-     * @param duration  持续回合    默认无限
-     */
-    addBuff(buff:Buff,stack:number=1,countdown:number=Infinity){
-        this.buffTable.addBuff(buff,stack,countdown);
     }
     /**释放某个技能
      * @param skill  技能
@@ -65,17 +59,17 @@ export class Character {
             targetList:target,
             battlefield:this.battlefield,
             buffTable:new BuffTable(),
-            isTiggerSkill:isTiggerSkill,
+            isTriggerSkill:isTiggerSkill,
             dataTable:{},
             uid:utils.genUUID()
         }
         skill.beforeCast? skill.beforeCast(skillData):undefined;
-        this.buffTable.getTiggers("释放技能前").forEach(t=> skillData=t.tigger(skillData));
+        this.getTiggers("释放技能前").forEach(t=> skillData=t.trigger(skillData));
         //消耗怒气
         if(!isTiggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
         //产生效果
         skill.cast(skillData);
-        this.buffTable.getTiggers("释放技能后").forEach(t=> skillData=t.tigger(skillData));
+        this.getTiggers("释放技能后").forEach(t=> skillData=t.trigger(skillData));
         skill.afterCast? skill.afterCast(skillData):undefined;
     }
     /**被动的触发某个技能
@@ -95,22 +89,22 @@ export class Character {
     /**受到伤害 */
     getHurt(damage:Damage){
         damage.source.char?.buffTable.getTiggers("造成伤害前")
-            .forEach(t=> damage=t.tigger(damage,this));
+            .forEach(t=> damage=t.trigger(damage,this));
 
         let isSkillDamage = damage.isSkillDamage();
         if(isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害前")
-                .forEach(t=> damage=t.tigger(damage,this));
+                .forEach(t=> damage=t.trigger(damage,this));
 
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命-=dmg;
 
         damage.source.char?.buffTable.getTiggers("造成伤害后")
-            .forEach(t=> damage=t.tigger(damage,this));
+            .forEach(t=> damage=t.trigger(damage,this));
 
         if(isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
-                .forEach(t=> damage=t.tigger(damage,this));
+                .forEach(t=> damage=t.trigger(damage,this));
 
         console.log(this.name+" 受到",dmg,"点伤害",`${damage.hasSpecEffect(暴击)? "暴击":""}`)
     }
@@ -126,6 +120,36 @@ export class Character {
         char.buffTable = bt;
         return char;
     }
+    /**获取所有对应触发器 包括全局触发器 */
+    getTiggers<T extends AnyHook>(hook:T):HookTriggerMap[T][] {
+        //索引触发器类型
+        type TT = HookTriggerMap[T];
+        //触发器数组
+        const tiggers = this.buffTable.getTiggers(hook);
+        for (const key in GlobalTiggerTable){
+            let tigger = GlobalTiggerTable[key as BuffName];
+            if(tigger.hook==hook)
+                tiggers.push(tigger as TT);
+        }
+        tiggers.sort((a, b) => (b.weight||0) - (a.weight||0));
+        return tiggers;
+    }
+
+
+
+    //———————————————————— util ————————————————————//
+    /**获取一个Buff的层数 */
+    getBuffStack(buff:Buff){
+        return this.buffTable.getBuffStack(buff);
+    }
+    /**添加一个buff
+     * @param buff      buff
+     * @param stack     层数        默认1
+     * @param duration  持续回合    默认无限
+     */
+    addBuff(buff:Buff,stack:number=1,countdown:number=Infinity){
+        return this.buffTable.addBuff(buff,stack,countdown);
+    }
 }
 
 /**角色生成器 */
@@ -134,5 +158,5 @@ export interface CharGener {
      * @param name 角色名
      * @param stat 角色属性
      */
-    (name:string,stat:StaticStatusOption):Character;
+    (name?:string,stat?:StaticStatusOption):Character;
 }
