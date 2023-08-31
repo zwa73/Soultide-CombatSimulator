@@ -11,9 +11,10 @@ var Colcher;
         info: (0, Skill_1.genSkillInfo)("技能:王女的祝福", "魔法技能", "辅助技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
-            const { user, targetList } = skillData;
-            (0, Skill_1.checkTargets)(targetList, 1, 1);
-            targetList[0].addBuff(Colcher.回音, 1, 2);
+            (0, Skill_1.procSTSkill)(skillData, (data) => {
+                const { user, target } = data;
+                target.addBuff(Colcher.回音, 1, 2);
+            });
         }
     };
     Colcher.回音 = {

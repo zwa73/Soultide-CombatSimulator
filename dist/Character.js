@@ -170,17 +170,21 @@ class Character {
         return tiggers;
     }
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数
+    /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
      * @deprecated 这个函数不会触发"获取状态层数"触发器
      */
-    getBuffStackCountWithoutT(buff) {
-        return this.buffTable.getBuffStackCountWithoutT(buff);
+    getBuffStackCountNoT(buff) {
+        return this.buffTable.getBuffStackCount(buff);
     }
-    /**获取一个Buff的层数 并触发触发器*/
+    /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
     getBuffStackCountAndT(buff) {
-        let count = this.getBuffStackCountWithoutT(buff);
+        let count = this.getBuffStackCountNoT(buff);
         this.getTiggers("获取效果层数后").forEach(t => count = t.trigger(this, buff, count));
         return count;
+    }
+    /**获取BuffStack */
+    getBuffStack(buff) {
+        return this.buffTable.getBuffStack(buff);
     }
     /**添加一个buff
      * @param buff      buff

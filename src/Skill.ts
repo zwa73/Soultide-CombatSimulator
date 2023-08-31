@@ -1,7 +1,7 @@
 import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Battlefield } from "./Battlefield";
-import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
+import { Damage, DamageInfo, DamageType, SpecEffect, genSkillDamage } from "./Damage";
 import { Buff, BuffStack, BuffTable } from "./Modify";
 import { AnyTrigger } from "./Trigger";
 
@@ -26,6 +26,7 @@ export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后�
 const SkillCategoryList = ["普攻","核心","秘术","奥义","特性"] as const;
 export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
 
+/**技能数据 */
 export type SkillData={
     skill:Skill;
     /**战场 */
@@ -43,7 +44,9 @@ export type SkillData={
     /**额外的表 */
     dataTable:Record<string,any>;
 }
+/**可选的技能数据 */
 export type SkillDataOption = Partial<SkillData>;
+/**技能的详细信息 */
 export type SkillInfo={
     /**技能名 */
     readonly skillName:SkillName;
@@ -83,33 +86,49 @@ export type Skill={
     readonly triggerList?:ReadonlyArray<AnyTrigger>;
 }
 
-/**生成伤害信息 */
-export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
-    return {
-        skillName:info? info.skillName:undefined,
-        skillCategory:info? info.skillCategory:undefined,
-        skillRange:info? info.skillRange:undefined,
-        skillType:info? info.skillType:"非技能",
-        skillSubtype:info? info.skillSubtype:undefined,
-        dmgType:dmgType,
+/**单体技能的技能数据 */
+export type STSkillData = {
+    target:Character
+}&Omit<SkillData,"targetList">;
+
+/**N目标技能的技能数据 */
+export type MTSkillData<T extends number> = {
+    targetList:FixedLengthTuple<Character,T>
+}&Omit<SkillData,"targetList">;
+
+/**处理单体技能 process single skill*/
+export function procSTSkill<T>(skillData:SkillData,func:(skillData:STSkillData)=>T):T{
+    checkTargets(skillData.targetList,1,1);
+    const { targetList, ...rest } = skillData;
+    const single:STSkillData={
+        ...rest,
+        target:skillData.targetList[0]
     }
+    return func(single);
 }
-/**产生非技能伤害 */
-export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Character,...specEffects:SpecEffect[]):Damage{
-    return new Damage({char:char},factor,genDamageInfo(dmgType),...specEffects);
+
+
+/**N长度 T类型的元组  */
+type FixedLengthTuple<T, N extends number, R extends unknown[] = []> =
+    R['length'] extends N ? R : FixedLengthTuple<T, N, [T, ...R]>;
+
+
+
+
+/**处理N个目标的技能 */
+export function procMTSkill<T,L extends number>
+    (skillData:SkillData,targetCount:L,func:(skillData:MTSkillData<L>)=>T):T{
+    checkTargets(skillData.targetList,targetCount,targetCount);
+    const { targetList, ...rest } = skillData;
+    const fixedList:FixedLengthTuple<Character,L>=targetList as any;
+
+    const data:MTSkillData<L>={
+        ...rest,
+        targetList:fixedList
+    }
+    return func(data);
 }
-/**产生技能伤害 */
-export function genSkillDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
-    return new Damage({
-        char:skillData?.user,
-        skillData:skillData
-    },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
-}
-/**产生攻击 */
-export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
-    return new Attack({char:skillData.user,skillData:skillData},
-        genSkillDamage(factor,dmgType,skillData,...specEffects));
-}
+
 /**生成技能信息 */
 export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
     return {skillName,skillType,skillSubtype,skillRange,skillCategory};
@@ -119,7 +138,7 @@ export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtyp
  * @param needMin 最小数量需求 undefine时不限
  * @param needMax 最大数量需求 undefine时不限
  */
-export function checkTargets(targets:Character[],needMin?:number,needMax?:number){
+function checkTargets(targets:Character[],needMin?:number,needMax?:number){
     needMax = needMax||Infinity;
     needMin = needMin||0;
     if(targets.length>needMax || targets.length<needMin)

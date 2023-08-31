@@ -1,8 +1,9 @@
+import { genAttack } from "@src/Attack";
 import { Character } from "@src/Character";
 import { Damage } from "@src/Damage";
 import { regDataTable } from "@src/DataTable";
 import { Buff, genBuffInfo } from "@src/Modify";
-import { Skill, SkillData, checkTargets, genAttack, genSkillInfo } from "@src/Skill";
+import { Skill, SkillData, genSkillInfo, procSTSkill } from "@src/Skill";
 import { StaticStatusOption } from "@src/Status";
 import { genTriggerInfo } from "@src/Trigger";
 
@@ -12,21 +13,20 @@ export namespace Aurora {
         cost:64,
         cast(skillData:SkillData){
             const {user,targetList}=skillData;
-            checkTargets(targetList,1,1);
-
             if(!user.hasBuff(噩廻)) user.dataTable["上一次失心童话潜境"] = skillData;
             else skillData = user.dataTable["上一次失心童话潜境"];
-
+            /**随机目标 */
+            const rdt = ()=>targetList[Math.floor(targetList.length*Math.random())];
             user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
             user.dynmaicStatus.当前怒气=0;
             let atk = genAttack(skillData,1,"雷电伤害");
             for(let i=0;i<3;i++)
-                targetList[0].getHit(atk);
+                rdt().getHit(atk);
             let count = user.getBuffStackCountAndT(噩廻);
             if(count>=32){
                 let factor = 0.2+(user.getBuffStackCountAndT(电棘丛生效果)*0.2);
                 let addatk = genAttack(skillData,factor,"雷电伤害");
-                targetList[0].getHit(addatk);
+                rdt().getHit(addatk);
             }
         }
     }
@@ -46,12 +46,13 @@ export namespace Aurora {
         info:genSkillInfo("技能:荆雷奔袭","雷电技能","伤害技能","单体技能","核心技能"),
         cost:16,
         cast(skillData:SkillData){
-            const {user,targetList}=skillData;
-            checkTargets(targetList,1,1);
-            let atk = genAttack(skillData,0.9,"雷电伤害");
-            for(let i=0;i<2;i++)
-                targetList[0].getHit(atk);
-            user.addBuff(荆雷奔袭效果,1,2);
+            procSTSkill(skillData,(data)=>{
+                const {user,target}=data;
+                let atk = genAttack(skillData,0.9,"雷电伤害");
+                for(let i=0;i<2;i++)
+                    target.getHit(atk);
+                user.addBuff(荆雷奔袭效果,1,2);
+            })
         }
     }
     /**荆雷奔袭攻击力效果 */

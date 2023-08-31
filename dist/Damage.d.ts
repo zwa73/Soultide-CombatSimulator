@@ -1,7 +1,7 @@
 import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
-import { SkillInfo } from "./Skill";
+import { SkillData, SkillInfo } from "./Skill";
 /**伤害类型枚举 */
 declare const DamageBaseTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害类型 */
@@ -78,4 +78,10 @@ export declare class Damage {
     /**复制一份伤害 */
     clone(): Damage;
 }
+/**生成伤害信息 */
+export declare function genDamageInfo(dmgType: DamageType, info?: SkillInfo): DamageInfo;
+/**产生非技能伤害 */
+export declare function genNonSkillDamage(factor: number, dmgType: DamageType, char?: Character, ...specEffects: SpecEffect[]): Damage;
+/**产生技能伤害 */
+export declare function genSkillDamage(factor: number, dmgType: DamageType, skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
 export {};

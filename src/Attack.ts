@@ -1,5 +1,5 @@
 import { Character } from "./Character";
-import { Damage, 暴击 } from "./Damage";
+import { Damage, SpecEffect, genSkillDamage, 暴击, DamageType } from "./Damage";
 import { BuffTable, DefModSet, addModSet, multModSet } from "./Modify";
 import { SkillData } from "./Skill";
 
@@ -47,4 +47,12 @@ export class Attack{
     clone(){
         return new Attack(this.source,this.damage.clone());
     }
+}
+
+
+
+/**产生攻击 */
+export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
+    return new Attack({char:skillData.user,skillData:skillData},
+        genSkillDamage(factor,dmgType,skillData,...specEffects));
 }

@@ -1,5 +1,5 @@
 import { Character } from "./Character";
-import { Damage } from "./Damage";
+import { Damage, SpecEffect, DamageType } from "./Damage";
 import { BuffTable } from "./Modify";
 import { SkillData } from "./Skill";
 /**攻击来源 */
@@ -27,3 +27,5 @@ export declare class Attack {
     /**复制攻击 */
     clone(): Attack;
 }
+/**产生攻击 */
+export declare function genAttack(skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;

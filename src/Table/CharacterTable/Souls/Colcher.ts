@@ -1,6 +1,6 @@
 import { regDataTable } from "@src/DataTable";
 import { Buff, BuffTable, genBuffInfo } from "@src/Modify";
-import { Skill, checkTargets, genSkillInfo } from "@src/Skill";
+import { Skill, genSkillInfo, procSTSkill } from "@src/Skill";
 import { genTriggerInfo } from "@src/Trigger";
 
 export namespace Colcher {
@@ -8,9 +8,10 @@ export namespace Colcher {
         info:genSkillInfo("技能:王女的祝福","魔法技能","辅助技能","单体技能","奥义技能"),
         cost:64,
         cast(skillData){
-            const {user,targetList}=skillData;
-            checkTargets(targetList,1,1);
-            targetList[0].addBuff(Colcher.回音,1,2);
+            procSTSkill(skillData,(data)=>{
+                const {user,target}=data;
+                target.addBuff(Colcher.回音,1,2);
+            })
         }
     }
     export const 回音:Buff={

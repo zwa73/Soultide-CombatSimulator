@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Attack = void 0;
+exports.genAttack = exports.Attack = void 0;
 const Damage_1 = require("./Damage");
 const Modify_1 = require("./Modify");
 /**造成技能攻击 */
@@ -39,3 +39,8 @@ class Attack {
     }
 }
 exports.Attack = Attack;
+/**产生攻击 */
+function genAttack(skillData, factor, dmgType, ...specEffects) {
+    return new Attack({ char: skillData.user, skillData: skillData }, (0, Damage_1.genSkillDamage)(factor, dmgType, skillData, ...specEffects));
+}
+exports.genAttack = genAttack;

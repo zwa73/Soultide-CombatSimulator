@@ -1,7 +1,5 @@
-import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Battlefield } from "./Battlefield";
-import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
 import { BuffStack, BuffTable } from "./Modify";
 import { AnyTrigger } from "./Trigger";
 /**技能类型 */
@@ -18,6 +16,7 @@ export type SkillTarget = "友军" | "我方" | "敌方" | "敌方前排" | "敌
 /**技能类别 */
 declare const SkillCategoryList: readonly ["普攻", "核心", "秘术", "奥义", "特性"];
 export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
+/**技能数据 */
 export type SkillData = {
     skill: Skill;
     /**战场 */
@@ -35,7 +34,9 @@ export type SkillData = {
     /**额外的表 */
     dataTable: Record<string, any>;
 };
+/**可选的技能数据 */
 export type SkillDataOption = Partial<SkillData>;
+/**技能的详细信息 */
 export type SkillInfo = {
     /**技能名 */
     readonly skillName: SkillName;
@@ -73,20 +74,20 @@ export type Skill = {
     /**触发器 */
     readonly triggerList?: ReadonlyArray<AnyTrigger>;
 };
-/**生成伤害信息 */
-export declare function genDamageInfo(dmgType: DamageType, info?: SkillInfo): DamageInfo;
-/**产生非技能伤害 */
-export declare function genNonSkillDamage(factor: number, dmgType: DamageType, char?: Character, ...specEffects: SpecEffect[]): Damage;
-/**产生技能伤害 */
-export declare function genSkillDamage(factor: number, dmgType: DamageType, skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
-/**产生攻击 */
-export declare function genAttack(skillData: SkillData, factor: number, dmgType: DamageType, ...specEffects: SpecEffect[]): Attack;
+/**单体技能的技能数据 */
+export type STSkillData = {
+    target: Character;
+} & Omit<SkillData, "targetList">;
+/**N目标技能的技能数据 */
+export type MTSkillData<T extends number> = {
+    targetList: FixedLengthTuple<Character, T>;
+} & Omit<SkillData, "targetList">;
+/**处理单体技能 process single skill*/
+export declare function procSTSkill<T>(skillData: SkillData, func: (skillData: STSkillData) => T): T;
+/**N长度 T类型的元组  */
+type FixedLengthTuple<T, N extends number, R extends unknown[] = []> = R['length'] extends N ? R : FixedLengthTuple<T, N, [T, ...R]>;
+/**处理N个目标的技能 */
+export declare function procMTSkill<T, L extends number>(skillData: SkillData, targetCount: L, func: (skillData: MTSkillData<L>) => T): T;
 /**生成技能信息 */
 export declare function genSkillInfo(skillName: SkillName, skillType: SkillType, skillSubtype: SkillSubtype, skillRange: SkillRange, skillCategory: SkillCategory): SkillInfo;
-/**检查目标数 如不符合则抛异
- * @param targets 目标
- * @param needMin 最小数量需求 undefine时不限
- * @param needMax 最大数量需求 undefine时不限
- */
-export declare function checkTargets(targets: Character[], needMin?: number, needMax?: number): void;
 export {};

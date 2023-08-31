@@ -1,8 +1,10 @@
 import { GenericBuff } from "@GenericBuff";
+import { genAttack } from "@src/Attack";
 import { Character } from "@src/Character";
+import { genNonSkillDamage } from "@src/Damage";
 import { regDataTable } from "@src/DataTable";
 import { Buff, genBuffInfo } from "@src/Modify";
-import { Skill, checkTargets, genAttack, genNonSkillDamage, genSkillInfo } from "@src/Skill";
+import { Skill, genSkillInfo, procSTSkill } from "@src/Skill";
 import { StaticStatusOption } from "@src/Status";
 import { genTriggerInfo } from "@src/Trigger";
 
@@ -12,12 +14,12 @@ export namespace Andrea{
     export const 极寒狙击:Skill={
         info:genSkillInfo("技能:极寒狙击","冰霜技能","伤害技能","单体技能","奥义技能"),
         cast(skillData){
-            const {skill,user,targetList,uid}=skillData;
-            checkTargets(targetList,1,1);
-            let target = targetList[0];
-            target.addBuff(寒霜,target.getBuffStackCountAndT(GenericBuff.极寒));
-            let atk = genAttack(skillData,3.6,"冰霜伤害");
-            target.getHit(atk);
+            procSTSkill(skillData,(data)=>{
+                const {skill,user,target,uid}=data;
+                target.addBuff(寒霜,target.getBuffStackCountAndT(GenericBuff.极寒));
+                let atk = genAttack(skillData,3.6,"冰霜伤害");
+                target.getHit(atk);
+            })
         }
     };
     export const 寒霜:Buff={

@@ -2,7 +2,7 @@ import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { DefModTableSet, ModSet, ModTableSet, ModifyType, addModTableSet } from "./Modify";
-import { SkillInfo } from "./Skill";
+import { SkillData, SkillInfo } from "./Skill";
 
 //———————————————————— 伤害 ————————————————————//
 
@@ -220,4 +220,29 @@ export class Damage {
 	clone() {
 		return new Damage(this.source, this.factor, this.info, ...this.specEffects);
 	}
+}
+
+
+
+/**生成伤害信息 */
+export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
+    return {
+        skillName:info? info.skillName:undefined,
+        skillCategory:info? info.skillCategory:undefined,
+        skillRange:info? info.skillRange:undefined,
+        skillType:info? info.skillType:"非技能",
+        skillSubtype:info? info.skillSubtype:undefined,
+        dmgType:dmgType,
+    }
+}
+/**产生非技能伤害 */
+export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Character,...specEffects:SpecEffect[]):Damage{
+    return new Damage({char:char},factor,genDamageInfo(dmgType),...specEffects);
+}
+/**产生技能伤害 */
+export function genSkillDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
+    return new Damage({
+        char:skillData?.user,
+        skillData:skillData
+    },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
 }

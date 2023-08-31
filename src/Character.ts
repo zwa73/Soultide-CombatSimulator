@@ -3,7 +3,7 @@ import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
-import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo } from "./Modify";
+import { Buff, BuffName, BuffStack, BuffTable, ModifyType, genBuffInfo } from "./Modify";
 import { Skill, SkillData, SkillDataOption, SkillName } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap } from "./Trigger";
@@ -187,17 +187,21 @@ export class Character {
 
 
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数
+    /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
      * @deprecated 这个函数不会触发"获取状态层数"触发器
      */
-    getBuffStackCountWithoutT(buff:Buff){
-        return this.buffTable.getBuffStackCountWithoutT(buff);
+    getBuffStackCountNoT(buff:Buff){
+        return this.buffTable.getBuffStackCount(buff);
     }
-    /**获取一个Buff的层数 并触发触发器*/
+    /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
     getBuffStackCountAndT(buff:Buff):number{
-        let count = this.getBuffStackCountWithoutT(buff);
+        let count = this.getBuffStackCountNoT(buff);
         this.getTiggers("获取效果层数后").forEach(t=> count = t.trigger(this,buff,count));
         return count;
+    }
+    /**获取BuffStack */
+    getBuffStack(buff:Buff):BuffStack|undefined{
+        return this.buffTable.getBuffStack(buff);
     }
     /**添加一个buff
      * @param buff      buff

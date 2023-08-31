@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkTargets = exports.genSkillInfo = exports.genAttack = exports.genSkillDamage = exports.genNonSkillDamage = exports.genDamageInfo = void 0;
-const Attack_1 = require("./Attack");
-const Damage_1 = require("./Damage");
+exports.genSkillInfo = exports.procMTSkill = exports.procSTSkill = void 0;
 //———————————————————— 技能 ————————————————————//
 /**技能类型 */
 const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
@@ -12,36 +10,29 @@ const SkillRangeList = ["单体", "群体", "无范围"];
 const SkillSubtypeList = ["伤害", "治疗", "辅助", "被动"];
 /**技能类别 */
 const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "特性"];
-/**生成伤害信息 */
-function genDamageInfo(dmgType, info) {
-    return {
-        skillName: info ? info.skillName : undefined,
-        skillCategory: info ? info.skillCategory : undefined,
-        skillRange: info ? info.skillRange : undefined,
-        skillType: info ? info.skillType : "非技能",
-        skillSubtype: info ? info.skillSubtype : undefined,
-        dmgType: dmgType,
+/**处理单体技能 process single skill*/
+function procSTSkill(skillData, func) {
+    checkTargets(skillData.targetList, 1, 1);
+    const { targetList, ...rest } = skillData;
+    const single = {
+        ...rest,
+        target: skillData.targetList[0]
     };
+    return func(single);
 }
-exports.genDamageInfo = genDamageInfo;
-/**产生非技能伤害 */
-function genNonSkillDamage(factor, dmgType, char, ...specEffects) {
-    return new Damage_1.Damage({ char: char }, factor, genDamageInfo(dmgType), ...specEffects);
+exports.procSTSkill = procSTSkill;
+/**处理N个目标的技能 */
+function procMTSkill(skillData, targetCount, func) {
+    checkTargets(skillData.targetList, targetCount, targetCount);
+    const { targetList, ...rest } = skillData;
+    const fixedList = targetList;
+    const data = {
+        ...rest,
+        targetList: fixedList
+    };
+    return func(data);
 }
-exports.genNonSkillDamage = genNonSkillDamage;
-/**产生技能伤害 */
-function genSkillDamage(factor, dmgType, skillData, ...specEffects) {
-    return new Damage_1.Damage({
-        char: skillData?.user,
-        skillData: skillData
-    }, factor, genDamageInfo(dmgType, skillData?.skill.info), ...specEffects);
-}
-exports.genSkillDamage = genSkillDamage;
-/**产生攻击 */
-function genAttack(skillData, factor, dmgType, ...specEffects) {
-    return new Attack_1.Attack({ char: skillData.user, skillData: skillData }, genSkillDamage(factor, dmgType, skillData, ...specEffects));
-}
-exports.genAttack = genAttack;
+exports.procMTSkill = procMTSkill;
 /**生成技能信息 */
 function genSkillInfo(skillName, skillType, skillSubtype, skillRange, skillCategory) {
     return { skillName, skillType, skillSubtype, skillRange, skillCategory };
@@ -58,4 +49,3 @@ function checkTargets(targets, needMin, needMax) {
     if (targets.length > needMax || targets.length < needMin)
         throw "checkTargets错误 需求目标数: " + needMin + "~" + needMax + " 实际目标数:" + targets.length;
 }
-exports.checkTargets = checkTargets;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Damage = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = void 0;
+exports.genSkillDamage = exports.genNonSkillDamage = exports.genDamageInfo = exports.Damage = exports.暴击 = exports.穿防 = exports.穿盾 = exports.稳定 = exports.固定 = exports.治疗 = exports.SpecEffect = void 0;
 const Modify_1 = require("./Modify");
 //———————————————————— 伤害 ————————————————————//
 /**伤害类型枚举 */
@@ -171,3 +171,28 @@ class Damage {
     }
 }
 exports.Damage = Damage;
+/**生成伤害信息 */
+function genDamageInfo(dmgType, info) {
+    return {
+        skillName: info ? info.skillName : undefined,
+        skillCategory: info ? info.skillCategory : undefined,
+        skillRange: info ? info.skillRange : undefined,
+        skillType: info ? info.skillType : "非技能",
+        skillSubtype: info ? info.skillSubtype : undefined,
+        dmgType: dmgType,
+    };
+}
+exports.genDamageInfo = genDamageInfo;
+/**产生非技能伤害 */
+function genNonSkillDamage(factor, dmgType, char, ...specEffects) {
+    return new Damage({ char: char }, factor, genDamageInfo(dmgType), ...specEffects);
+}
+exports.genNonSkillDamage = genNonSkillDamage;
+/**产生技能伤害 */
+function genSkillDamage(factor, dmgType, skillData, ...specEffects) {
+    return new Damage({
+        char: skillData?.user,
+        skillData: skillData
+    }, factor, genDamageInfo(dmgType, skillData?.skill.info), ...specEffects);
+}
+exports.genSkillDamage = genSkillDamage;

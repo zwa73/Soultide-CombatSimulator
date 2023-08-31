@@ -67,6 +67,8 @@ export type BuffStack = {
     stack: number;
     /**持续时间倒计时 */
     duration: number;
+    /**额外的表 */
+    dataTable?: Record<string, any>;
 };
 /**buff表 */
 export declare class BuffTable {
@@ -81,13 +83,15 @@ export declare class BuffTable {
     /**获取一个Buff的层数 不会触发触发器
      * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
      */
-    getBuffStackCountWithoutT(buff: Buff): number;
+    getBuffStackCount(buff: Buff): number;
     /**获取一个Buff
      * @deprecated 这个函数仅供Character.getBaseStatus调用
      */
     getBuff(key: BuffName): Buff | undefined;
     /**获取buff持续时间 */
     getBuffDuration(buff: Buff): number;
+    /**获取BuffStack */
+    getBuffStack(buff: Buff): BuffStack | undefined;
     /**是否含有某个有效的buff */
     hasBuff(buff: Buff): boolean;
     /**检查buff是否有效 无效则移除*/
