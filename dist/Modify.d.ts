@@ -2,10 +2,10 @@ import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusKey, StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
-type ModiftTypeDef = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
-type ModifyTypeBase = DamageType | `${SkillCategory}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
+type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
+type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
 /**加成类型 区分乘区 */
-export type ModifyType = ModifyTypeBase | `受到${ModifyTypeBase}` | ModiftTypeDef;
+export type ModifyType = ModifyTypeAtk | `受到${ModifyTypeAtk}` | ModiftTypeBase;
 /**伤害具体类型约束 Damage Info Constraint*/
 export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | SkillName;
 /**伤害约束 或 数组或单独的伤害约束组成*/

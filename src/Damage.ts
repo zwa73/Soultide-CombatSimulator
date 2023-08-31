@@ -1,9 +1,9 @@
 import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
-import { DefModTableSet, ModTableSet, addModTableSet, multModTableSet } from "./Modify";
+import { DefModTableSet, ModTableSet, addModTableSet } from "./Modify";
 import { SkillInfo } from "./Skill";
-import { StaticStatusKey, StaticStatusOption } from "./Status";
+import { StaticStatusKey } from "./Status";
 
 //———————————————————— 伤害 ————————————————————//
 
@@ -138,7 +138,7 @@ export class Damage {
 	}
 	/**计算伤害 */
 	calcOverdamage(target: Character): number {
-		const { dmgType, skillCategory } = this.info;
+		const { dmgType, skillCategory, skillRange } = this.info;
 		let dmg = this.factor;
         //console.log("基础系数",this.factor)
 		if (this.hasSpecEffect(固定)) return dmg;
@@ -178,6 +178,11 @@ export class Damage {
 		if(skillCategory!=undefined)
 			dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet,
 				`受到${skillCategory}伤害`, targetModTableSet);
+
+		//范围技能伤害
+		if(skillRange!=undefined)
+			dmg = this.modValue(dmg, `${skillRange}伤害`, sourceModTableSet,
+			`受到${skillRange}伤害`, targetModTableSet);
 
         //暴击伤害
         if(this.hasSpecEffect(暴击)){

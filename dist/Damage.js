@@ -96,7 +96,7 @@ class Damage {
     }
     /**计算伤害 */
     calcOverdamage(target) {
-        const { dmgType, skillCategory } = this.info;
+        const { dmgType, skillCategory, skillRange } = this.info;
         let dmg = this.factor;
         //console.log("基础系数",this.factor)
         if (this.hasSpecEffect(exports.固定))
@@ -130,6 +130,9 @@ class Damage {
         //类别伤害
         if (skillCategory != undefined)
             dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet, `受到${skillCategory}伤害`, targetModTableSet);
+        //范围技能伤害
+        if (skillRange != undefined)
+            dmg = this.modValue(dmg, `${skillRange}伤害`, sourceModTableSet, `受到${skillRange}伤害`, targetModTableSet);
         //暴击伤害
         if (this.hasSpecEffect(exports.暴击)) {
             let critdmg = this.modValue(0, `暴击伤害`, sourceModTableSet, `受到暴击伤害`, targetModTableSet);

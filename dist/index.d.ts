@@ -1,4 +1,4 @@
-export * from './CombatSimulation';
+export * from './Battlefield';
 export * from './Attack';
 export * from './Damage';
 export * from './Skill';

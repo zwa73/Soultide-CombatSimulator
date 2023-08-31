@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Character = void 0;
 const utils = require("@zwa73/utils");
-const CombatSimulation_1 = require("./CombatSimulation");
+const Battlefield_1 = require("./Battlefield");
 const Damage_1 = require("./Damage");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
@@ -12,7 +12,7 @@ class Character {
     /**角色名称 */
     name;
     /**角色处在的战场 */
-    battlefield = CombatSimulation_1.DefaultBattlefield;
+    battlefield = Battlefield_1.DefaultBattlefield;
     /**角色的当前属性 */
     dynmaicStatus;
     /**所有的附加状态 */
@@ -30,6 +30,7 @@ class Character {
             当前生命: staticStatus.最大生命 || 0,
             当前怒气: staticStatus.初始怒气 || 0,
         };
+        Battlefield_1.DefaultBattlefield.addCharacter("A", "forward", this);
     }
     /**获取角色的基础属性 */
     getBaseStatus() {
@@ -57,6 +58,7 @@ class Character {
             dataTable: {},
             uid: utils.genUUID()
         };
+        console.log(this.name, "开始向", target.map(char => char.name), "释放", skillData.skill.info.skillName);
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
         this.getTiggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
         //消耗怒气
@@ -72,6 +74,7 @@ class Character {
      * @param target 目标
      */
     tiggerSkill(skill, target) {
+        console.log(this.name, "触发了", skill.info.skillName);
         this.useSkill(skill, target, true);
     }
     /**结算回合 */
@@ -97,7 +100,13 @@ class Character {
         if (isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
                 .forEach(t => damage = t.trigger(damage, this));
-        console.log(this.name + " 受到", dmg, "点伤害", `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
+        //log
+        let log = `${this.name} 受到`;
+        if (damage.source.char != null)
+            log += ` ${damage.source.char.name} 造成的`;
+        if (damage.source.skill != null)
+            log += ` ${damage.source.skill.skill.info.skillName} 造成的`;
+        console.log(log, dmg, `点${damage.info.dmgType}`, `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
     }
     /**受到攻击 */
     getHit(attack) {

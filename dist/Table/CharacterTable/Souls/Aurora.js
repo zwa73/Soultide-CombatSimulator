@@ -19,8 +19,11 @@ exports.Aurora = {
             for (let i = 0; i < 3; i++)
                 targetList[0].getHit(atk);
             let count = user.buffTable.getBuffStack(exports.Aurora.噩廻);
-            if (count >= 32)
-                (0, Skill_1.genAttack)(skillData, count + (user.buffTable.getBuffStack(exports.Aurora.电棘丛生B)), "雷电伤害");
+            if (count >= 32) {
+                let factor = 0.2 + (user.buffTable.getBuffStack(exports.Aurora.电棘丛生B) * 0.2);
+                let addatk = (0, Skill_1.genAttack)(skillData, factor, "雷电伤害");
+                targetList[0].getHit(addatk);
+            }
         }
     },
     噩廻: {
@@ -60,7 +63,7 @@ exports.Aurora = {
         info: (0, Modify_1.genBuffInfo)("效果:电棘丛生"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:电棘丛生"),
-                hook: "造成技能伤害前",
+                hook: "造成技能伤害后",
                 trigger(damage) {
                     if (damage.source.char == null)
                         return damage;

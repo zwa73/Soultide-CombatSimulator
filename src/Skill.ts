@@ -1,6 +1,6 @@
 import { Attack } from "./Attack";
 import { Character } from "./Character";
-import { Battlefield } from "./CombatSimulation";
+import { Battlefield } from "./Battlefield";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
 import { BuffTable } from "./Modify";
 
@@ -76,6 +76,7 @@ export type Skill={
      */
     readonly beforeCast?:(skillData:SkillData)=>void;
 }
+/**生成伤害信息 */
 export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
     return {
         skillName:info? info.skillName:undefined,
@@ -86,23 +87,34 @@ export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
         dmgType:dmgType,
     }
 }
+/**产生非技能伤害 */
 export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Character,...specEffects:SpecEffect[]):Damage{
     return new Damage({char:char},factor,genDamageInfo(dmgType),...specEffects);
 }
-export function genDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
+/**产生技能伤害 */
+export function genSkillDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
     return new Damage({
         char:skillData?.user,
         skill:skillData
     },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
 }
+/**产生攻击 */
 export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
     return new Attack({char:skillData.user,skill:skillData},
-        genDamage(factor,dmgType,skillData,...specEffects));
+        genSkillDamage(factor,dmgType,skillData,...specEffects));
 }
+/**生成技能信息 */
 export function genSkillInfo(skillName:SkillName,skillType:SkillType,skillSubtype:SkillSubtype,skillRange:SkillRange,skillCategory:SkillCategory):SkillInfo{
     return {skillName,skillType,skillSubtype,skillRange,skillCategory};
 }
-export function checkTargets(targets:Character[],needMin:number,needMax:number){
+/**检查目标数 如不符合则抛异
+ * @param targets 目标
+ * @param needMin 最小数量需求 undefine时不限
+ * @param needMax 最大数量需求 undefine时不限
+ */
+export function checkTargets(targets:Character[],needMin?:number,needMax?:number){
+    needMax = needMax||Infinity;
+    needMin = needMin||0;
     if(targets.length>needMax || targets.length<needMin)
-        throw "checkTargets错误 需求目标数:"+needMin+"~"+needMax+" 实际目标数:"+targets.length;
+        throw "checkTargets错误 需求目标数: "+needMin+"~"+needMax+" 实际目标数:"+targets.length;
 }

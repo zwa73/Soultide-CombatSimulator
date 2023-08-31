@@ -1,6 +1,6 @@
 import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
-import { Battlefield } from "./CombatSimulation";
+import { Battlefield } from "./Battlefield";
 import { Damage, DamageInfo } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill } from "./Skill";
