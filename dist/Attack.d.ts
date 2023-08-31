@@ -5,9 +5,9 @@ import { SkillData } from "./Skill";
 /**攻击来源 */
 export type AttackSource = {
     /**角色来源 */
-    char?: Character;
+    char: Character;
     /**技能来源 */
-    skill?: SkillData;
+    skillData: SkillData;
 };
 /**造成技能攻击 */
 export declare class Attack {

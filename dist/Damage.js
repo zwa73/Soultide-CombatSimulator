@@ -7,7 +7,7 @@ const Modify_1 = require("./Modify");
 const DamageBaseTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
     "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
 /**伤害包含关系表 */
-const DamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: [key] }), {});
+const DamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}伤害`] }), {});
 DamageIncludeMap.雷电伤害 = ["雷电伤害", "电击伤害"];
 DamageIncludeMap.冰霜伤害 = ["冰霜伤害", "极寒伤害"];
 DamageIncludeMap.火焰伤害 = ["火焰伤害", "燃烧伤害"];
@@ -65,14 +65,16 @@ class Damage {
      * @returns [ multModMap, addModMap ]
      */
     calcSourceModTableSet() {
-        //计算伤害约束的buff
+        //计算角色的buff
         const charTableSet = this.source.char
             ? this.source.char.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
         //console.log("charTableSet",charTableSet)
-        const skillTableSet = this.source.skill
-            ? this.source.skill.buffTable.getModTableSet(this.info)
+        //计算技能的buff
+        const skillTableSet = this.source.skillData
+            ? this.source.skillData.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
+        //计算攻击的buff
         const attackTableSet = this.source.attack
             ? this.source.attack.buffTable.getModTableSet(this.info)
             : Modify_1.DefModTableSet;
@@ -111,7 +113,8 @@ class Damage {
             return dmg;
         const targetModTableSet = target.buffTable.getModTableSet(this.info);
         const sourceModTableSet = this.calcSourceModTableSet();
-        //console.log(modTableSet);
+        //console.log(sourceModTableSet);
+        //console.log(targetModTableSet);
         //系数
         dmg = this.modValue(dmg, "伤害系数", sourceModTableSet, "受到伤害系数", targetModTableSet);
         //防御

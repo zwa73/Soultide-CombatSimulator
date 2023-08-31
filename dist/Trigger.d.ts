@@ -1,3 +1,4 @@
+import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Damage } from "./Damage";
 import { Buff } from "./Modify";
@@ -16,6 +17,7 @@ export interface TUseSkillBefore extends TriggerBase {
     readonly hook: "释放技能前";
     /**触发 使用技能前 触发器
      * @param skillData 技能参数
+     * @returns 修改的 技能参数
      */
     readonly trigger: (skillData: SkillData) => SkillData;
 }
@@ -25,43 +27,45 @@ export interface TUseSkillAfter extends TriggerBase {
     /**触发 使用技能后 触发器
      * @param skillData 技能参数
      */
-    readonly trigger: (skillData: SkillData) => SkillData;
+    readonly trigger: (skillData: SkillData) => void;
 }
 /**造成伤害前 */
-export interface TDealDamageBefore extends TriggerBase {
+export interface TCauseDamageBefore extends TriggerBase {
     readonly hook: "造成伤害前";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
+     * @returns 修改的 伤害
      */
     readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 /**造成伤害后 */
-export interface TDealDamageAfter extends TriggerBase {
+export interface TCauseDamageAfter extends TriggerBase {
     readonly hook: "造成伤害后";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    readonly trigger: (damage: Damage, target: Character) => Damage;
+    readonly trigger: (damage: Damage, target: Character) => void;
 }
 /**造成技能伤害前 */
-export interface TDealSkillDamageBefore extends TriggerBase {
+export interface TCauseSkillDamageBefore extends TriggerBase {
     readonly hook: "造成技能伤害前";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
+     * @returns 修改的 伤害
      */
     readonly trigger: (damage: Damage, target: Character) => Damage;
 }
 /**造成技能伤害后 */
-export interface TDealSkillDamageAfter extends TriggerBase {
+export interface TCauseSkillDamageAfter extends TriggerBase {
     readonly hook: "造成技能伤害后";
     /**触发 使用技能前 触发器
      * @param damage 伤害
      * @param target 伤害目标
      */
-    readonly trigger: (damage: Damage, target: Character) => Damage;
+    readonly trigger: (damage: Damage, target: Character) => void;
 }
 /**获取效果层数后 */
 export interface TGetBuffStackCountAfter extends TriggerBase {
@@ -70,8 +74,28 @@ export interface TGetBuffStackCountAfter extends TriggerBase {
      * @param char       角色
      * @param buff       获取的效果
      * @param stackCount 获取的效果层数
+     * @returns 修改的 获取的效果层数
      */
     readonly trigger: (char: Character, buff: Buff, stackCount: number) => number;
+}
+/**被攻击前 */
+export interface TTakeAttackBefore extends TriggerBase {
+    readonly hook: "受攻击前";
+    /**触发 使用技能前 触发器
+     * @param victmin 受害者
+     * @param attack  攻击
+     * @returns 修改的 攻击
+     */
+    readonly trigger: (victmin: Character, attack: Attack) => Attack;
+}
+/**被攻击后 */
+export interface TTakeAttackAfter extends TriggerBase {
+    readonly hook: "受攻击后";
+    /**触发 使用技能前 触发器
+     * @param victmin 受害者
+     * @param attack  攻击
+     */
+    readonly trigger: (victmin: Character, attack: Attack) => void;
 }
 export type TriggerName = `触发:${string}`;
 export type TriggerInfo = {
@@ -81,13 +105,15 @@ export type TriggerInfo = {
 export declare function genTriggerInfo(triggerName: TriggerName): TriggerInfo;
 /**触发器表 */
 export type HookTriggerMap = {
-    readonly 释放技能后: TUseSkillBefore;
-    readonly 释放技能前: TUseSkillAfter;
-    readonly 造成伤害后: TDealDamageBefore;
-    readonly 造成伤害前: TDealDamageAfter;
-    readonly 造成技能伤害后: TDealSkillDamageBefore;
-    readonly 造成技能伤害前: TDealSkillDamageAfter;
+    readonly 释放技能前: TUseSkillBefore;
+    readonly 释放技能后: TUseSkillAfter;
+    readonly 造成伤害前: TCauseDamageBefore;
+    readonly 造成伤害后: TCauseDamageAfter;
+    readonly 造成技能伤害前: TCauseSkillDamageBefore;
+    readonly 造成技能伤害后: TCauseSkillDamageAfter;
     readonly 获取效果层数后: TGetBuffStackCountAfter;
+    readonly 受攻击前: TTakeAttackBefore;
+    readonly 受攻击后: TTakeAttackAfter;
 };
 export type AnyHook = keyof HookTriggerMap;
 export type AnyTrigger = HookTriggerMap[keyof HookTriggerMap];

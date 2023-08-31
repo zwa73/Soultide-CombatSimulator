@@ -78,6 +78,7 @@ class BuffTable {
     /**检查buff是否有效 无效则移除*/
     checkBuff(buff) {
         let stackBuff = this._table[buff.info.buffName];
+        //console.log("stackBuff",stackBuff.buff.info.buffName,stackBuff.duration,stackBuff.stack)
         if (stackBuff.duration <= 0) {
             this.removeBuff(stackBuff.buff);
             return false;

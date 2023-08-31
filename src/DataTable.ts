@@ -4,9 +4,10 @@ import { Skill, SkillName } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyTrigger } from "./Trigger";
 
-/**技能表 */
-export const SkillTable:Record<SkillName,Skill> = {};
-export const BuffTable:Record<BuffName,Buff> = {};
+/**所有的技能表 */
+export const SkillDataTable:Record<SkillName,Skill> = {};
+/**所有的效果表 */
+export const BuffDataTable:Record<BuffName,Buff> = {};
 export const GlobalTiggerTable:Record<string,AnyTrigger> = {};
 
 
@@ -20,9 +21,9 @@ export function regDataTable<T extends DataTable>(table:T):Readonly<T>{
         const data = dt[key];
         if("info" in data){
             if("buffName" in data.info)
-                BuffTable[data.info.buffName] = data as Buff;
+                BuffDataTable[data.info.buffName] = data as Buff;
             if("skillName" in data.info)
-                SkillTable[data.info.skillName] = data as Skill;
+                SkillDataTable[data.info.skillName] = data as Skill;
         }
     }
     return table;

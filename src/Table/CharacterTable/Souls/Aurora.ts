@@ -13,6 +13,10 @@ export namespace Aurora {
         cast(skillData:SkillData){
             const {user,targetList}=skillData;
             checkTargets(targetList,1,1);
+
+            if(!user.hasBuff(噩廻)) user.dataTable["上一次失心童话潜境"] = skillData;
+            else skillData = user.dataTable["上一次失心童话潜境"];
+
             user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
             user.dynmaicStatus.当前怒气=0;
             let atk = genAttack(skillData,1,"雷电伤害");
@@ -65,7 +69,7 @@ export namespace Aurora {
             info:genTriggerInfo("触发:电棘丛生"),
             hook:"造成技能伤害后",
             trigger(damage:Damage){
-                if(damage.source.char == null) return damage;
+                if(damage.source.char == null) return;
                 let char = damage.source.char;
                 const countFlag = "电荆丛生攻击计数";
                 if(char.getBuffStackCountAndT(电棘丛生效果)<3){
@@ -77,7 +81,6 @@ export namespace Aurora {
                     char.dataTable[countFlag]=0;
                     char.addBuff(电棘丛生效果, 1);
                 }
-                return damage;
             }
         }]
     }
@@ -101,7 +104,6 @@ export namespace Aurora {
                 user.addBuff(存续战意A);
                 if(user.getBuffStackCountAndT(存续战意A)>=5 && !user.buffTable.hasBuff(存续战意B))
                     user.addBuff(存续战意B);
-                return skillData;
             }
         }]
     }

@@ -14,6 +14,10 @@ var Aurora;
         cast(skillData) {
             const { user, targetList } = skillData;
             (0, Skill_1.checkTargets)(targetList, 1, 1);
+            if (!user.hasBuff(Aurora.噩廻))
+                user.dataTable["上一次失心童话潜境"] = skillData;
+            else
+                skillData = user.dataTable["上一次失心童话潜境"];
             user.addBuff(Aurora.噩廻, user.dynmaicStatus.当前怒气, 1);
             user.dynmaicStatus.当前怒气 = 0;
             let atk = (0, Skill_1.genAttack)(skillData, 1, "雷电伤害");
@@ -67,7 +71,7 @@ var Aurora;
                 hook: "造成技能伤害后",
                 trigger(damage) {
                     if (damage.source.char == null)
-                        return damage;
+                        return;
                     let char = damage.source.char;
                     const countFlag = "电荆丛生攻击计数";
                     if (char.getBuffStackCountAndT(Aurora.电棘丛生效果) < 3) {
@@ -79,7 +83,6 @@ var Aurora;
                         char.dataTable[countFlag] = 0;
                         char.addBuff(Aurora.电棘丛生效果, 1);
                     }
-                    return damage;
                 }
             }]
     };
@@ -103,7 +106,6 @@ var Aurora;
                     user.addBuff(Aurora.存续战意A);
                     if (user.getBuffStackCountAndT(Aurora.存续战意A) >= 5 && !user.buffTable.hasBuff(Aurora.存续战意B))
                         user.addBuff(Aurora.存续战意B);
-                    return skillData;
                 }
             }]
     };

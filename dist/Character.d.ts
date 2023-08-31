@@ -3,7 +3,7 @@ import { Attack } from "./Attack";
 import { Battlefield } from "./Battlefield";
 import { Damage } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
-import { Skill, SkillName } from "./Skill";
+import { Skill, SkillDataOption, SkillName } from "./Skill";
 import { DynmaicStatus, StaticStatusOption } from "./Status";
 /**角色 */
 export declare class Character {
@@ -29,17 +29,17 @@ export declare class Character {
      * @param target 目标
      * @param isTiggerSkill 是触发技能
      */
-    useSkill(skill: Skill, target: Character[], isTiggerSkill?: boolean): void;
+    useSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
     /**被动的触发某个技能
      * @param skill  技能
      * @param target 目标
      */
-    tiggerSkill(skill: Skill, target: Character[]): void;
+    tiggerSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
     /**结算回合 */
     endRound(): void;
     /**受到伤害 */
     getHurt(damage: Damage): void;
-    /**受到攻击 */
+    /**受到攻击击中 */
     getHit(attack: Attack): void;
     /**克隆角色 */
     clone(): Character;
@@ -59,6 +59,10 @@ export declare class Character {
      * @param duration  持续回合    默认无限
      */
     addBuff(buff: Buff, stack?: number, duration?: number): void;
+    /**含有某个Buff
+     * @param buff      buff
+     */
+    hasBuff(buff: Buff): boolean;
 }
 /**角色生成器 */
 export interface CharGener {

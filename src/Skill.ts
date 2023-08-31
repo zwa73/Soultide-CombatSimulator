@@ -43,6 +43,7 @@ export type SkillData={
     /**额外的表 */
     dataTable:Record<string,any>;
 }
+export type SkillDataOption = Partial<SkillData>;
 export type SkillInfo={
     /**技能名 */
     readonly skillName:SkillName;
@@ -101,12 +102,12 @@ export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Charact
 export function genSkillDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
     return new Damage({
         char:skillData?.user,
-        skill:skillData
+        skillData:skillData
     },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
 }
 /**产生攻击 */
 export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
-    return new Attack({char:skillData.user,skill:skillData},
+    return new Attack({char:skillData.user,skillData:skillData},
         genSkillDamage(factor,dmgType,skillData,...specEffects));
 }
 /**生成技能信息 */

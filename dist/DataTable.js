@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.regDataTable = exports.GlobalTiggerTable = exports.BuffTable = exports.SkillTable = void 0;
-/**技能表 */
-exports.SkillTable = {};
-exports.BuffTable = {};
+exports.regDataTable = exports.GlobalTiggerTable = exports.BuffDataTable = exports.SkillDataTable = void 0;
+/**所有的技能表 */
+exports.SkillDataTable = {};
+/**所有的效果表 */
+exports.BuffDataTable = {};
 exports.GlobalTiggerTable = {};
 /**注册数据 */
 function regDataTable(table) {
@@ -12,9 +13,9 @@ function regDataTable(table) {
         const data = dt[key];
         if ("info" in data) {
             if ("buffName" in data.info)
-                exports.BuffTable[data.info.buffName] = data;
+                exports.BuffDataTable[data.info.buffName] = data;
             if ("skillName" in data.info)
-                exports.SkillTable[data.info.skillName] = data;
+                exports.SkillDataTable[data.info.skillName] = data;
         }
     }
     return table;

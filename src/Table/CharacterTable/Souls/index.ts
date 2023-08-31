@@ -1,5 +1,5 @@
 import { Aurora } from "./Aurora";
 import { Colcher } from "./Colcher";
-
-export const Souls = {Aurora,Colcher};
+import { Andrea } from "./Andrea";
+export const Souls = {Aurora,Colcher,Andrea} as const;
 

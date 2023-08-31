@@ -50,36 +50,41 @@ class Character {
      * @param target 目标
      * @param isTiggerSkill 是触发技能
      */
-    useSkill(skill, target, isTiggerSkill = false) {
+    useSkill(skill, target, skillDataOpt) {
         let skillData = {
             skill: skill,
             user: this,
             targetList: target,
             battlefield: this.battlefield,
             buffTable: new Modify_1.BuffTable(),
-            isTriggerSkill: isTiggerSkill,
+            isTriggerSkill: false,
             dataTable: {},
             uid: utils.genUUID()
         };
+        skillData = Object.assign({}, skillData, skillDataOpt);
         console.log(this.name, "开始向", target.map(char => char.name), "释放", skillData.skill.info.skillName);
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
         this.getTiggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
         //消耗怒气
-        if (!isTiggerSkill)
+        if (!skillData.isTriggerSkill)
             this.dynmaicStatus.当前怒气 -= skill.cost || 0;
         //产生效果
         if (skill.cast)
             skill.cast(skillData);
-        this.getTiggers("释放技能后").forEach(t => skillData = t.trigger(skillData));
+        this.getTiggers("释放技能后").forEach(t => t.trigger(skillData));
         skill.afterCast ? skill.afterCast(skillData) : undefined;
     }
     /**被动的触发某个技能
      * @param skill  技能
      * @param target 目标
      */
-    tiggerSkill(skill, target) {
+    tiggerSkill(skill, target, skillDataOpt) {
+        const triggeropt = {
+            isTriggerSkill: true
+        };
+        let mergeOpt = Object.assign({}, triggeropt, skillDataOpt);
         console.log(this.name, "触发了", skill.info.skillName);
-        this.useSkill(skill, target, true);
+        this.useSkill(skill, target, mergeOpt);
     }
     /**结算回合 */
     endRound() {
@@ -100,10 +105,10 @@ class Character {
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命 -= dmg;
         damage.source.char?.buffTable.getTiggers("造成伤害后")
-            .forEach(t => damage = t.trigger(damage, this));
+            .forEach(t => t.trigger(damage, this));
         if (isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
-                .forEach(t => damage = t.trigger(damage, this));
+                .forEach(t => t.trigger(damage, this));
         //log
         let log = `${this.name} 受到`;
         let hasSource = false;
@@ -111,18 +116,20 @@ class Character {
             hasSource = true;
             log += ` ${damage.source.char.name}`;
         }
-        if (damage.source.skill != null) {
+        if (damage.source.skillData != null) {
             hasSource = true;
-            log += ` ${damage.source.skill.skill.info.skillName}`;
+            log += ` ${damage.source.skillData.skill.info.skillName}`;
         }
         if (hasSource)
             log += " 造成的";
         console.log(log, dmg, "点", damage.info.dmgType, `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
     }
-    /**受到攻击 */
+    /**受到攻击击中 */
     getHit(attack) {
+        this.getTiggers("受攻击前").forEach(t => attack = t.trigger(this, attack));
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
+        this.getTiggers("受攻击后").forEach(t => t.trigger(this, attack));
     }
     /**克隆角色 */
     clone() {
@@ -182,6 +189,12 @@ class Character {
      */
     addBuff(buff, stack = 1, duration = Infinity) {
         return this.buffTable.addBuff(buff, stack, duration);
+    }
+    /**含有某个Buff
+     * @param buff      buff
+     */
+    hasBuff(buff) {
+        return this.buffTable.hasBuff(buff);
     }
 }
 exports.Character = Character;

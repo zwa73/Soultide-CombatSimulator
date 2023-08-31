@@ -35,6 +35,7 @@ export type SkillData = {
     /**额外的表 */
     dataTable: Record<string, any>;
 };
+export type SkillDataOption = Partial<SkillData>;
 export type SkillInfo = {
     /**技能名 */
     readonly skillName: SkillName;

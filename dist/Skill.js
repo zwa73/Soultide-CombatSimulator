@@ -33,13 +33,13 @@ exports.genNonSkillDamage = genNonSkillDamage;
 function genSkillDamage(factor, dmgType, skillData, ...specEffects) {
     return new Damage_1.Damage({
         char: skillData?.user,
-        skill: skillData
+        skillData: skillData
     }, factor, genDamageInfo(dmgType, skillData?.skill.info), ...specEffects);
 }
 exports.genSkillDamage = genSkillDamage;
 /**产生攻击 */
 function genAttack(skillData, factor, dmgType, ...specEffects) {
-    return new Attack_1.Attack({ char: skillData.user, skill: skillData }, genSkillDamage(factor, dmgType, skillData, ...specEffects));
+    return new Attack_1.Attack({ char: skillData.user, skillData: skillData }, genSkillDamage(factor, dmgType, skillData, ...specEffects));
 }
 exports.genAttack = genAttack;
 /**生成技能信息 */

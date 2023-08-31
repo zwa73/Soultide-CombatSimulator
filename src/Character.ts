@@ -4,10 +4,11 @@ import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
 import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo } from "./Modify";
-import { Skill, SkillData, SkillName } from "./Skill";
+import { Skill, SkillData, SkillDataOption, SkillName } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap } from "./Trigger";
-import { GlobalTiggerTable, SkillTable } from "./DataTable";
+import { GlobalTiggerTable } from "./DataTable";
+import { Souls } from "./Table";
 
 
 
@@ -56,37 +57,41 @@ export class Character {
      * @param target 目标
      * @param isTiggerSkill 是触发技能
      */
-    useSkill(skill:Skill,target:Character[],isTiggerSkill=false){
+    useSkill(skill:Skill,target:Character[],skillDataOpt?:SkillDataOption){
         let skillData:SkillData = {
             skill:skill,
             user:this,
             targetList:target,
             battlefield:this.battlefield,
             buffTable:new BuffTable(),
-            isTriggerSkill:isTiggerSkill,
+            isTriggerSkill:false,
             dataTable:{},
             uid:utils.genUUID()
         }
-
+        skillData = Object.assign({},skillData,skillDataOpt);
         console.log(this.name,"开始向",target.map(char=>char.name),"释放",skillData.skill.info.skillName);
 
 
         skill.beforeCast? skill.beforeCast(skillData):undefined;
         this.getTiggers("释放技能前").forEach(t=> skillData=t.trigger(skillData));
         //消耗怒气
-        if(!isTiggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
+        if(!skillData.isTriggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
         //产生效果
         if(skill.cast) skill.cast(skillData);
-        this.getTiggers("释放技能后").forEach(t=> skillData=t.trigger(skillData));
+        this.getTiggers("释放技能后").forEach(t=> t.trigger(skillData));
         skill.afterCast? skill.afterCast(skillData):undefined;
     }
     /**被动的触发某个技能
      * @param skill  技能
      * @param target 目标
      */
-    tiggerSkill(skill:Skill,target:Character[]){
+    tiggerSkill(skill:Skill,target:Character[],skillDataOpt?:SkillDataOption){
+        const triggeropt:SkillDataOption={
+            isTriggerSkill:true
+        }
+        let mergeOpt = Object.assign({},triggeropt,skillDataOpt);
         console.log(this.name,"触发了",skill.info.skillName);
-        this.useSkill(skill,target,true);
+        this.useSkill(skill,target,mergeOpt);
     }
     /**结算回合 */
     endRound(){
@@ -109,11 +114,11 @@ export class Character {
         this.dynmaicStatus.当前生命-=dmg;
 
         damage.source.char?.buffTable.getTiggers("造成伤害后")
-            .forEach(t=> damage=t.trigger(damage,this));
+            .forEach(t=> t.trigger(damage,this));
 
         if(isSkillDamage)
             damage.source.char?.buffTable.getTiggers("造成技能伤害后")
-                .forEach(t=> damage=t.trigger(damage,this));
+                .forEach(t=> t.trigger(damage,this));
 
 
 
@@ -124,19 +129,21 @@ export class Character {
             hasSource = true;
             log += ` ${damage.source.char.name}`
         }
-        if(damage.source.skill!=null){
+        if(damage.source.skillData!=null){
             hasSource = true;
-            log += ` ${damage.source.skill.skill.info.skillName}`
+            log += ` ${damage.source.skillData.skill.info.skillName}`
         }
         if(hasSource)
             log+=" 造成的"
 
         console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect(暴击)? "暴击":""}`)
     }
-    /**受到攻击 */
+    /**受到攻击击中 */
     getHit(attack:Attack){
+        this.getTiggers("受攻击前").forEach(t=>attack=t.trigger(this,attack));
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
+        this.getTiggers("受攻击后").forEach(t=>t.trigger(this,attack));
     }
     /**克隆角色 */
     clone():Character{
@@ -199,6 +206,12 @@ export class Character {
      */
     addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
         return this.buffTable.addBuff(buff,stack,duration);
+    }
+    /**含有某个Buff
+     * @param buff      buff
+     */
+    hasBuff(buff:Buff){
+        return this.buffTable.hasBuff(buff);
     }
 }
 

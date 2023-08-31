@@ -19,7 +19,7 @@ export type AddiDamageType = `${typeof DamageBaseTypeList[number]}附伤`;
 
 /**伤害包含关系表 */
 const DamageIncludeMap:Record<DamageType,DamageType[]>=
-    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: [key] }), {}) as any;
+    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}伤害`] }), {}) as any;
 DamageIncludeMap.雷电伤害 = ["雷电伤害","电击伤害"];
 DamageIncludeMap.冰霜伤害 = ["冰霜伤害","极寒伤害"];
 DamageIncludeMap.火焰伤害 = ["火焰伤害","燃烧伤害"];
@@ -67,7 +67,7 @@ Pick<Writeable<SkillInfo>,"skillType">;
 export type DamageSource={
     /**攻击来源 */
     attack?:Attack,
-}&AttackSource;
+}& Partial<AttackSource>;
 
 
 
@@ -103,14 +103,16 @@ export class Damage {
 	 * @returns [ multModMap, addModMap ]
 	 */
 	private calcSourceModTableSet(): ModTableSet {
-		//计算伤害约束的buff
+		//计算角色的buff
 		const charTableSet = this.source.char
 			? this.source.char.buffTable.getModTableSet(this.info)
 			: DefModTableSet;
         //console.log("charTableSet",charTableSet)
-		const skillTableSet = this.source.skill
-			? this.source.skill.buffTable.getModTableSet(this.info)
+		//计算技能的buff
+		const skillTableSet = this.source.skillData
+			? this.source.skillData.buffTable.getModTableSet(this.info)
 			: DefModTableSet;
+		//计算攻击的buff
         const attackTableSet = this.source.attack
 			? this.source.attack.buffTable.getModTableSet(this.info)
 			: DefModTableSet;
@@ -152,7 +154,8 @@ export class Damage {
 
 		const targetModTableSet = target.buffTable.getModTableSet(this.info);
 		const sourceModTableSet = this.calcSourceModTableSet();
-		//console.log(modTableSet);
+		//console.log(sourceModTableSet);
+		//console.log(targetModTableSet);
 		//系数
 		dmg = this.modValue(dmg, "伤害系数", sourceModTableSet, "受到伤害系数", targetModTableSet);
 

@@ -1,5 +1,5 @@
 import { regDataTable } from "@src/DataTable";
-import { Buff, genBuffInfo } from "@src/Modify";
+import { Buff, BuffTable, genBuffInfo } from "@src/Modify";
 import { Skill, checkTargets, genSkillInfo } from "@src/Skill";
 import { genTriggerInfo } from "@src/Trigger";
 
@@ -20,12 +20,20 @@ export namespace Colcher {
             hook:"释放技能后",
             weight:-Infinity,
             trigger(skillData){
-                if(skillData.skill.info.skillName=="技能:王女的祝福") return skillData;
+                if(skillData.skill.info.skillName=="技能:王女的祝福") return;
                 if(skillData.isTriggerSkill) return skillData;
-                if(skillData.skill.info.skillCategory != "奥义技能") return skillData;
+                if(skillData.skill.info.skillCategory != "奥义技能") return;
                 skillData.user.buffTable.removeBuff(Colcher.回音);
-                skillData.user.tiggerSkill(skillData.skill,skillData.targetList);
-                return skillData;
+                let bufftable = new BuffTable();
+                bufftable.addBuff({
+                    info:genBuffInfo("效果:回音奥义伤害减少","负面效果"),
+                    multModify:{
+                        奥义技能伤害:-0.4
+                    }
+                })
+                skillData.user.tiggerSkill(skillData.skill,skillData.targetList,{
+                    buffTable:bufftable
+                });
             }
         }]
     }

@@ -23,12 +23,8 @@ class Attack {
     /**计算一段攻击伤害 */
     calcDamage(target) {
         //暴击率
-        const charCrit = this.source.char
-            ? this.source.char.buffTable.getModSet("暴击率")
-            : Modify_1.DefModSet;
-        const skillCrit = this.source.skill
-            ? this.source.skill.buffTable.getModSet("暴击率")
-            : Modify_1.DefModSet;
+        const charCrit = this.source.char.buffTable.getModSet("暴击率");
+        const skillCrit = this.source.skillData.buffTable.getModSet("暴击率");
         const targetCrit = target.buffTable.getModSet("受到暴击率");
         const critSet = (0, Modify_1.multModSet)(targetCrit, (0, Modify_1.addModSet)(charCrit, skillCrit));
         const critRate = critSet.add * critSet.mult;

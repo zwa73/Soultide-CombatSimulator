@@ -33,7 +33,7 @@ export type DamageInfo = {
 export type DamageSource = {
     /**攻击来源 */
     attack?: Attack;
-} & AttackSource;
+} & Partial<AttackSource>;
 /**伤害 */
 export declare class Damage {
     /**伤害详细类型 */

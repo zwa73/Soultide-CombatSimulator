@@ -7,9 +7,9 @@ import { SkillData } from "./Skill";
 /**攻击来源 */
 export type AttackSource={
     /**角色来源 */
-    char?:Character,
+    char:Character,
     /**技能来源 */
-    skill?:SkillData,
+    skillData:SkillData,
 }
 
 
@@ -33,12 +33,8 @@ export class Attack{
     /**计算一段攻击伤害 */
     calcDamage(target:Character):Damage{
         //暴击率
-        const charCrit = this.source.char
-            ? this.source.char.buffTable.getModSet("暴击率")
-            :DefModSet;
-        const skillCrit = this.source.skill
-            ? this.source.skill.buffTable.getModSet("暴击率")
-            :DefModSet;
+        const charCrit = this.source.char.buffTable.getModSet("暴击率");
+        const skillCrit = this.source.skillData.buffTable.getModSet("暴击率");
         const targetCrit = target.buffTable.getModSet("受到暴击率");
         const critSet = multModSet(targetCrit,addModSet(charCrit,skillCrit));
         const critRate = critSet.add*critSet.mult;

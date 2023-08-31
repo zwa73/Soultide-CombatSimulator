@@ -24,14 +24,22 @@ var Colcher;
                 weight: -Infinity,
                 trigger(skillData) {
                     if (skillData.skill.info.skillName == "技能:王女的祝福")
-                        return skillData;
+                        return;
                     if (skillData.isTriggerSkill)
                         return skillData;
                     if (skillData.skill.info.skillCategory != "奥义技能")
-                        return skillData;
+                        return;
                     skillData.user.buffTable.removeBuff(Colcher.回音);
-                    skillData.user.tiggerSkill(skillData.skill, skillData.targetList);
-                    return skillData;
+                    let bufftable = new Modify_1.BuffTable();
+                    bufftable.addBuff({
+                        info: (0, Modify_1.genBuffInfo)("效果:回音奥义伤害减少", "负面效果"),
+                        multModify: {
+                            奥义技能伤害: -0.4
+                        }
+                    });
+                    skillData.user.tiggerSkill(skillData.skill, skillData.targetList, {
+                        buffTable: bufftable
+                    });
                 }
             }]
     };
