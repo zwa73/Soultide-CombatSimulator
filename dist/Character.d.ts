@@ -1,11 +1,10 @@
 import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield } from "./Battlefield";
-import { Damage, DamageInfo } from "./Damage";
-import { Buff, BuffTable, ModifyType } from "./Modify";
-import { Skill } from "./Skill";
+import { Damage } from "./Damage";
+import { Buff, BuffTable } from "./Modify";
+import { Skill, SkillName } from "./Skill";
 import { DynmaicStatus, StaticStatusOption } from "./Status";
-import { AnyHook, HookTriggerMap } from "./Trigger";
 /**角色 */
 export declare class Character {
     /**角色名称 */
@@ -16,11 +15,15 @@ export declare class Character {
     dynmaicStatus: DynmaicStatus;
     /**所有的附加状态 */
     buffTable: BuffTable;
+    /**所有的技能 */
+    skillTable: Record<SkillName, Skill>;
+    /**额外数据表 */
+    dataTable: Record<string, any>;
     constructor(name: string, status: StaticStatusOption);
     /**获取角色的基础属性 */
     getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field: ModifyType, damageInfo?: DamageInfo): number;
+    private getStaticStatus;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
@@ -40,16 +43,22 @@ export declare class Character {
     getHit(attack: Attack): void;
     /**克隆角色 */
     clone(): Character;
-    /**获取所有对应触发器 包括全局触发器 */
-    getTiggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
-    /**获取一个Buff的层数 */
-    getBuffStack(buff: Buff): number;
+    /**添加技能 同时加入技能的被动buff*/
+    addSkill(skill: Skill): void;
+    /**获取所有对应触发器 包括全局触发器 技能触发器 */
+    private getTiggers;
+    /**获取一个Buff的层数
+     * @deprecated 这个函数不会触发"获取状态层数"触发器
+     */
+    getBuffStackCountWithoutT(buff: Buff): number;
+    /**获取一个Buff的层数 并触发触发器*/
+    getBuffStackCountAndT(buff: Buff): number;
     /**添加一个buff
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
-    addBuff(buff: Buff, stack?: number, countdown?: number): void;
+    addBuff(buff: Buff, stack?: number, duration?: number): void;
 }
 /**角色生成器 */
 export interface CharGener {

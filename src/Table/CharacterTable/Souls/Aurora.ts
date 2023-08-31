@@ -13,21 +13,21 @@ export namespace Aurora {
         cast(skillData:SkillData){
             const {user,targetList}=skillData;
             checkTargets(targetList,1,1);
-            user.addBuff(Aurora.噩廻,user.dynmaicStatus.当前怒气,1);
+            user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
             user.dynmaicStatus.当前怒气=0;
             let atk = genAttack(skillData,1,"雷电伤害");
             for(let i=0;i<3;i++)
                 targetList[0].getHit(atk);
-            let count = user.buffTable.getBuffStack(Aurora.噩廻);
+            let count = user.getBuffStackCountAndT(噩廻);
             if(count>=32){
-                let factor = 0.2+(user.buffTable.getBuffStack(Aurora.电棘丛生B)*0.2);
+                let factor = 0.2+(user.getBuffStackCountAndT(电棘丛生效果)*0.2);
                 let addatk = genAttack(skillData,factor,"雷电伤害");
                 targetList[0].getHit(addatk);
             }
         }
     }
     export const 噩廻:Buff={
-        info:genBuffInfo("效果:噩廻"),
+        info:genBuffInfo("效果:噩廻","正面效果"),
         canSatck:true,
         stackMultModify: {
             攻击    :0.002,
@@ -47,44 +47,43 @@ export namespace Aurora {
             let atk = genAttack(skillData,0.9,"雷电伤害");
             for(let i=0;i<2;i++)
                 targetList[0].getHit(atk);
-            user.addBuff(Aurora.荆雷奔袭A,1,2);
+            user.addBuff(荆雷奔袭效果,1,2);
         }
     }
     /**荆雷奔袭攻击力效果 */
-    export const 荆雷奔袭A:Buff={
-        info:genBuffInfo("效果:荆雷奔袭A"),
+    export const 荆雷奔袭效果:Buff={
+        info:genBuffInfo("效果:荆雷奔袭","正面效果"),
         multModify:{
             技能伤害:0.25,
         },
         damageCons:["雷电技能"],
     }
-    /**电棘丛生被动效果 */
-    export const 电棘丛生:Buff={
-        info:genBuffInfo("效果:电棘丛生"),
+    /**电棘丛生技能 */
+    export const 电棘丛生:Skill={
+        info:genSkillInfo("技能:电棘丛生","雷电技能","被动技能","无范围技能","秘术技能"),
         triggerList:[{
             info:genTriggerInfo("触发:电棘丛生"),
             hook:"造成技能伤害后",
             trigger(damage:Damage){
                 if(damage.source.char == null) return damage;
                 let char = damage.source.char;
-                if(char.getBuffStack(Aurora.电棘丛生B)<3)
-                    char.addBuff(Aurora.电棘丛生A);
-                if(char.getBuffStack(Aurora.电棘丛生A)>=3){
-                    char.addBuff(Aurora.电棘丛生A,-3);
-                    char.addBuff(Aurora.电棘丛生B, 1);
+                const countFlag = "电荆丛生攻击计数";
+                if(char.getBuffStackCountAndT(电棘丛生效果)<3){
+                    if(char.dataTable[countFlag]==null)
+                        char.dataTable[countFlag]=0;
+                    char.dataTable[countFlag]+=1;
+                }
+                if(char.dataTable[countFlag]>=3){
+                    char.dataTable[countFlag]=0;
+                    char.addBuff(电棘丛生效果, 1);
                 }
                 return damage;
             }
         }]
     }
-    /**电棘丛生攻击计数器 */
-    export const 电棘丛生A:Buff={
-        info:genBuffInfo("效果:电棘丛生A"),
-        canSatck:true,
-    }
     /**电棘丛生攻击力效果 */
-    export const 电棘丛生B:Buff={
-        info:genBuffInfo("效果:电棘丛生B"),
+    export const 电棘丛生效果:Buff={
+        info:genBuffInfo("效果:电棘丛生B","正面效果"),
         canSatck:true,
         stackLimit:3,
         stackMultModify:{
@@ -92,23 +91,23 @@ export namespace Aurora {
         }
     }
     /**续存战意被动效果 */
-    export const 续存战意:Buff={
-        info:genBuffInfo("效果:续存战意"),
+    export const 存续战意:Skill={
+        info:genSkillInfo("技能:存续战意","非技能","被动技能","无范围技能","特性技能"),
         triggerList:[{
-            info:genTriggerInfo("触发:续存战意"),
+            info:genTriggerInfo("触发:存续战意"),
             hook:"释放技能后",
             trigger(skillData:SkillData){
                 const {user} = skillData;
-                user.addBuff(Aurora.续存战意A);
-                if(user.buffTable.getBuffStack(Aurora.续存战意A)>=5 && !user.buffTable.hasBuff(Aurora.续存战意B))
-                    user.addBuff(Aurora.续存战意B);
+                user.addBuff(存续战意A);
+                if(user.getBuffStackCountAndT(存续战意A)>=5 && !user.buffTable.hasBuff(存续战意B))
+                    user.addBuff(存续战意B);
                 return skillData;
             }
         }]
     }
     /**续存战意 每层效果 */
-    export const 续存战意A:Buff={
-        info:genBuffInfo("效果:续存战意A"),
+    export const 存续战意A:Buff={
+        info:genBuffInfo("效果:存续战意A","正面效果"),
         canSatck:true,
         stackLimit:5,
         stackMultModify:{
@@ -116,8 +115,8 @@ export namespace Aurora {
         }
     }
     /**续存战意 5层效果 */
-    export const 续存战意B:Buff={
-        info:genBuffInfo("效果:续存战意B"),
+    export const 存续战意B:Buff={
+        info:genBuffInfo("效果:存续战意B","正面效果"),
         multModify:{
             攻击:0.075,
         }
@@ -126,10 +125,10 @@ export namespace Aurora {
         攻击:10000
     }
     export function genChar(name?:string,status?:StaticStatusOption){
-        let opt = Object.assign({},Aurora.baseStatus,status);
+        let opt = Object.assign({},baseStatus,status);
         let char = new Character(name||"Aurora",opt);
-        char.addBuff(Aurora.续存战意);
-        char.addBuff(Aurora.电棘丛生);
+        char.addSkill(存续战意);
+        char.addSkill(电棘丛生);
         return char;
     }
 }

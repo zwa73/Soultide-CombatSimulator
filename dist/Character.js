@@ -17,11 +17,15 @@ class Character {
     dynmaicStatus;
     /**所有的附加状态 */
     buffTable = new Modify_1.BuffTable();
+    /**所有的技能 */
+    skillTable = {};
+    /**额外数据表 */
+    dataTable = {};
     constructor(name, status) {
         this.name = name;
         let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
         let baseBuff = {
-            info: (0, Modify_1.genBuffInfo)((name + "基础属性")),
+            info: (0, Modify_1.genBuffInfo)((name + "基础属性"), "其他效果"),
             addModify: staticStatus
         };
         //console.log(name,"staticStatus",staticStatus)
@@ -34,8 +38,7 @@ class Character {
     }
     /**获取角色的基础属性 */
     getBaseStatus() {
-        //@ts-ignore
-        return this._buffTable.getBuff((this.name + "基础属性"));
+        return this.buffTable.getBuff((this.name + "基础属性"));
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, damageInfo) {
@@ -65,7 +68,8 @@ class Character {
         if (!isTiggerSkill)
             this.dynmaicStatus.当前怒气 -= skill.cost || 0;
         //产生效果
-        skill.cast(skillData);
+        if (skill.cast)
+            skill.cast(skillData);
         this.getTiggers("释放技能后").forEach(t => skillData = t.trigger(skillData));
         skill.afterCast ? skill.afterCast(skillData) : undefined;
     }
@@ -102,11 +106,18 @@ class Character {
                 .forEach(t => damage = t.trigger(damage, this));
         //log
         let log = `${this.name} 受到`;
-        if (damage.source.char != null)
-            log += ` ${damage.source.char.name} 造成的`;
-        if (damage.source.skill != null)
-            log += ` ${damage.source.skill.skill.info.skillName} 造成的`;
-        console.log(log, dmg, `点${damage.info.dmgType}`, `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
+        let hasSource = false;
+        if (damage.source.char != null) {
+            hasSource = true;
+            log += ` ${damage.source.char.name}`;
+        }
+        if (damage.source.skill != null) {
+            hasSource = true;
+            log += ` ${damage.source.skill.skill.info.skillName}`;
+        }
+        if (hasSource)
+            log += " 造成的";
+        console.log(log, dmg, "点", damage.info.dmgType, `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
     }
     /**受到攻击 */
     getHit(attack) {
@@ -120,30 +131,57 @@ class Character {
         char.buffTable = bt;
         return char;
     }
-    /**获取所有对应触发器 包括全局触发器 */
+    /**添加技能 同时加入技能的被动buff*/
+    addSkill(skill) {
+        this.skillTable[skill.info.skillName] = skill;
+        if (skill.passiveList == null)
+            return;
+        for (let stackpe of skill.passiveList)
+            this.addBuff(stackpe.buff, stackpe.stack, stackpe.duration);
+    }
+    /**获取所有对应触发器 包括全局触发器 技能触发器 */
     getTiggers(hook) {
         //触发器数组
         const tiggers = this.buffTable.getTiggers(hook);
+        //全局触发器
         for (const key in DataTable_1.GlobalTiggerTable) {
             let tigger = DataTable_1.GlobalTiggerTable[key];
             if (tigger.hook == hook)
                 tiggers.push(tigger);
         }
+        //技能触发器
+        for (const skillName in this.skillTable) {
+            let skill = this.skillTable[skillName];
+            if (skill.triggerList == null)
+                continue;
+            for (let tigger of skill.triggerList) {
+                if (tigger.hook == hook)
+                    tiggers.push(tigger);
+            }
+        }
         tiggers.sort((a, b) => (b.weight || 0) - (a.weight || 0));
         return tiggers;
     }
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数 */
-    getBuffStack(buff) {
-        return this.buffTable.getBuffStack(buff);
+    /**获取一个Buff的层数
+     * @deprecated 这个函数不会触发"获取状态层数"触发器
+     */
+    getBuffStackCountWithoutT(buff) {
+        return this.buffTable.getBuffStackCountWithoutT(buff);
+    }
+    /**获取一个Buff的层数 并触发触发器*/
+    getBuffStackCountAndT(buff) {
+        let count = this.getBuffStackCountWithoutT(buff);
+        this.getTiggers("获取效果层数后").forEach(t => count = t.trigger(this, buff, count));
+        return count;
     }
     /**添加一个buff
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
-    addBuff(buff, stack = 1, countdown = Infinity) {
-        return this.buffTable.addBuff(buff, stack, countdown);
+    addBuff(buff, stack = 1, duration = Infinity) {
+        return this.buffTable.addBuff(buff, stack, duration);
     }
 }
 exports.Character = Character;

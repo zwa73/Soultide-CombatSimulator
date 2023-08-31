@@ -17,11 +17,11 @@ var Colcher;
         }
     };
     Colcher.回音 = {
-        info: (0, Modify_1.genBuffInfo)("效果:回音"),
+        info: (0, Modify_1.genBuffInfo)("效果:回音", "正面效果"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:回音"),
                 hook: "释放技能后",
-                weight: -1000,
+                weight: -Infinity,
                 trigger(skillData) {
                     if (skillData.skill.info.skillName == "技能:王女的祝福")
                         return skillData;

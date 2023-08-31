@@ -7,7 +7,7 @@ import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 
 type ModiftTypeBase = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复";
 type ModifyTypeAtk  = DamageType|`${SkillCategory}伤害`|`${SkillRange}伤害`|AddiDamageType|
-    "技能伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数";
+    "技能伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数"|"穿透防御";
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeAtk|`受到${ModifyTypeAtk}`|ModiftTypeBase;
 
@@ -58,13 +58,17 @@ export type ModSet = {
     mult:number
 }
 
+
+export type BuffType = "正面效果"|"负面效果"|"控制效果"|"其他效果";
+
 /**buff的详细信息 */
 export type BuffInfo={
     readonly buffName:BuffName;
+    readonly buffType:BuffType;
 }
 
-export function genBuffInfo(buffName:BuffName):BuffInfo{
-    return {buffName};
+export function genBuffInfo(buffName:BuffName,buffType:BuffType):BuffInfo{
+    return {buffName,buffType};
 }
 
 /**附加效果 */
@@ -121,15 +125,19 @@ export class BuffTable{
         }
         this.checkBuff(buff);
     }
-    /**获取一个Buff的层数 */
-    getBuffStack(buff:Buff):number{
+    /**获取一个Buff的层数 不会触发触发器
+     * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
+     */
+    getBuffStackCountWithoutT(buff:Buff):number{
         let key = buff.info.buffName;
         if(this._table[key]==null || this._table[key].stack<=0)
             return 0;
         return this._table[key].stack;
     }
-    /**获取一个Buff */
-    private getBuff(key:BuffName):Buff|undefined{
+    /**获取一个Buff
+     * @deprecated 这个函数仅供Character.getBaseStatus调用
+     */
+    getBuff(key:BuffName):Buff|undefined{
         return this._table[key].buff;
     }
     /**获取buff持续时间 */
@@ -141,7 +149,7 @@ export class BuffTable{
     }
     /**是否含有某个有效的buff */
     hasBuff(buff:Buff):boolean{
-        return this.getBuffStack(buff)>0 && this.getBuffDuration(buff)>0;
+        return this.getBuffStackCountWithoutT(buff)>0 && this.getBuffDuration(buff)>0;
     }
     /**检查buff是否有效 无效则移除*/
     private checkBuff(buff:Buff):boolean{
@@ -208,7 +216,7 @@ export class BuffTable{
         }
         return {add,mult};
     }
-    /**获取伤害约束的Buff调整值表
+    /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */

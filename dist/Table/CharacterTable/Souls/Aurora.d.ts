@@ -8,19 +8,17 @@ export declare namespace Aurora {
     /**荆雷奔袭技能 */
     const 荆雷奔袭: Skill;
     /**荆雷奔袭攻击力效果 */
-    const 荆雷奔袭A: Buff;
-    /**电棘丛生被动效果 */
-    const 电棘丛生: Buff;
-    /**电棘丛生攻击计数器 */
-    const 电棘丛生A: Buff;
+    const 荆雷奔袭效果: Buff;
+    /**电棘丛生技能 */
+    const 电棘丛生: Skill;
     /**电棘丛生攻击力效果 */
-    const 电棘丛生B: Buff;
+    const 电棘丛生效果: Buff;
     /**续存战意被动效果 */
-    const 续存战意: Buff;
+    const 存续战意: Skill;
     /**续存战意 每层效果 */
-    const 续存战意A: Buff;
+    const 存续战意A: Buff;
     /**续存战意 5层效果 */
-    const 续存战意B: Buff;
+    const 存续战意B: Buff;
     const baseStatus: StaticStatusOption;
     function genChar(name?: string, status?: StaticStatusOption): Character;
 }

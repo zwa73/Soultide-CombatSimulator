@@ -3,7 +3,7 @@ import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from ".
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
-type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
+type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数" | "穿透防御";
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeAtk | `受到${ModifyTypeAtk}` | ModiftTypeBase;
 /**伤害具体类型约束 Damage Info Constraint*/
@@ -28,11 +28,13 @@ export type ModSet = {
     add: number;
     mult: number;
 };
+export type BuffType = "正面效果" | "负面效果" | "控制效果" | "其他效果";
 /**buff的详细信息 */
 export type BuffInfo = {
     readonly buffName: BuffName;
+    readonly buffType: BuffType;
 };
-export declare function genBuffInfo(buffName: BuffName): BuffInfo;
+export declare function genBuffInfo(buffName: BuffName, buffType: BuffType): BuffInfo;
 /**附加效果 */
 export type Buff = {
     /**名称 */
@@ -76,10 +78,14 @@ export declare class BuffTable {
      * @param duration  持续回合    默认无限
      */
     addBuff(buff: Buff, stack?: number, duration?: number): void;
-    /**获取一个Buff的层数 */
-    getBuffStack(buff: Buff): number;
-    /**获取一个Buff */
-    private getBuff;
+    /**获取一个Buff的层数 不会触发触发器
+     * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
+     */
+    getBuffStackCountWithoutT(buff: Buff): number;
+    /**获取一个Buff
+     * @deprecated 这个函数仅供Character.getBaseStatus调用
+     */
+    getBuff(key: BuffName): Buff | undefined;
     /**获取buff持续时间 */
     getBuffDuration(buff: Buff): number;
     /**是否含有某个有效的buff */
@@ -103,7 +109,7 @@ export declare class BuffTable {
      * @param damageInfo 伤害信息
      */
     getModSet(field: ModifyType, damageInfo?: DamageInfo): ModSet;
-    /**获取伤害约束的Buff调整值表
+    /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */

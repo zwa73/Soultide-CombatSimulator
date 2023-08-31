@@ -25,8 +25,8 @@ function matchCons(info, cons) {
     return true;
 }
 exports.matchCons = matchCons;
-function genBuffInfo(buffName) {
-    return { buffName };
+function genBuffInfo(buffName, buffType) {
+    return { buffName, buffType };
 }
 exports.genBuffInfo = genBuffInfo;
 /**buff表 */
@@ -49,14 +49,18 @@ class BuffTable {
         }
         this.checkBuff(buff);
     }
-    /**获取一个Buff的层数 */
-    getBuffStack(buff) {
+    /**获取一个Buff的层数 不会触发触发器
+     * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
+     */
+    getBuffStackCountWithoutT(buff) {
         let key = buff.info.buffName;
         if (this._table[key] == null || this._table[key].stack <= 0)
             return 0;
         return this._table[key].stack;
     }
-    /**获取一个Buff */
+    /**获取一个Buff
+     * @deprecated 这个函数仅供Character.getBaseStatus调用
+     */
     getBuff(key) {
         return this._table[key].buff;
     }
@@ -69,7 +73,7 @@ class BuffTable {
     }
     /**是否含有某个有效的buff */
     hasBuff(buff) {
-        return this.getBuffStack(buff) > 0 && this.getBuffDuration(buff) > 0;
+        return this.getBuffStackCountWithoutT(buff) > 0 && this.getBuffDuration(buff) > 0;
     }
     /**检查buff是否有效 无效则移除*/
     checkBuff(buff) {
@@ -134,7 +138,7 @@ class BuffTable {
         }
         return { add, mult };
     }
-    /**获取伤害约束的Buff调整值表
+    /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */

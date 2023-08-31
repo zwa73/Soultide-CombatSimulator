@@ -1,7 +1,7 @@
 import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
-import { DefModTableSet, ModTableSet, ModifyType, addModTableSet } from "./Modify";
+import { DefModTableSet, ModSet, ModTableSet, ModifyType, addModTableSet } from "./Modify";
 import { SkillInfo } from "./Skill";
 
 //———————————————————— 伤害 ————————————————————//
@@ -131,6 +131,14 @@ export class Damage {
 			(tableSet.multModTable[flag] || 1) * (targetTableSet.multModTable[targetFlag] || 1)
 		);
 	}
+	/**从一个table获取调整值
+	 * @param base       基础值
+	 * @param flag       标签
+	 * @param tableSet   调整值
+	 */
+	private modValueSingle(base:number,flag:ModifyType,tableSet:ModTableSet):number{
+		return (base + (tableSet.addModTable[flag]||0)) * (tableSet.multModTable[flag]||1);
+	}
 	/**含有某个特效 */
 	hasSpecEffect(flag: SpecEffect) {
 		return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
@@ -148,8 +156,13 @@ export class Damage {
 		//系数
 		dmg = this.modValue(dmg, "伤害系数", sourceModTableSet, "受到伤害系数", targetModTableSet);
 
+		//防御
+		let def = this.modValueSingle(0,"防御",targetModTableSet);
+		def = this.hasSpecEffect(穿防) || this.hasSpecEffect(治疗)? 0:def;
+		//穿防
+		let pendef = this.modValue(0, "穿透防御", sourceModTableSet, "受到穿透防御", targetModTableSet);
+		def = def*(1-pendef);
 		//攻击
-		let def = this.hasSpecEffect(穿防) || this.hasSpecEffect(治疗)? 0 : target.getStaticStatus("防御");
         let atk = this.modValue(0, "攻击", sourceModTableSet, "受到攻击", targetModTableSet);
 		dmg *= atk - def > 1 ? atk - def : 1;
 
@@ -190,15 +203,10 @@ export class Damage {
             dmg = dmg*critdmg;
         }
 
-		//受伤减少
-		// let dr = Math.min(0.6,target.getStaticStatus("受伤减少"));
-		// dmg = dmg*(1-dr);
-
-
 		//合并附伤
 		dmg += adddmg;
-		//浮动
-		if (!this.hasSpecEffect(稳定)) dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
+		//浮动 +-5%
+		if (!this.hasSpecEffect(稳定)) dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
 		return Math.floor(dmg);
 	}
     /**是技能伤害 */

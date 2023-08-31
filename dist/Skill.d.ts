@@ -2,7 +2,8 @@ import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Battlefield } from "./Battlefield";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
-import { BuffTable } from "./Modify";
+import { BuffStack, BuffTable } from "./Modify";
+import { AnyTrigger } from "./Trigger";
 /**技能类型 */
 declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
@@ -10,12 +11,12 @@ export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 declare const SkillRangeList: readonly ["单体", "群体", "无范围"];
 export type SkillRange = `${typeof SkillRangeList[number]}技能`;
 /**技能子类型 */
-declare const SkillSubtypeList: readonly ["伤害", "治疗", "辅助"];
+declare const SkillSubtypeList: readonly ["伤害", "治疗", "辅助", "被动"];
 export type SkillSubtype = `${typeof SkillSubtypeList[number]}技能`;
 /**技能目标 */
 export type SkillTarget = "友军" | "我方" | "敌方" | "敌方前排" | "敌方后排";
 /**技能类别 */
-declare const SkillCategoryList: readonly ["普攻", "核心", "秘术", "奥义", "其他"];
+declare const SkillCategoryList: readonly ["普攻", "核心", "秘术", "奥义", "特性"];
 export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
 export type SkillData = {
     skill: Skill;
@@ -52,12 +53,12 @@ export type SkillName = `技能:${string}`;
 export type Skill = {
     /**技能的类型详情 */
     readonly info: SkillInfo;
-    /**技能的怒气消耗 */
-    readonly cost: number;
+    /**技能的怒气消耗 默认0*/
+    readonly cost?: number;
     /**使用技能
      * @param skillData 技能参数
      */
-    readonly cast: (skillData: SkillData) => void;
+    readonly cast?: (skillData: SkillData) => void;
     /**使用技能前的额外效果
      * @param skillData 技能参数
      */
@@ -66,6 +67,10 @@ export type Skill = {
      * @param skillData 技能参数
      */
     readonly beforeCast?: (skillData: SkillData) => void;
+    /**被动Buff 加入技能时会被直接添加 */
+    readonly passiveList?: ReadonlyArray<Readonly<BuffStack>>;
+    /**触发器 */
+    readonly triggerList?: ReadonlyArray<AnyTrigger>;
 };
 /**生成伤害信息 */
 export declare function genDamageInfo(dmgType: DamageType, info?: SkillInfo): DamageInfo;

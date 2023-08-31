@@ -90,6 +90,14 @@ class Damage {
         return ((base + (tableSet.addModTable[flag] || 0) + (targetTableSet.addModTable[targetFlag] || 0)) *
             (tableSet.multModTable[flag] || 1) * (targetTableSet.multModTable[targetFlag] || 1));
     }
+    /**从一个table获取调整值
+     * @param base       基础值
+     * @param flag       标签
+     * @param tableSet   调整值
+     */
+    modValueSingle(base, flag, tableSet) {
+        return (base + (tableSet.addModTable[flag] || 0)) * (tableSet.multModTable[flag] || 1);
+    }
     /**含有某个特效 */
     hasSpecEffect(flag) {
         return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
@@ -106,8 +114,13 @@ class Damage {
         //console.log(modTableSet);
         //系数
         dmg = this.modValue(dmg, "伤害系数", sourceModTableSet, "受到伤害系数", targetModTableSet);
+        //防御
+        let def = this.modValueSingle(0, "防御", targetModTableSet);
+        def = this.hasSpecEffect(exports.穿防) || this.hasSpecEffect(exports.治疗) ? 0 : def;
+        //穿防
+        let pendef = this.modValue(0, "穿透防御", sourceModTableSet, "受到穿透防御", targetModTableSet);
+        def = def * (1 - pendef);
         //攻击
-        let def = this.hasSpecEffect(exports.穿防) || this.hasSpecEffect(exports.治疗) ? 0 : target.getStaticStatus("防御");
         let atk = this.modValue(0, "攻击", sourceModTableSet, "受到攻击", targetModTableSet);
         dmg *= atk - def > 1 ? atk - def : 1;
         //附加伤害
@@ -138,14 +151,11 @@ class Damage {
             let critdmg = this.modValue(0, `暴击伤害`, sourceModTableSet, `受到暴击伤害`, targetModTableSet);
             dmg = dmg * critdmg;
         }
-        //受伤减少
-        // let dr = Math.min(0.6,target.getStaticStatus("受伤减少"));
-        // dmg = dmg*(1-dr);
         //合并附伤
         dmg += adddmg;
-        //浮动
+        //浮动 +-5%
         if (!this.hasSpecEffect(exports.稳定))
-            dmg = dmg + Math.random() * dmg * 0.1 - dmg * 0.05;
+            dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
         return Math.floor(dmg);
     }
     /**是技能伤害 */

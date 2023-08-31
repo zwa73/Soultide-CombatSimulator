@@ -14,11 +14,11 @@ export namespace Colcher {
         }
     }
     export const 回音:Buff={
-        info:genBuffInfo("效果:回音"),
+        info:genBuffInfo("效果:回音","正面效果"),
         triggerList:[{
             info:genTriggerInfo("触发:回音"),
             hook:"释放技能后",
-            weight:-1000,
+            weight:-Infinity,
             trigger(skillData){
                 if(skillData.skill.info.skillName=="技能:王女的祝福") return skillData;
                 if(skillData.isTriggerSkill) return skillData;

@@ -2,7 +2,8 @@ import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Battlefield } from "./Battlefield";
 import { Damage, DamageInfo, DamageType, SpecEffect } from "./Damage";
-import { BuffTable } from "./Modify";
+import { Buff, BuffStack, BuffTable } from "./Modify";
+import { AnyTrigger } from "./Trigger";
 
 //———————————————————— 技能 ————————————————————//
 
@@ -15,14 +16,14 @@ const SkillRangeList = ["单体","群体","无范围"] as const;
 export type SkillRange = `${typeof SkillRangeList[number]}技能`;
 
 /**技能子类型 */
-const SkillSubtypeList = ["伤害","治疗","辅助"] as const;
+const SkillSubtypeList = ["伤害","治疗","辅助","被动"] as const;
 export type SkillSubtype = `${typeof SkillSubtypeList[number]}技能`;
 
 /**技能目标 */
 export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后排";
 
 /**技能类别 */
-const SkillCategoryList = ["普攻","核心","秘术","奥义","其他"] as const;
+const SkillCategoryList = ["普攻","核心","秘术","奥义","特性"] as const;
 export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
 
 export type SkillData={
@@ -61,12 +62,12 @@ export type SkillName = `技能:${string}`;
 export type Skill={
     /**技能的类型详情 */
     readonly info:SkillInfo;
-    /**技能的怒气消耗 */
-    readonly cost:number;
+    /**技能的怒气消耗 默认0*/
+    readonly cost?:number;
     /**使用技能
      * @param skillData 技能参数
      */
-    readonly cast:(skillData:SkillData)=>void;
+    readonly cast?:(skillData:SkillData)=>void;
     /**使用技能前的额外效果
      * @param skillData 技能参数
      */
@@ -75,7 +76,12 @@ export type Skill={
      * @param skillData 技能参数
      */
     readonly beforeCast?:(skillData:SkillData)=>void;
+    /**被动Buff 加入技能时会被直接添加 */
+    readonly passiveList?:ReadonlyArray<Readonly<BuffStack>>;
+    /**触发器 */
+    readonly triggerList?:ReadonlyArray<AnyTrigger>;
 }
+
 /**生成伤害信息 */
 export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
     return {

@@ -63,6 +63,12 @@ export declare class Damage {
      * @param tableSet   目标的调整值
      */
     private modValue;
+    /**从一个table获取调整值
+     * @param base       基础值
+     * @param flag       标签
+     * @param tableSet   调整值
+     */
+    private modValueSingle;
     /**含有某个特效 */
     hasSpecEffect(flag: SpecEffect): boolean | undefined;
     /**计算伤害 */

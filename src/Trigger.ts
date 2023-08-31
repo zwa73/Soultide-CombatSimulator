@@ -1,5 +1,6 @@
 import { Character } from "./Character";
 import { Damage } from "./Damage";
+import { Buff } from "./Modify";
 import { SkillData } from "./Skill";
 
 
@@ -65,6 +66,16 @@ export interface TDealSkillDamageAfter extends TriggerBase{
      */
     readonly trigger:(damage:Damage,target:Character)=>Damage;
 }
+/**获取效果层数后 */
+export interface TGetBuffStackCountAfter extends TriggerBase{
+    readonly hook:"获取效果层数后";
+    /**触发 使用技能前 触发器
+     * @param char       角色
+     * @param buff       获取的效果
+     * @param stackCount 获取的效果层数
+     */
+    readonly trigger:(char:Character,buff:Buff,stackCount:number)=>number;
+}
 
 export type TriggerName = `触发:${string}`;
 export type TriggerInfo = {
@@ -84,6 +95,7 @@ export type HookTriggerMap = {
     readonly 造成伤害前      :TDealDamageAfter        ;
     readonly 造成技能伤害后  :TDealSkillDamageBefore  ;
     readonly 造成技能伤害前  :TDealSkillDamageAfter   ;
+    readonly 获取效果层数后  :TGetBuffStackCountAfter ;
 };
 export type AnyHook   = keyof HookTriggerMap;
 export type AnyTrigger = HookTriggerMap[keyof HookTriggerMap];

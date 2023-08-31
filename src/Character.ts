@@ -4,10 +4,10 @@ import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
 import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo } from "./Modify";
-import { Skill, SkillData } from "./Skill";
+import { Skill, SkillData, SkillName } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap } from "./Trigger";
-import { GlobalTiggerTable } from "./DataTable";
+import { GlobalTiggerTable, SkillTable } from "./DataTable";
 
 
 
@@ -21,12 +21,16 @@ export class Character {
     dynmaicStatus:DynmaicStatus;
     /**所有的附加状态 */
     buffTable:BuffTable=new BuffTable();
+    /**所有的技能 */
+    skillTable:Record<SkillName,Skill>={};
+    /**额外数据表 */
+    dataTable:Record<string,any>={};
 
     constructor(name:string,status:StaticStatusOption){
         this.name=name;
         let staticStatus:StaticStatusOption = Object.assign({},DefStaticStatus,status);
         let baseBuff:Buff = {
-            info: genBuffInfo((name+"基础属性")as BuffName),
+            info: genBuffInfo((name+"基础属性")as BuffName,"其他效果"),
             addModify:staticStatus
         }
         //console.log(name,"staticStatus",staticStatus)
@@ -40,11 +44,10 @@ export class Character {
     }
     /**获取角色的基础属性 */
     getBaseStatus():Writeable<Buff>{
-        //@ts-ignore
-        return this._buffTable.getBuff((this.name+"基础属性") as BuffName)!;
+        return this.buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field:ModifyType,damageInfo?:DamageInfo){
+    private getStaticStatus(field:ModifyType,damageInfo?:DamageInfo){
         let mod = this.buffTable.modValue(0,field,damageInfo);
         return mod;
     }
@@ -73,7 +76,7 @@ export class Character {
         //消耗怒气
         if(!isTiggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
         //产生效果
-        skill.cast(skillData);
+        if(skill.cast) skill.cast(skillData);
         this.getTiggers("释放技能后").forEach(t=> skillData=t.trigger(skillData));
         skill.afterCast? skill.afterCast(skillData):undefined;
     }
@@ -116,11 +119,19 @@ export class Character {
 
         //log
         let log = `${this.name} 受到`;
-        if(damage.source.char!=null)
-            log += ` ${damage.source.char.name} 造成的`
-        if(damage.source.skill!=null)
-            log += ` ${damage.source.skill.skill.info.skillName} 造成的`
-        console.log(log,dmg,`点${damage.info.dmgType}`,`${damage.hasSpecEffect(暴击)? "暴击":""}`)
+        let hasSource = false;
+        if(damage.source.char!=null){
+            hasSource = true;
+            log += ` ${damage.source.char.name}`
+        }
+        if(damage.source.skill!=null){
+            hasSource = true;
+            log += ` ${damage.source.skill.skill.info.skillName}`
+        }
+        if(hasSource)
+            log+=" 造成的"
+
+        console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect(暴击)? "暴击":""}`)
     }
     /**受到攻击 */
     getHit(attack:Attack){
@@ -134,16 +145,33 @@ export class Character {
         char.buffTable = bt;
         return char;
     }
-    /**获取所有对应触发器 包括全局触发器 */
-    getTiggers<T extends AnyHook>(hook:T):HookTriggerMap[T][] {
+    /**添加技能 同时加入技能的被动buff*/
+    addSkill(skill:Skill){
+        this.skillTable[skill.info.skillName] = skill;
+        if(skill.passiveList==null) return;
+        for(let stackpe of skill.passiveList)
+            this.addBuff(stackpe.buff,stackpe.stack,stackpe.duration);
+    }
+    /**获取所有对应触发器 包括全局触发器 技能触发器 */
+    private getTiggers<T extends AnyHook>(hook:T):HookTriggerMap[T][] {
         //索引触发器类型
         type TT = HookTriggerMap[T];
         //触发器数组
         const tiggers = this.buffTable.getTiggers(hook);
+        //全局触发器
         for (const key in GlobalTiggerTable){
             let tigger = GlobalTiggerTable[key as BuffName];
             if(tigger.hook==hook)
                 tiggers.push(tigger as TT);
+        }
+        //技能触发器
+        for (const skillName in this.skillTable){
+            let skill = this.skillTable[skillName as SkillName];
+            if(skill.triggerList==null) continue;
+            for(let tigger of skill.triggerList){
+                if(tigger.hook==hook)
+                    tiggers.push(tigger as TT);
+            }
         }
         tiggers.sort((a, b) => (b.weight||0) - (a.weight||0));
         return tiggers;
@@ -152,17 +180,25 @@ export class Character {
 
 
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数 */
-    getBuffStack(buff:Buff){
-        return this.buffTable.getBuffStack(buff);
+    /**获取一个Buff的层数
+     * @deprecated 这个函数不会触发"获取状态层数"触发器
+     */
+    getBuffStackCountWithoutT(buff:Buff){
+        return this.buffTable.getBuffStackCountWithoutT(buff);
+    }
+    /**获取一个Buff的层数 并触发触发器*/
+    getBuffStackCountAndT(buff:Buff):number{
+        let count = this.getBuffStackCountWithoutT(buff);
+        this.getTiggers("获取效果层数后").forEach(t=> count = t.trigger(this,buff,count));
+        return count;
     }
     /**添加一个buff
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
-    addBuff(buff:Buff,stack:number=1,countdown:number=Infinity){
-        return this.buffTable.addBuff(buff,stack,countdown);
+    addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
+        return this.buffTable.addBuff(buff,stack,duration);
     }
 }
 
