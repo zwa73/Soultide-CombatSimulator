@@ -1,3 +1,4 @@
+import { deepClone } from "@zwa73/utils";
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
@@ -104,10 +105,12 @@ export type BuffStack={
     stack:number,
     /**持续时间倒计时 */
     duration:number,
+    /**额外的表 */
+    dataTable?:Record<string,any>
 }
 /**buff表 */
 export class BuffTable{
-    private _table:Record<BuffName,BuffStack>={};
+    private _table:Record<BuffName,BuffStack|undefined>={};
     constructor(){}
     /**添加一个buff
      * @param buff      buff
@@ -118,7 +121,7 @@ export class BuffTable{
         if(this._table[buff.info.buffName]==null || buff.canSatck!=true)
             this._table[buff.info.buffName]={ buff, stack, duration };
         else{
-            let stakcbuff = this._table[buff.info.buffName];
+            let stakcbuff = this._table[buff.info.buffName]!;
             stakcbuff.stack+=stack;
             if(buff.stackLimit!=null && stakcbuff.stack>buff.stackLimit)
                 stakcbuff.stack = buff.stackLimit;
@@ -128,32 +131,37 @@ export class BuffTable{
     /**获取一个Buff的层数 不会触发触发器
      * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
      */
-    getBuffStackCountWithoutT(buff:Buff):number{
-        let key = buff.info.buffName;
-        if(this._table[key]==null || this._table[key].stack<=0)
+    getBuffStackCount(buff:Buff):number{
+        let bs = this.getBuffStack(buff);
+        if(bs==null || bs.stack<=0)
             return 0;
-        return this._table[key].stack;
+        return bs.stack;
     }
     /**获取一个Buff
      * @deprecated 这个函数仅供Character.getBaseStatus调用
      */
     getBuff(key:BuffName):Buff|undefined{
-        return this._table[key].buff;
+        return this._table[key]?.buff;
     }
     /**获取buff持续时间 */
     getBuffDuration(buff:Buff):number{
-        let key = buff.info.buffName;
-        if(this._table[key]==null || this._table[key].duration<=0)
+        let bs = this.getBuffStack(buff);
+        if(bs==null || bs.duration<=0)
             return 0;
-        return this._table[key].duration;
+        return bs.duration;
+    }
+    /**获取BuffStack */
+    getBuffStack(buff:Buff):BuffStack|undefined{
+        return this._table[buff.info.buffName];
     }
     /**是否含有某个有效的buff */
     hasBuff(buff:Buff):boolean{
-        return this.getBuffStackCountWithoutT(buff)>0 && this.getBuffDuration(buff)>0;
+        return this.getBuffStackCount(buff)>0 && this.getBuffDuration(buff)>0;
     }
     /**检查buff是否有效 无效则移除*/
     private checkBuff(buff:Buff):boolean{
         let stackBuff = this._table[buff.info.buffName];
+        if(stackBuff==null) return false;
         //console.log("stackBuff",stackBuff.buff.info.buffName,stackBuff.duration,stackBuff.stack)
         if(stackBuff.duration<=0){
             this.removeBuff(stackBuff.buff);
@@ -169,6 +177,7 @@ export class BuffTable{
     endRound(){
         for(let k in this._table){
             let stackbuff = this._table[k as BuffName];
+            if(stackbuff==null) continue;
             if(stackbuff.duration>0)
                 stackbuff.duration-=1;
             this.checkBuff(stackbuff.buff);
@@ -176,8 +185,11 @@ export class BuffTable{
     }
     /**移除某个buff */
     removeBuff(buff:Buff){
-        this._table[buff.info.buffName].stack=0;
-        this._table[buff.info.buffName].duration=0;
+        let bs = this.getBuffStack(buff);
+        if(bs==null)return;
+        bs.stack=0;
+        bs.duration=0;
+        delete bs["dataTable"];
         delete this._table[buff.info.buffName];
     }
     /**获取某个计算完增益的属性
@@ -200,6 +212,7 @@ export class BuffTable{
         let add  = 0;
         for(let buffName in this._table){
             let stackData = this._table[buffName as BuffName];
+            if(stackData==null) continue;
             let buff = stackData.buff;
             let stack = stackData.stack;
 
@@ -224,7 +237,7 @@ export class BuffTable{
     getModTableSet(damageInfo?:DamageInfo):ModTableSet{
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
-            .filter(item=>matchCons(damageInfo,item.buff.damageCons));
+            .filter(item=>matchCons(damageInfo,item?.buff.damageCons));
         //console.log("vaildList",vaildList)
         const multModTable:StaticStatusOption={};
         const addModTable :StaticStatusOption={};
@@ -242,6 +255,7 @@ export class BuffTable{
             }
         }
         for(const item of vaildList){
+            if(item==null) continue;
             const basedMultTable = item.buff.multModify||{};
             const stackMultTable = item.buff.stackMultModify||{};
             const basedAddTable  = item.buff.addModify||{};
@@ -269,10 +283,11 @@ export class BuffTable{
         //触发器数组
         let arr:TT[]=[];
         for (const key in this._table){
-            let obj = this._table[key as BuffName];
-            if(!this.hasBuff(obj.buff)) continue;
-            if(obj.buff.triggerList==null) continue;
-            for(const tigger of obj.buff.triggerList){
+            let bs = this._table[key as BuffName];
+            if(bs==null) continue;
+            if(!this.hasBuff(bs.buff)) continue;
+            if(bs.buff.triggerList==null) continue;
+            for(const tigger of bs.buff.triggerList){
                 if(tigger.hook==hook)
                     arr.push(tigger as TT);
             }
@@ -282,10 +297,17 @@ export class BuffTable{
     }
     clone():BuffTable{
         let nbuff = new BuffTable();
-        for(let i in this._table){
-            let bn = i as BuffName;
-            nbuff._table[bn].buff  = this._table[bn].buff;
-            nbuff._table[bn].stack = this._table[bn].stack;
+        for(let key in this._table){
+            let bn = key as BuffName;
+            let bs = this._table[bn];
+            if(bs==null) continue;
+            let nbs:BuffStack = {
+                buff:bs.buff,
+                duration:bs.duration,
+                stack:bs.stack,
+                dataTable:{}
+            };
+            nbuff._table[bn] = nbs;
         }
         return nbuff;
     }
