@@ -130,7 +130,7 @@ class Damage {
         //类别伤害
         if (skillCategory != undefined)
             dmg = this.modValue(dmg, `${skillCategory}伤害`, sourceModTableSet, `受到${skillCategory}伤害`, targetModTableSet);
-        //范围技能伤害
+        //范围类型伤害
         if (skillRange != undefined)
             dmg = this.modValue(dmg, `${skillRange}伤害`, sourceModTableSet, `受到${skillRange}伤害`, targetModTableSet);
         //暴击伤害
@@ -138,6 +138,9 @@ class Damage {
             let critdmg = this.modValue(0, `暴击伤害`, sourceModTableSet, `受到暴击伤害`, targetModTableSet);
             dmg = dmg * critdmg;
         }
+        //受伤减少
+        let dr = Math.min(0.6, target.getStaticStatus("受伤减少"));
+        dmg = dmg * (1 - dr);
         //合并附伤
         dmg += adddmg;
         //浮动

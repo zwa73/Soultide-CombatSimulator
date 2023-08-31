@@ -5,7 +5,7 @@ import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 
 //———————————————————— 调整值 ————————————————————//
 
-type ModiftTypeBase = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复";
+type ModiftTypeBase = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复"|"受伤减少";
 type ModifyTypeAtk  = DamageType|`${SkillCategory}伤害`|`${SkillRange}伤害`|AddiDamageType|
     "技能伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数";
 /**加成类型 区分乘区 */
