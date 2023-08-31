@@ -6,3 +6,4 @@ export * from './Status';
 export * from './Trigger';
 export * from './Character';
 export * from './Table';
+export * from './DataTable';

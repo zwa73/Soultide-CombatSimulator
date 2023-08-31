@@ -3,9 +3,9 @@ import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
-import { Buff, BuffName, BuffTable, genBuffInfo } from "./Modify";
+import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo } from "./Modify";
 import { Skill, SkillData } from "./Skill";
-import { DefStaticStatus, DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap } from "./Trigger";
 import { GlobalTiggerTable } from "./DataTable";
 
@@ -44,7 +44,7 @@ export class Character {
         return this._buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field:StaticStatusKey,damageInfo?:DamageInfo){
+    getStaticStatus(field:ModifyType,damageInfo?:DamageInfo){
         let mod = this.buffTable.modValue(0,field,damageInfo);
         return mod;
     }

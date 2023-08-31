@@ -3,8 +3,6 @@ import { ModifyType } from "./Modify";
 export type StaticStatus = Record<ModifyType, number>;
 /**默认的属性 */
 export declare const DefStaticStatus: StaticStatusOption;
-/**静态属性键 */
-export type StaticStatusKey = keyof StaticStatus;
 /**静态属性 选项*/
 export type StaticStatusOption = Partial<StaticStatus>;
 /**当前属性 */

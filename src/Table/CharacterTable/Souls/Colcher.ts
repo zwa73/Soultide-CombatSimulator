@@ -3,8 +3,8 @@ import { Buff, genBuffInfo } from "@src/Modify";
 import { Skill, checkTargets, genSkillInfo } from "@src/Skill";
 import { genTriggerInfo } from "@src/Trigger";
 
-export const Colcher = {
-    王女的祝福:{
+export namespace Colcher {
+    export const 王女的祝福:Skill={
         info:genSkillInfo("技能:王女的祝福","魔法技能","辅助技能","单体技能","奥义技能"),
         cost:64,
         cast(skillData){
@@ -12,8 +12,8 @@ export const Colcher = {
             checkTargets(targetList,1,1);
             targetList[0].addBuff(Colcher.回音,1,2);
         }
-    } as Skill,
-    回音:{
+    }
+    export const 回音:Buff={
         info:genBuffInfo("效果:回音"),
         triggerList:[{
             info:genTriggerInfo("触发:回音"),
@@ -28,6 +28,6 @@ export const Colcher = {
                 return skillData;
             }
         }]
-    } as Buff,
+    }
 }
 regDataTable(Colcher);

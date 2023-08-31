@@ -18,8 +18,6 @@ export const DefStaticStatus:StaticStatusOption={
     怒气回复    :16  ,
 };
 
-/**静态属性键 */
-export type StaticStatusKey = keyof StaticStatus;
 
 /**静态属性 选项*/
 export type StaticStatusOption = Partial<StaticStatus>;

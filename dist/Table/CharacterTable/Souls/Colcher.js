@@ -5,17 +5,18 @@ const DataTable_1 = require("../../../DataTable");
 const Modify_1 = require("../../../Modify");
 const Skill_1 = require("../../../Skill");
 const Trigger_1 = require("../../../Trigger");
-exports.Colcher = {
-    王女的祝福: {
+var Colcher;
+(function (Colcher) {
+    Colcher.王女的祝福 = {
         info: (0, Skill_1.genSkillInfo)("技能:王女的祝福", "魔法技能", "辅助技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
             const { user, targetList } = skillData;
             (0, Skill_1.checkTargets)(targetList, 1, 1);
-            targetList[0].addBuff(exports.Colcher.回音, 1, 2);
+            targetList[0].addBuff(Colcher.回音, 1, 2);
         }
-    },
-    回音: {
+    };
+    Colcher.回音 = {
         info: (0, Modify_1.genBuffInfo)("效果:回音"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:回音"),
@@ -28,11 +29,11 @@ exports.Colcher = {
                         return skillData;
                     if (skillData.skill.info.skillCategory != "奥义技能")
                         return skillData;
-                    skillData.user.buffTable.removeBuff(exports.Colcher.回音);
+                    skillData.user.buffTable.removeBuff(Colcher.回音);
                     skillData.user.tiggerSkill(skillData.skill, skillData.targetList);
                     return skillData;
                 }
             }]
-    },
-};
-(0, DataTable_1.regDataTable)(exports.Colcher);
+    };
+})(Colcher = exports.Colcher || (exports.Colcher = {}));
+(0, DataTable_1.regDataTable)(Colcher);

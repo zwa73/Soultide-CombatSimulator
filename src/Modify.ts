@@ -1,11 +1,11 @@
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
-import { StaticStatusKey, StaticStatusOption } from "./Status";
+import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 
 //———————————————————— 调整值 ————————————————————//
 
-type ModiftTypeBase = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复"|"受伤减少";
+type ModiftTypeBase = "最大生命"|"速度"|"防御"|"初始怒气"|"闪避"|"最大怒气"|"怒气回复";
 type ModifyTypeAtk  = DamageType|`${SkillCategory}伤害`|`${SkillRange}伤害`|AddiDamageType|
     "技能伤害"|"攻击"|"暴击率"|"暴击伤害"|"所有伤害"|"伤害系数";
 /**加成类型 区分乘区 */
@@ -177,7 +177,7 @@ export class BuffTable{
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    modValue(base:number,field:StaticStatusKey,damageInfo?:DamageInfo):number{
+    modValue(base:number,field:ModifyType,damageInfo?:DamageInfo):number{
         let modset = this.getModSet(field,damageInfo);
         return (base+modset.add)*modset.mult;
     }
@@ -186,7 +186,7 @@ export class BuffTable{
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSet(field:StaticStatusKey,damageInfo?:DamageInfo):ModSet{
+    getModSet(field:ModifyType,damageInfo?:DamageInfo):ModSet{
         let mult = 1;
         let add  = 0;
         for(let buffName in this._table){
@@ -221,13 +221,13 @@ export class BuffTable{
         const addModTable :StaticStatusOption={};
         //叠加乘区
         function stackMultArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
-            for(let flag of Object.keys(modMap) as StaticStatusKey[]){
+            for(let flag of Object.keys(modMap) as ModifyType[]){
                 if(baseMap[flag]==null) baseMap[flag]=1;
                 baseMap[flag]!+=modMap[flag]!*stack;
             }
         }
         function stackAddArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
-            for(let flag of Object.keys(modMap) as StaticStatusKey[]){
+            for(let flag of Object.keys(modMap) as ModifyType[]){
                 if(baseMap[flag]==null) baseMap[flag]=0;
                 baseMap[flag]!+=modMap[flag]!*stack;
             }
@@ -284,19 +284,19 @@ export class BuffTable{
 
 
 function addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+    for (let flag of Object.keys(modTable) as ModifyType[]) {
         if (baseTable[flag] == null) baseTable[flag] = 0;
         baseTable[flag]! += modTable[flag]!;
     }
 }
 function addMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+    for (let flag of Object.keys(modTable) as ModifyType[]) {
         if (baseTable[flag] == null) baseTable[flag] = 1;
         baseTable[flag]! += (modTable[flag]!-1);
     }
 }
 function multMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as StaticStatusKey[]) {
+    for (let flag of Object.keys(modTable) as ModifyType[]) {
         if (baseTable[flag] == null) baseTable[flag] = 1;
         baseTable[flag]! *= modTable[flag]!;
     }

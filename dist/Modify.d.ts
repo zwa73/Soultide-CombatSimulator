@@ -1,8 +1,8 @@
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
-import { StaticStatusKey, StaticStatusOption } from "./Status";
+import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
-type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复" | "受伤减少";
+type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
 type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数";
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeAtk | `受到${ModifyTypeAtk}` | ModiftTypeBase;
@@ -96,13 +96,13 @@ export declare class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    modValue(base: number, field: StaticStatusKey, damageInfo?: DamageInfo): number;
+    modValue(base: number, field: ModifyType, damageInfo?: DamageInfo): number;
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSet(field: StaticStatusKey, damageInfo?: DamageInfo): ModSet;
+    getModSet(field: ModifyType, damageInfo?: DamageInfo): ModSet;
     /**获取伤害约束的Buff调整值表
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息

@@ -22,3 +22,4 @@ __exportStar(require("./Status"), exports);
 __exportStar(require("./Trigger"), exports);
 __exportStar(require("./Character"), exports);
 __exportStar(require("./Table"), exports);
+__exportStar(require("./DataTable"), exports);

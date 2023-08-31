@@ -1,9 +1,8 @@
 import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
-import { DefModTableSet, ModTableSet, addModTableSet } from "./Modify";
+import { DefModTableSet, ModTableSet, ModifyType, addModTableSet } from "./Modify";
 import { SkillInfo } from "./Skill";
-import { StaticStatusKey } from "./Status";
 
 //———————————————————— 伤害 ————————————————————//
 
@@ -126,7 +125,7 @@ export class Damage {
      * @param targetFlag 目标的标签
 	 * @param tableSet   目标的调整值
 	 */
-	private modValue(base: number, flag: StaticStatusKey, tableSet: ModTableSet, targetFlag:StaticStatusKey, targetTableSet:ModTableSet) {
+	private modValue(base: number, flag: ModifyType, tableSet: ModTableSet, targetFlag:ModifyType, targetTableSet:ModTableSet) {
 		return (
 			(base + (tableSet.addModTable[flag] || 0) + (targetTableSet.addModTable[targetFlag] || 0)) *
 			(tableSet.multModTable[flag] || 1) * (targetTableSet.multModTable[targetFlag] || 1)
@@ -192,8 +191,8 @@ export class Damage {
         }
 
 		//受伤减少
-		let dr = Math.min(0.6,target.getStaticStatus("受伤减少"));
-		dmg = dmg*(1-dr);
+		// let dr = Math.min(0.6,target.getStaticStatus("受伤减少"));
+		// dmg = dmg*(1-dr);
 
 
 		//合并附伤

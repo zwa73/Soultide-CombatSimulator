@@ -1,4 +1,4 @@
-const { Souls, Monsters, GenericBuff, DefaultBattlefield } = require("./index");
+const { Souls, Monsters, GenericBuff, DefaultBattlefield, BuffTable } = require("./index");
 
 let char = Souls.Aurora.genChar("Aurora",{
     初始怒气:72,
@@ -22,3 +22,5 @@ console.log(char.getBuffStack(Souls.Aurora.噩廻))
 //console.log(char.buffTable._table)
 //console.log(char.dynmaicStatus)
 console.log(稻草人.dynmaicStatus)
+
+console.log(BuffTable)

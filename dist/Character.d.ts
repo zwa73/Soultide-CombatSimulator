@@ -2,9 +2,9 @@ import { Writeable } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield } from "./Battlefield";
 import { Damage, DamageInfo } from "./Damage";
-import { Buff, BuffTable } from "./Modify";
+import { Buff, BuffTable, ModifyType } from "./Modify";
 import { Skill } from "./Skill";
-import { DynmaicStatus, StaticStatusKey, StaticStatusOption } from "./Status";
+import { DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap } from "./Trigger";
 /**角色 */
 export declare class Character {
@@ -20,7 +20,7 @@ export declare class Character {
     /**获取角色的基础属性 */
     getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
-    getStaticStatus(field: StaticStatusKey, damageInfo?: DamageInfo): number;
+    getStaticStatus(field: ModifyType, damageInfo?: DamageInfo): number;
     /**释放某个技能
      * @param skill  技能
      * @param target 目标

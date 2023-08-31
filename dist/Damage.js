@@ -139,8 +139,8 @@ class Damage {
             dmg = dmg * critdmg;
         }
         //受伤减少
-        let dr = Math.min(0.6, target.getStaticStatus("受伤减少"));
-        dmg = dmg * (1 - dr);
+        // let dr = Math.min(0.6,target.getStaticStatus("受伤减少"));
+        // dmg = dmg*(1-dr);
         //合并附伤
         dmg += adddmg;
         //浮动
