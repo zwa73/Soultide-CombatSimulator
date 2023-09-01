@@ -304,10 +304,9 @@ export class BuffTable{
             let bn = key as BuffName;
             let bs = this._table[bn];
             if(bs==null) continue;
+            const {dataTable,...rest}=bs;
             let nbs:BuffStack = {
-                buff:bs.buff,
-                duration:bs.duration,
-                stack:bs.stack,
+                ...rest,
                 dataTable:{}
             };
             nbuff._table[bn] = nbs;
@@ -315,7 +314,19 @@ export class BuffTable{
         return nbuff;
     }
 };
-
+/**对某个属性的调整组 */
+export class ModSet1{
+    add:number;
+    mult:number;
+    constructor(add:number=0,mult:number=1){
+        this.add = add;
+        this.mult = mult;
+    }
+    /**对某个值进行增益 */
+    modValue(base:number):number{
+        return (base+this.add)*this.mult;
+    }
+}
 
 function addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
     for (let flag of Object.keys(modTable) as ModifyType[]) {

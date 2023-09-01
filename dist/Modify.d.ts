@@ -125,6 +125,14 @@ export declare class BuffTable {
     getTriggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
     clone(): BuffTable;
 }
+/**对某个属性的调整组 */
+export declare class ModSet1 {
+    add: number;
+    mult: number;
+    constructor(add?: number, mult?: number);
+    /**对某个值进行增益 */
+    modValue(base: number): number;
+}
 /**对ModTableSet进行加运算 乘区加算 加值加算*/
 export declare function addModTableSet(...sets: ModTableSet[]): ModTableSet;
 /**对ModTableSet进行乘运算 乘区乘算 加值加算*/

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefModTableSet = exports.DefModSet = exports.multModSet = exports.addModSet = exports.multModTableSet = exports.addModTableSet = exports.BuffTable = exports.genBuffInfo = exports.matchCons = void 0;
+exports.DefModTableSet = exports.DefModSet = exports.multModSet = exports.addModSet = exports.multModTableSet = exports.addModTableSet = exports.ModSet1 = exports.BuffTable = exports.genBuffInfo = exports.matchCons = void 0;
 /**判断 info 是否包含 target 的所有约束字段
  * @param info   伤害信息
  * @param cons   约束列表
@@ -231,10 +231,9 @@ class BuffTable {
             let bs = this._table[bn];
             if (bs == null)
                 continue;
+            const { dataTable, ...rest } = bs;
             let nbs = {
-                buff: bs.buff,
-                duration: bs.duration,
-                stack: bs.stack,
+                ...rest,
                 dataTable: {}
             };
             nbuff._table[bn] = nbs;
@@ -244,6 +243,20 @@ class BuffTable {
 }
 exports.BuffTable = BuffTable;
 ;
+/**对某个属性的调整组 */
+class ModSet1 {
+    add;
+    mult;
+    constructor(add = 0, mult = 1) {
+        this.add = add;
+        this.mult = mult;
+    }
+    /**对某个值进行增益 */
+    modValue(base) {
+        return (base + this.add) * this.mult;
+    }
+}
+exports.ModSet1 = ModSet1;
 function addAddTable(baseTable, modTable) {
     for (let flag of Object.keys(modTable)) {
         if (baseTable[flag] == null)
