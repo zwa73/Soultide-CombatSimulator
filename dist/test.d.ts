@@ -78,4 +78,4 @@ declare const 受到伤害系数: unique symbol;
 declare const BaseModifyTypeList: readonly [typeof 最大生命, typeof 速度, typeof 防御, typeof 初始怒气, typeof 闪避, typeof 最大怒气, typeof 怒气回复];
 type BaseModifyType = typeof BaseModifyTypeList[number];
 declare const DamageTypeList: readonly [typeof 雷电伤害, typeof 冰霜伤害, typeof 火焰伤害, typeof 魔法伤害, typeof 物理伤害, typeof 电击伤害, typeof 极寒伤害, typeof 燃烧伤害, typeof 暗蚀伤害, typeof 流血伤害, typeof 治疗伤害, typeof 固定伤害];
-type DamageType = typeof BaseModifyTypeList[number];
+type DamageType1 = typeof BaseModifyTypeList[number];

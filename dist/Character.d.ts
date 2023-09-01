@@ -46,7 +46,7 @@ export declare class Character {
     /**添加技能 同时加入技能的被动buff*/
     addSkill(skill: Skill): void;
     /**获取所有对应触发器 包括全局触发器 技能触发器 */
-    private getTiggers;
+    private getTriggers;
     /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
      * @deprecated 这个函数不会触发"获取状态层数"触发器
      */

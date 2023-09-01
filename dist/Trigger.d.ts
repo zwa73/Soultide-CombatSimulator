@@ -1,7 +1,7 @@
 import { Attack } from "./Attack";
 import { Character } from "./Character";
 import { Damage } from "./Damage";
-import { Buff } from "./Modify";
+import { Buff, DamageConsAnd } from "./Modify";
 import { SkillData } from "./Skill";
 export type TriggerBase = {
     readonly info: TriggerInfo;
@@ -67,6 +67,29 @@ export interface TCauseSkillDamageAfter extends TriggerBase {
      */
     readonly trigger: (damage: Damage, target: Character) => void;
 }
+/**造成某类型伤害前 */
+export interface TCauseTypeDamageBefore extends TriggerBase {
+    readonly hook: `造成类型伤害前`;
+    /**伤害类型约束 */
+    readonly damageCons: DamageConsAnd;
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     * @returns 修改的 伤害
+     */
+    readonly trigger: (damage: Damage, target: Character) => Damage;
+}
+/**造成某类型伤害后 */
+export interface TCauseTypeDamageAfter extends TriggerBase {
+    readonly hook: `造成类型伤害后`;
+    /**伤害类型约束 */
+    readonly damageCons: DamageConsAnd;
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     */
+    readonly trigger: (damage: Damage, target: Character) => void;
+}
 /**获取效果层数后 */
 export interface TGetBuffStackCountAfter extends TriggerBase {
     readonly hook: "获取效果层数后";
@@ -114,6 +137,8 @@ export type HookTriggerMap = {
     readonly 获取效果层数后: TGetBuffStackCountAfter;
     readonly 受攻击前: TTakeAttackBefore;
     readonly 受攻击后: TTakeAttackAfter;
+    readonly 造成类型伤害前: TCauseTypeDamageBefore;
+    readonly 造成类型伤害后: TCauseTypeDamageAfter;
 };
 export type AnyHook = keyof HookTriggerMap;
-export type AnyTrigger = HookTriggerMap[keyof HookTriggerMap];
+export type AnyTrigger = HookTriggerMap[AnyHook];

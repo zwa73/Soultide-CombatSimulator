@@ -101,7 +101,7 @@ const DamageTypeList = [
     治疗伤害,
     固定伤害,
 ] as const;
-type DamageType = typeof BaseModifyTypeList[number];
+type DamageType1 = typeof BaseModifyTypeList[number];
 
 
 

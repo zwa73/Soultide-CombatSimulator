@@ -64,14 +64,14 @@ class Character {
         skillData = Object.assign({}, skillData, skillDataOpt);
         console.log(this.name, "开始向", target.map(char => char.name), "释放", skillData.skill.info.skillName);
         skill.beforeCast ? skill.beforeCast(skillData) : undefined;
-        this.getTiggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
+        this.getTriggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
         //消耗怒气
         if (!skillData.isTriggerSkill)
             this.dynmaicStatus.当前怒气 -= skill.cost || 0;
         //产生效果
         if (skill.cast)
             skill.cast(skillData);
-        this.getTiggers("释放技能后").forEach(t => t.trigger(skillData));
+        this.getTriggers("释放技能后").forEach(t => t.trigger(skillData));
         skill.afterCast ? skill.afterCast(skillData) : undefined;
     }
     /**被动的触发某个技能
@@ -96,19 +96,34 @@ class Character {
     }
     /**受到伤害 */
     getHurt(damage) {
-        damage.source.char?.buffTable.getTiggers("造成伤害前")
-            .forEach(t => damage = t.trigger(damage, this));
-        let isSkillDamage = damage.isSkillDamage();
-        if (isSkillDamage)
-            damage.source.char?.buffTable.getTiggers("造成技能伤害前")
+        const isSkillDamage = damage.isSkillDamage();
+        //造成伤害前
+        if (damage.source.char) {
+            let source = damage.source.char;
+            let causeDBeforeT = [];
+            causeDBeforeT.push(...(source.getTriggers("造成伤害前") || []));
+            if (isSkillDamage)
+                causeDBeforeT.push(...(source.getTriggers("造成技能伤害前") || []));
+            causeDBeforeT.push(...(source.getTriggers("造成类型伤害前")
+                .filter(t => (0, Modify_1.matchCons)(damage.info, t.damageCons)) || []));
+            causeDBeforeT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => damage = t.trigger(damage, this));
+        }
+        //计算伤害
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命 -= dmg;
-        damage.source.char?.buffTable.getTiggers("造成伤害后")
-            .forEach(t => t.trigger(damage, this));
-        if (isSkillDamage)
-            damage.source.char?.buffTable.getTiggers("造成技能伤害后")
+        //造成伤害后
+        if (damage.source.char) {
+            let source = damage.source.char;
+            let causeDAfterT = [];
+            causeDAfterT.push(...(source.getTriggers("造成伤害后") || []));
+            if (isSkillDamage)
+                causeDAfterT.push(...(source.getTriggers("造成技能伤害后") || []));
+            causeDAfterT.push(...(source.getTriggers("造成类型伤害后")
+                .filter(t => (0, Modify_1.matchCons)(damage.info, t.damageCons)) || []));
+            causeDAfterT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => t.trigger(damage, this));
+        }
         //log
         let log = `${this.name} 受到`;
         let hasSource = false;
@@ -126,10 +141,10 @@ class Character {
     }
     /**受到攻击击中 */
     getHit(attack) {
-        this.getTiggers("受攻击前").forEach(t => attack = t.trigger(this, attack));
+        this.getTriggers("受攻击前").forEach(t => attack = t.trigger(this, attack));
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
-        this.getTiggers("受攻击后").forEach(t => t.trigger(this, attack));
+        this.getTriggers("受攻击后").forEach(t => t.trigger(this, attack));
     }
     /**克隆角色 */
     clone() {
@@ -147,9 +162,9 @@ class Character {
             this.addBuff(stackpe.buff, stackpe.stack, stackpe.duration);
     }
     /**获取所有对应触发器 包括全局触发器 技能触发器 */
-    getTiggers(hook) {
+    getTriggers(hook) {
         //触发器数组
-        const tiggers = this.buffTable.getTiggers(hook);
+        const tiggers = this.buffTable.getTriggers(hook);
         //全局触发器
         for (const key in DataTable_1.GlobalTiggerTable) {
             let tigger = DataTable_1.GlobalTiggerTable[key];
@@ -179,7 +194,7 @@ class Character {
     /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
     getBuffStackCountAndT(buff) {
         let count = this.getBuffStackCountNoT(buff);
-        this.getTiggers("获取效果层数后").forEach(t => count = t.trigger(this, buff, count));
+        this.getTriggers("获取效果层数后").forEach(t => count = t.trigger(this, buff, count));
         return count;
     }
     /**获取BuffStack */

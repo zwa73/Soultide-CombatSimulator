@@ -118,8 +118,10 @@ export declare class BuffTable {
      * @param damageInfo 伤害信息
      */
     getModTableSet(damageInfo?: DamageInfo): ModTableSet;
-    /**获取buffTable中所有对应触发器 不包括全局触发器*/
-    getTiggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
+    /**获取buffTable中所有对应触发器 不包括全局触发器
+     * @deprecated 这个函数仅供Character.getTiggers 或内部调用
+     */
+    getTriggers<T extends AnyHook>(hook: T): HookTriggerMap[T][];
     clone(): BuffTable;
 }
 /**对ModTableSet进行加运算 乘区加算 加值加算*/

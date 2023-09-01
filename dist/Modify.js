@@ -201,8 +201,10 @@ class BuffTable {
             addModTable: addModTable
         };
     }
-    /**获取buffTable中所有对应触发器 不包括全局触发器*/
-    getTiggers(hook) {
+    /**获取buffTable中所有对应触发器 不包括全局触发器
+     * @deprecated 这个函数仅供Character.getTiggers 或内部调用
+     */
+    getTriggers(hook) {
         //触发器数组
         let arr = [];
         for (const key in this._table) {
