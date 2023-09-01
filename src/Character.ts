@@ -48,8 +48,8 @@ export class Character {
         return this.buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
-    private getStaticStatus(field:ModifyType,damageInfo?:DamageInfo){
-        let mod = this.buffTable.modValue(0,field,damageInfo);
+    private getStaticStatus(field:ModifyType,damage?:Damage){
+        let mod = this.buffTable.modValue(0,field,damage);
         return mod;
     }
     /**释放某个技能
@@ -112,7 +112,7 @@ export class Character {
             causeDBeforeT.sort((a, b) => (b.weight||0) - (a.weight||0))
                 .forEach(t=>{
                     if( (t.hook=="造成技能伤害前" && damage.isSkillDamage()) ||
-                        (t.hook=="造成类型伤害前" && matchCons(damage.info,t.damageCons)) ||
+                        (t.hook=="造成类型伤害前" && matchCons(damage,t.damageCons)) ||
                         (t.hook=="造成伤害前"))
                         damage = t.trigger(damage,this);
                 });
@@ -132,7 +132,7 @@ export class Character {
             causeDAfterT.sort((a, b) => (b.weight||0) - (a.weight||0))
                 .forEach(t=>{
                     if( (t.hook=="造成技能伤害后" && damage.isSkillDamage()) ||
-                        (t.hook=="造成类型伤害后" && matchCons(damage.info,t.damageCons)) ||
+                        (t.hook=="造成类型伤害后" && matchCons(damage,t.damageCons)) ||
                         (t.hook=="造成伤害后"))
                         t.trigger(damage,this);
                 });

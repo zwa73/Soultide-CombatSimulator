@@ -6,13 +6,16 @@ const utils_1 = require("@zwa73/utils");
  * @param info   伤害信息
  * @param cons   约束列表
  */
-function matchCons(info, cons) {
+function matchCons(dmg, cons) {
     if (cons == null || cons.length <= 0)
         cons = [];
     //展开info
     let infos = [];
-    if (info != null)
-        Object.values(info).forEach(element => infos.push(element));
+    if (dmg != null) {
+        Object.values(dmg.info).forEach(element => infos.push(element));
+        if (dmg.source.skillData?.isTriggerSkill === true)
+            infos.push("鸣响技能");
+    }
     //遍历约束 判断infos是否包含所有的And
     for (let con of cons) {
         let orlist = Array.isArray(con) ? con : [con];
@@ -121,17 +124,17 @@ class BuffTable {
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    modValue(base, field, damageInfo) {
-        let modset = this.getModSet(field, damageInfo);
+    modValue(base, field, damage) {
+        let modset = this.getModSet(field, damage);
         return modset.modValue(base);
     }
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    getModSet(field, damageInfo) {
+    getModSet(field, damage) {
         let mult = 1;
         let add = 0;
         for (let buffName in this._table) {
@@ -140,7 +143,7 @@ class BuffTable {
                 continue;
             let buff = stackData.buff;
             let stack = stackData.stack;
-            if (buff.damageCons != null && matchCons(damageInfo, buff.damageCons))
+            if (buff.damageCons != null && matchCons(damage, buff.damageCons))
                 continue;
             if (buff.multModify)
                 mult += buff.multModify[field] || 0;
@@ -157,10 +160,10 @@ class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSetTable(damageInfo) {
+    getModSetTable(damage) {
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
-            .filter(item => matchCons(damageInfo, item?.buff.damageCons));
+            .filter(item => matchCons(damage, item?.buff.damageCons));
         //console.log("vaildList",vaildList)
         const multModTable = {};
         const addModTable = {};

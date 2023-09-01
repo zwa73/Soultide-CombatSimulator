@@ -6,13 +6,13 @@ const Modify_1 = require("./Modify");
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电", "冰霜", "火焰", "魔法", "物理",
     "电击", "极寒", "燃烧", "暗蚀", "流血", "治疗", "固定"];
-/**伤害包含关系表 */
-const DamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}伤害`] }), {});
-DamageIncludeMap.雷电伤害 = ["雷电伤害", "电击伤害"];
-DamageIncludeMap.冰霜伤害 = ["冰霜伤害", "极寒伤害"];
-DamageIncludeMap.火焰伤害 = ["火焰伤害", "燃烧伤害"];
-DamageIncludeMap.魔法伤害 = ["魔法伤害", "暗蚀伤害"];
-DamageIncludeMap.物理伤害 = ["物理伤害", "流血伤害"];
+/**子伤害依赖表 key可以由value[number] 增加 */
+const SubDamageRelyMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [] }), {});
+SubDamageRelyMap.电击伤害 = ["雷电伤害"];
+SubDamageRelyMap.极寒伤害 = ["冰霜伤害"];
+SubDamageRelyMap.燃烧伤害 = ["火焰伤害"];
+SubDamageRelyMap.暗蚀伤害 = ["魔法伤害"];
+SubDamageRelyMap.流血伤害 = ["物理伤害"];
 /**附伤关系表 */
 const AddiDamageIncludeMap = DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}附伤`] }), {});
 /**伤害特效 */
@@ -67,16 +67,16 @@ class Damage {
     calcSourceModSetTable() {
         //计算角色的buff
         const charSetTable = this.source.char
-            ? this.source.char.buffTable.getModSetTable(this.info)
+            ? this.source.char.buffTable.getModSetTable(this)
             : new Modify_1.ModSetTable();
         //console.log("charSetTable",charSetTable)
         //计算技能的buff
         const skillSetTable = this.source.skillData
-            ? this.source.skillData.buffTable.getModSetTable(this.info)
+            ? this.source.skillData.buffTable.getModSetTable(this)
             : new Modify_1.ModSetTable();
         //计算攻击的buff
         const attackSetTable = this.source.attack
-            ? this.source.attack.buffTable.getModSetTable(this.info)
+            ? this.source.attack.buffTable.getModSetTable(this)
             : new Modify_1.ModSetTable();
         //console.log("targetSetTable",targetSetTable)
         return Modify_1.ModSetTable.addSet(charSetTable, skillSetTable, attackSetTable);
@@ -95,7 +95,7 @@ class Damage {
         //console.log("基础系数",this.factor)
         if (this.hasSpecEffect(exports.固定))
             return dmg;
-        const targetModTable = target.buffTable.getModSetTable(this.info);
+        const targetModTable = target.buffTable.getModSetTable(this);
         const sourceModTable = this.calcSourceModSetTable();
         //console.log(sourceModSetTable);
         //console.log(targetModSetTable);
@@ -122,28 +122,36 @@ class Damage {
         let adddmg = 0;
         if (needAdd)
             adddmg = modValue(0, AddiDamageIncludeMap[dmgType], `受到${AddiDamageIncludeMap[dmgType]}`);
-        //泛伤
-        dmg = modValue(dmg, "所有伤害", "受到所有伤害");
+        //泛伤和属性伤害 乘区
+        let baseDmgMod = Modify_1.ModSet.addSet(sourceModTable.getModSet("所有伤害"), targetModTable.getModSet("受到所有伤害"), sourceModTable.getModSet(dmgType), targetModTable.getModSet(`受到${dmgType}`));
+        dmg = baseDmgMod.modValue(dmg);
         if (needAdd)
-            adddmg = modValue(adddmg, "所有伤害", "受到所有伤害");
-        //技伤
-        dmg = modValue(dmg, `技能伤害`, "受到技能伤害");
-        //属性伤害
-        for (let t of DamageIncludeMap[this.info.dmgType]) {
+            adddmg = baseDmgMod.modValue(adddmg);
+        //下级伤害 乘区
+        for (let t of SubDamageRelyMap[dmgType]) {
             dmg = modValue(dmg, t, `受到${t}`);
             if (needAdd)
                 adddmg = modValue(adddmg, t, `受到${t}`);
         }
-        //类别伤害
+        //技伤和技能类别伤害 乘区
+        let skillDmgMod = Modify_1.ModSet.addSet(sourceModTable.getModSet(`技能伤害`), targetModTable.getModSet(`受到技能伤害`));
         if (skillCategory != undefined)
-            dmg = modValue(dmg, `${skillCategory}伤害`, `受到${skillCategory}伤害`);
+            skillDmgMod.addSet(sourceModTable.getModSet(`${skillCategory}伤害`), targetModTable.getModSet(`受到${skillCategory}伤害`));
+        dmg = skillDmgMod.modValue(dmg);
+        if (needAdd)
+            adddmg = skillDmgMod.modValue(adddmg);
         //范围类型伤害
-        if (skillRange != undefined)
+        if (skillRange != undefined) {
             dmg = modValue(dmg, `${skillRange}伤害`, `受到${skillRange}伤害`);
+            if (needAdd)
+                adddmg = modValue(adddmg, `${skillRange}伤害`, `受到${skillRange}伤害`);
+        }
         //暴击伤害
         if (this.hasSpecEffect(exports.暴击)) {
             let critdmg = modValue(0, `暴击伤害`, `受到暴击伤害`);
             dmg = dmg * critdmg;
+            if (needAdd)
+                adddmg = adddmg * critdmg;
         }
         //合并附伤
         dmg += adddmg;

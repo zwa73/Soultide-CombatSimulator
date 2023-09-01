@@ -13,6 +13,7 @@ var Aurora;
         info: (0, Skill_1.genSkillInfo)("技能:失心童话", "雷电技能", "伤害技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
+            skillData.isTriggerSkill = true;
             const { user, targetList } = skillData;
             if (!user.hasBuff(Aurora.噩廻))
                 user.dataTable["上一次失心童话潜境"] = skillData;

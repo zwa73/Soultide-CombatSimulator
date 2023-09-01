@@ -1,5 +1,5 @@
 import { IJData } from "@zwa73/utils";
-import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
+import { AddiDamageType, Damage, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
@@ -8,7 +8,7 @@ type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤�
 /**加成类型 区分乘区 */
 export type ModifyType = ModifyTypeAtk | `受到${ModifyTypeAtk}` | ModiftTypeBase;
 /**伤害具体类型约束 Damage Info Constraint*/
-export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | SkillName;
+export type DamageConsType = SkillType | SkillRange | SkillCategory | SkillSubtype | DamageType | SkillName | "鸣响技能";
 /**伤害约束 或 数组或单独的伤害约束组成*/
 export type DamageConsOr = ReadonlyArray<DamageConsType> | DamageConsType;
 /**伤害约束 与 N个伤害约束或组成*/
@@ -17,7 +17,7 @@ export type DamageConsAnd = ReadonlyArray<DamageConsOr>;
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export declare function matchCons(info?: DamageInfo, cons?: DamageConsAnd): boolean;
+export declare function matchCons(dmg?: Damage, cons?: DamageConsAnd): boolean;
 export type BuffType = "正面效果" | "负面效果" | "控制效果" | "其他效果";
 /**buff的详细信息 */
 export type BuffInfo = {
@@ -94,19 +94,19 @@ export declare class BuffTable {
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    modValue(base: number, field: ModifyType, damageInfo?: DamageInfo): number;
+    modValue(base: number, field: ModifyType, damage?: Damage): number;
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    getModSet(field: ModifyType, damageInfo?: DamageInfo): ModSet;
+    getModSet(field: ModifyType, damage?: Damage): ModSet;
     /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSetTable(damageInfo?: DamageInfo): ModSetTable;
+    getModSetTable(damage?: Damage): ModSetTable;
     /**获取buffTable中所有对应触发器 不包括全局触发器
      * @deprecated 这个函数仅供Character.getTiggers 或内部调用
      */

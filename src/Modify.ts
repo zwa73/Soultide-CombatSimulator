@@ -1,5 +1,5 @@
 import { IJData, deepClone } from "@zwa73/utils";
-import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
+import { AddiDamageType, Damage, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
@@ -15,7 +15,7 @@ export type ModifyType = ModifyTypeAtk|`受到${ModifyTypeAtk}`|ModiftTypeBase;
 
 
 /**伤害具体类型约束 Damage Info Constraint*/
-export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|SkillName;
+export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|SkillName|"鸣响技能";
 /**伤害约束 或 数组或单独的伤害约束组成*/
 export type DamageConsOr  = ReadonlyArray<DamageConsType>|DamageConsType;
 /**伤害约束 与 N个伤害约束或组成*/
@@ -26,13 +26,16 @@ export type DamageConsAnd = ReadonlyArray<DamageConsOr>
  * @param info   伤害信息
  * @param cons   约束列表
  */
-export function matchCons(info?:DamageInfo,cons?:DamageConsAnd){
+export function matchCons(dmg?:Damage,cons?:DamageConsAnd){
     if(cons==null || cons.length<=0) cons=[];
 
     //展开info
     let infos:DamageConsType[]=[];
-    if(info!=null)
-        Object.values(info).forEach(element => infos.push(element));
+    if(dmg!=null){
+        Object.values(dmg.info).forEach(element => infos.push(element));
+        if(dmg.source.skillData?.isTriggerSkill===true)
+            infos.push("鸣响技能");
+    }
 
     //遍历约束 判断infos是否包含所有的And
     for(let con of cons){
@@ -182,17 +185,17 @@ export class BuffTable{
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    modValue(base:number,field:ModifyType,damageInfo?:DamageInfo):number{
-        let modset = this.getModSet(field,damageInfo);
+    modValue(base:number,field:ModifyType,damage?:Damage):number{
+        let modset = this.getModSet(field,damage);
         return modset.modValue(base);
     }
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param damageInfo 伤害信息
+     * @param damage     伤害
      */
-    getModSet(field:ModifyType,damageInfo?:DamageInfo):ModSet{
+    getModSet(field:ModifyType,damage?:Damage):ModSet{
         let mult = 1;
         let add  = 0;
         for(let buffName in this._table){
@@ -201,7 +204,7 @@ export class BuffTable{
             let buff = stackData.buff;
             let stack = stackData.stack;
 
-            if(buff.damageCons!=null && matchCons(damageInfo,buff.damageCons)) continue;
+            if(buff.damageCons!=null && matchCons(damage,buff.damageCons)) continue;
 
             if(buff.multModify)
                 mult += buff.multModify[field]||0;
@@ -219,10 +222,10 @@ export class BuffTable{
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModSetTable(damageInfo?:DamageInfo):ModSetTable{
+    getModSetTable(damage?:Damage):ModSetTable{
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
-            .filter(item=>matchCons(damageInfo,item?.buff.damageCons));
+            .filter(item=>matchCons(damage,item?.buff.damageCons));
         //console.log("vaildList",vaildList)
         const multModTable:StaticStatusOption={};
         const addModTable :StaticStatusOption={};
