@@ -15,8 +15,9 @@ DefaultBattlefield.endRound();
 DefaultBattlefield.endRound();
 DefaultBattlefield.endRound();
 
-稻草人.useSkill(Souls.Colcher.王女的祝福, [andrea]);
-for(let i=0;i<80;i++){
+andrea.useSkill(Souls.Silenus.寂灭昭示, [稻草人]);
+for(let i=0;i<20;i++){
+    稻草人.useSkill(Souls.Colcher.王女的祝福, [andrea]);
     andrea.useSkill(Souls.Andrea.极寒狙击, [稻草人]);
     console.log("寒霜",稻草人.getBuffStackCountAndT(Souls.Andrea.寒霜))
 }

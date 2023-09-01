@@ -85,7 +85,7 @@ export class Character {
      * @param skill  技能
      * @param target 目标
      */
-    tiggerSkill(skill:Skill,target:Character[],skillDataOpt?:SkillDataOption){
+    triggerSkill(skill:Skill,target:Character[],skillDataOpt?:SkillDataOption){
         const triggeropt:SkillDataOption={
             isTriggerSkill:true
         }
@@ -102,18 +102,20 @@ export class Character {
     }
     /**受到伤害 */
     getHurt(damage:Damage){
-        const isSkillDamage = damage.isSkillDamage();
         //造成伤害前
         if(damage.source.char){
             let source = damage.source.char;
             let causeDBeforeT:Array<TCauseDamageBefore|TCauseSkillDamageBefore|TCauseTypeDamageBefore> = [];
             causeDBeforeT.push(...(source.getTriggers("造成伤害前")||[]));
-            if(isSkillDamage)
-                causeDBeforeT.push(...(source.getTriggers("造成技能伤害前")||[]));
-            causeDBeforeT.push(...(source.getTriggers("造成类型伤害前")
-                .filter(t=>matchCons(damage.info,t.damageCons))||[]));
+            causeDBeforeT.push(...(source.getTriggers("造成技能伤害前")||[]));
+            causeDBeforeT.push(...(source.getTriggers("造成类型伤害前")||[]));
             causeDBeforeT.sort((a, b) => (b.weight||0) - (a.weight||0))
-                .forEach(t=> damage = t.trigger(damage,this));
+                .forEach(t=>{
+                    if( (t.hook=="造成技能伤害前" && damage.isSkillDamage()) ||
+                        (t.hook=="造成类型伤害前" && matchCons(damage.info,t.damageCons)) ||
+                        (t.hook=="造成伤害前"))
+                        damage = t.trigger(damage,this);
+                });
         }
 
         //计算伤害
@@ -125,12 +127,15 @@ export class Character {
             let source = damage.source.char;
             let causeDAfterT:Array<TCauseDamageAfter|TCauseSkillDamageAfter|TCauseTypeDamageAfter> = [];
             causeDAfterT.push(...(source.getTriggers("造成伤害后")||[]));
-            if(isSkillDamage)
-                causeDAfterT.push(...(source.getTriggers("造成技能伤害后")||[]));
-            causeDAfterT.push(...(source.getTriggers("造成类型伤害后")
-                .filter(t=>matchCons(damage.info,t.damageCons))||[]));
+            causeDAfterT.push(...(source.getTriggers("造成技能伤害后")||[]));
+            causeDAfterT.push(...(source.getTriggers("造成类型伤害后")||[]));
             causeDAfterT.sort((a, b) => (b.weight||0) - (a.weight||0))
-                .forEach(t=> t.trigger(damage,this));
+                .forEach(t=>{
+                    if( (t.hook=="造成技能伤害后" && damage.isSkillDamage()) ||
+                        (t.hook=="造成类型伤害后" && matchCons(damage.info,t.damageCons)) ||
+                        (t.hook=="造成伤害后"))
+                        t.trigger(damage,this);
+                });
         }
 
 

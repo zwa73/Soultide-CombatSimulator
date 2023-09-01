@@ -38,7 +38,7 @@ var Colcher;
                             奥义技能伤害: -0.4
                         }
                     });
-                    skillData.user.tiggerSkill(skillData.skill, skillData.targetList, {
+                    skillData.user.triggerSkill(skillData.skill, skillData.targetList, {
                         buffTable: bufftable
                     });
                 }

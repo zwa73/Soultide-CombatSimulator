@@ -34,7 +34,7 @@ export declare class Character {
      * @param skill  技能
      * @param target 目标
      */
-    tiggerSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
+    triggerSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
     /**结算回合 */
     endRound(): void;
     /**受到伤害 */

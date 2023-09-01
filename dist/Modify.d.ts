@@ -75,6 +75,7 @@ export declare class BuffTable {
     private _table;
     constructor();
     /**添加一个buff
+     * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
