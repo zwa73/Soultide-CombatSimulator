@@ -55,20 +55,6 @@ export declare class Damage {
      * @returns [ multModMap, addModMap ]
      */
     private calcSourceModSetTable;
-    /**对数值进行增益
-     * @param base       		基础值
-     * @param flag       		标签
-     * @param setTable   		来源的调整值
-     * @param targetFlag 		目标的标签
-     * @param targetSetTable    目标的调整值
-     */
-    private modValue;
-    /**从一个table获取调整值
-     * @param base       基础值
-     * @param flag       标签
-     * @param setTable   调整值
-     */
-    private modValueSingle;
     /**含有某个特效 */
     hasSpecEffect(flag: SpecEffect): boolean | undefined;
     /**计算伤害 */
