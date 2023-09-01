@@ -26,8 +26,8 @@ class Attack {
         const charCrit = this.source.char.buffTable.getModSet("暴击率");
         const skillCrit = this.source.skillData.buffTable.getModSet("暴击率");
         const targetCrit = target.buffTable.getModSet("受到暴击率");
-        const critSet = (0, Modify_1.multModSet)(targetCrit, (0, Modify_1.addModSet)(charCrit, skillCrit));
-        const critRate = critSet.add * critSet.mult;
+        const critSet = Modify_1.ModSet.multSet(targetCrit, Modify_1.ModSet.addSet(charCrit, skillCrit));
+        const critRate = critSet.modValue(0);
         let currDamage = this.damage.clone();
         if (Math.random() < critRate)
             currDamage.specEffects.push(Damage_1.暴击);

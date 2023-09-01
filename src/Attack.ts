@@ -1,6 +1,6 @@
 import { Character } from "./Character";
 import { Damage, SpecEffect, genSkillDamage, 暴击, DamageType } from "./Damage";
-import { BuffTable, DefModSet, addModSet, multModSet } from "./Modify";
+import { BuffTable, ModSet } from "./Modify";
 import { SkillData } from "./Skill";
 
 
@@ -36,8 +36,8 @@ export class Attack{
         const charCrit = this.source.char.buffTable.getModSet("暴击率");
         const skillCrit = this.source.skillData.buffTable.getModSet("暴击率");
         const targetCrit = target.buffTable.getModSet("受到暴击率");
-        const critSet = multModSet(targetCrit,addModSet(charCrit,skillCrit));
-        const critRate = critSet.add*critSet.mult;
+        const critSet = ModSet.multSet(targetCrit,ModSet.addSet(charCrit,skillCrit));
+        const critRate = critSet.modValue(0);
         let currDamage = this.damage.clone();
         if(Math.random()<critRate)
             currDamage.specEffects.push(暴击);

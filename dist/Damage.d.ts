@@ -54,19 +54,19 @@ export declare class Damage {
     /**计算攻击时 来源的 应用的加值与倍率
      * @returns [ multModMap, addModMap ]
      */
-    private calcSourceModTableSet;
+    private calcSourceModSetTable;
     /**对数值进行增益
-     * @param base       基础值
-     * @param flag       标签
-     * @param tableSet   来源的调整值
-     * @param targetFlag 目标的标签
-     * @param tableSet   目标的调整值
+     * @param base       		基础值
+     * @param flag       		标签
+     * @param setTable   		来源的调整值
+     * @param targetFlag 		目标的标签
+     * @param targetSetTable    目标的调整值
      */
     private modValue;
     /**从一个table获取调整值
      * @param base       基础值
      * @param flag       标签
-     * @param tableSet   调整值
+     * @param setTable   调整值
      */
     private modValueSingle;
     /**含有某个特效 */

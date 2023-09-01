@@ -1,3 +1,4 @@
+import { IJData } from "@zwa73/utils";
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
@@ -17,17 +18,6 @@ export type DamageConsAnd = ReadonlyArray<DamageConsOr>;
  * @param cons   约束列表
  */
 export declare function matchCons(info?: DamageInfo, cons?: DamageConsAnd): boolean;
-/**累加的调整值表 */
-export type ModTableSet = {
-    /**倍率调整表 */
-    multModTable: StaticStatusOption;
-    /**加值调整表 */
-    addModTable: StaticStatusOption;
-};
-export type ModSet = {
-    add: number;
-    mult: number;
-};
 export type BuffType = "正面效果" | "负面效果" | "控制效果" | "其他效果";
 /**buff的详细信息 */
 export type BuffInfo = {
@@ -104,13 +94,11 @@ export declare class BuffTable {
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     modValue(base: number, field: ModifyType, damageInfo?: DamageInfo): number;
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     getModSet(field: ModifyType, damageInfo?: DamageInfo): ModSet;
@@ -118,7 +106,7 @@ export declare class BuffTable {
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModTableSet(damageInfo?: DamageInfo): ModTableSet;
+    getModSetTable(damageInfo?: DamageInfo): ModSetTable;
     /**获取buffTable中所有对应触发器 不包括全局触发器
      * @deprecated 这个函数仅供Character.getTiggers 或内部调用
      */
@@ -126,19 +114,66 @@ export declare class BuffTable {
     clone(): BuffTable;
 }
 /**对某个属性的调整组 */
-export declare class ModSet1 {
-    add: number;
-    mult: number;
+export declare class ModSet implements IJData {
+    readonly add: number;
+    readonly mult: number;
     constructor(add?: number, mult?: number);
     /**对某个值进行增益 */
     modValue(base: number): number;
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    addSet(...sets: ModSet[]): ModSet;
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    multSet(...sets: ModSet[]): ModSet;
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static addSet(...sets: ModSet[]): ModSet;
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static multSet(...sets: ModSet[]): ModSet;
+    toJSON(): {
+        add: number;
+        mult: number;
+    };
 }
-/**对ModTableSet进行加运算 乘区加算 加值加算*/
-export declare function addModTableSet(...sets: ModTableSet[]): ModTableSet;
-/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
-export declare function multModTableSet(...sets: ModTableSet[]): ModTableSet;
-export declare function addModSet(...sets: ModSet[]): ModSet;
-export declare function multModSet(...sets: ModSet[]): ModSet;
-export declare const DefModSet: ModSet;
-export declare const DefModTableSet: ModTableSet;
+/**累加的 对所有属性的调整组表 */
+export declare class ModSetTable implements IJData {
+    readonly addTable: Readonly<StaticStatusOption>;
+    readonly multTable: Readonly<StaticStatusOption>;
+    constructor(addTable?: StaticStatusOption, multTable?: StaticStatusOption);
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    addSet(...sets: ModSetTable[]): ModSetTable;
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    multSet(...sets: ModSetTable[]): ModSetTable;
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     */
+    getModSet(field: ModifyType): ModSet;
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    static addSet(...sets: ModSetTable[]): ModSetTable;
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    static multSet(...sets: ModSetTable[]): ModSetTable;
+    private static multTableSet;
+    private static addTableSet;
+    private static addAddTable;
+    private static addMultTable;
+    private static multMultTable;
+    toJSON(): {
+        addTable: Readonly<Partial<import("./Status").StaticStatus>>;
+        multTable: Readonly<Partial<import("./Status").StaticStatus>>;
+    };
+}
 export {};

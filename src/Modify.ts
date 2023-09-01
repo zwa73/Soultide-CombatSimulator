@@ -1,4 +1,4 @@
-import { deepClone } from "@zwa73/utils";
+import { IJData, deepClone } from "@zwa73/utils";
 import { AddiDamageType, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
@@ -45,20 +45,6 @@ export function matchCons(info?:DamageInfo,cons?:DamageConsAnd){
     }
     return true;
 }
-
-
-/**累加的调整值表 */
-export type ModTableSet = {
-    /**倍率调整表 */
-    multModTable:StaticStatusOption,
-    /**加值调整表 */
-    addModTable:StaticStatusOption,
-}
-export type ModSet = {
-    add:number,
-    mult:number
-}
-
 
 export type BuffType = "正面效果"|"负面效果"|"控制效果"|"其他效果";
 
@@ -196,16 +182,14 @@ export class BuffTable{
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     modValue(base:number,field:ModifyType,damageInfo?:DamageInfo):number{
         let modset = this.getModSet(field,damageInfo);
-        return (base+modset.add)*modset.mult;
+        return modset.modValue(base);
     }
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     getModSet(field:ModifyType,damageInfo?:DamageInfo):ModSet{
@@ -229,13 +213,13 @@ export class BuffTable{
             if(buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field]||0);
         }
-        return {add,mult};
+        return new ModSet(add,mult);
     }
     /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModTableSet(damageInfo?:DamageInfo):ModTableSet{
+    getModSetTable(damageInfo?:DamageInfo):ModSetTable{
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
             .filter(item=>matchCons(damageInfo,item?.buff.damageCons));
@@ -269,13 +253,7 @@ export class BuffTable{
             stackAddArean (addModTable , stackAddTable , stack  );
         }
         //console.log("addModTable",addModTable)
-
-        return {
-            /**倍率调整表 */
-            multModTable: multModTable,
-            /**加值调整表 */
-            addModTable: addModTable
-        };
+        return new ModSetTable(addModTable,multModTable);
     }
     /**获取buffTable中所有对应触发器 不包括全局触发器
      * @deprecated 这个函数仅供Character.getTiggers 或内部调用
@@ -315,9 +293,9 @@ export class BuffTable{
     }
 };
 /**对某个属性的调整组 */
-export class ModSet1{
-    add:number;
-    mult:number;
+export class ModSet implements IJData{
+    readonly add:number;
+    readonly mult:number;
     constructor(add:number=0,mult:number=1){
         this.add = add;
         this.mult = mult;
@@ -326,64 +304,121 @@ export class ModSet1{
     modValue(base:number):number{
         return (base+this.add)*this.mult;
     }
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    addSet(...sets:ModSet[]):ModSet{
+        return ModSet.addSet(this,...sets);
+    }
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    multSet(...sets:ModSet[]):ModSet{
+        return ModSet.multSet(this,...sets);
+    }
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static addSet(...sets:ModSet[]):ModSet{
+        let add = 0;
+        let mult = 1;
+        for(let set of sets){
+            add += set.add;
+            mult += (set.mult-1);
+        }
+        return new ModSet(add,mult);
+    }
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static multSet(...sets:ModSet[]):ModSet{
+        let add = 0;
+        let mult = 1;
+        for(let set of sets){
+            add += set.add;
+            mult *= set.mult;
+        }
+        return new ModSet(add,mult);
+    }
+    toJSON(){
+        return {add:this.add,mult:this.mult}
+    }
+}
+/**累加的 对所有属性的调整组表 */
+export class ModSetTable implements IJData{
+    readonly addTable:Readonly<StaticStatusOption>;
+    readonly multTable:Readonly<StaticStatusOption>;
+    constructor(addTable?:StaticStatusOption,multTable?:StaticStatusOption){
+        this.addTable=addTable||{};
+        this.multTable=multTable||{};
+    }
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    addSet(...sets:ModSetTable[]):ModSetTable{
+        return ModSetTable.addSet(this,...sets);
+    }
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    multSet(...sets:ModSetTable[]):ModSetTable{
+        return ModSetTable.multSet(this,...sets);
+    }
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     */
+    getModSet(field:ModifyType):ModSet{
+        return new ModSet(this.addTable[field],this.multTable[field]);
+    }
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    static addSet(...sets:ModSetTable[]):ModSetTable{
+        const outset:ModSetTable = new ModSetTable();
+        for(let set of sets)
+            ModSetTable.addTableSet(outset,set);
+        return outset;
+    }
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    static multSet(...sets:ModSetTable[]):ModSetTable{
+        const outset:ModSetTable = new ModSetTable();
+        for(let set of sets)
+            ModSetTable.multTableSet(outset,set);
+        return outset;
+    }
+    private static multTableSet(baseSet: ModSetTable, modSet: ModSetTable) {
+        ModSetTable.multMultTable(baseSet.multTable, modSet.multTable);
+        ModSetTable.addAddTable(baseSet.addTable, modSet.addTable);
+    }
+    private static addTableSet(baseSet: ModSetTable, modSet: ModSetTable) {
+        ModSetTable.addMultTable(baseSet.multTable, modSet.multTable);
+        ModSetTable.addAddTable(baseSet.addTable, modSet.addTable);
+    }
+    private static addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+        for (let flag of Object.keys(modTable) as ModifyType[]) {
+            if (baseTable[flag] == null) baseTable[flag] = 0;
+            baseTable[flag]! += modTable[flag]!;
+        }
+    }
+    private static addMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+        for (let flag of Object.keys(modTable) as ModifyType[]) {
+            if (baseTable[flag] == null) baseTable[flag] = 1;
+            baseTable[flag]! += (modTable[flag]!-1);
+        }
+    }
+    private static multMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+        for (let flag of Object.keys(modTable) as ModifyType[]) {
+            if (baseTable[flag] == null) baseTable[flag] = 1;
+            baseTable[flag]! *= modTable[flag]!;
+        }
+    }
+    toJSON(){
+        return {
+            addTable:deepClone(this.addTable),
+            multTable:deepClone(this.multTable)
+        }
+    }
 }
 
-function addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as ModifyType[]) {
-        if (baseTable[flag] == null) baseTable[flag] = 0;
-        baseTable[flag]! += modTable[flag]!;
-    }
-}
-function addMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as ModifyType[]) {
-        if (baseTable[flag] == null) baseTable[flag] = 1;
-        baseTable[flag]! += (modTable[flag]!-1);
-    }
-}
-function multMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
-    for (let flag of Object.keys(modTable) as ModifyType[]) {
-        if (baseTable[flag] == null) baseTable[flag] = 1;
-        baseTable[flag]! *= modTable[flag]!;
-    }
-}
-function addTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
-    addMultTable(baseSet.multModTable, modSet.multModTable);
-    addAddTable(baseSet.addModTable, modSet.addModTable);
-}
-function multTableSet(baseSet: ModTableSet, modSet: ModTableSet) {
-    multMultTable(baseSet.multModTable, modSet.multModTable);
-    addAddTable(baseSet.addModTable, modSet.addModTable);
-}
-/**对ModTableSet进行加运算 乘区加算 加值加算*/
-export function addModTableSet(...sets:ModTableSet[]):ModTableSet{
-    const outset:ModTableSet = { addModTable: {}, multModTable: {} };
-    for(let set of sets)
-        addTableSet(outset,set);
-    return outset;
-}
-/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
-export function multModTableSet(...sets:ModTableSet[]):ModTableSet{
-    const outset:ModTableSet = { addModTable: {}, multModTable: {} };
-    for(let set of sets)
-        multTableSet(outset,set);
-    return outset;
-}
-
-export function addModSet(...sets:ModSet[]):ModSet{
-    let baseSet:ModSet={add:0,mult:1};
-    for(let set of sets){
-        baseSet.add += set.add;
-        baseSet.mult += (set.mult-1);
-    }
-    return baseSet;
-}
-export function multModSet(...sets:ModSet[]):ModSet{
-    let baseSet:ModSet={add:0,mult:1};
-    for(let set of sets){
-        baseSet.add += set.add;
-        baseSet.mult *= set.mult;
-    }
-    return baseSet;
-}
-export const DefModSet:ModSet = {add:0,mult:1};
-export const DefModTableSet: ModTableSet = { addModTable: {}, multModTable: {} };

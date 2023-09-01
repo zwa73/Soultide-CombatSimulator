@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefModTableSet = exports.DefModSet = exports.multModSet = exports.addModSet = exports.multModTableSet = exports.addModTableSet = exports.ModSet1 = exports.BuffTable = exports.genBuffInfo = exports.matchCons = void 0;
+exports.ModSetTable = exports.ModSet = exports.BuffTable = exports.genBuffInfo = exports.matchCons = void 0;
+const utils_1 = require("@zwa73/utils");
 /**判断 info 是否包含 target 的所有约束字段
  * @param info   伤害信息
  * @param cons   约束列表
@@ -120,16 +121,14 @@ class BuffTable {
     /**获取某个计算完增益的属性
      * @param base       基础值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     modValue(base, field, damageInfo) {
         let modset = this.getModSet(field, damageInfo);
-        return (base + modset.add) * modset.mult;
+        return modset.modValue(base);
     }
     /**获取某个属性的调整值
      * @param field      所要应用的调整字段
-     * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
     getModSet(field, damageInfo) {
@@ -152,13 +151,13 @@ class BuffTable {
             if (buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field] || 0);
         }
-        return { add, mult };
+        return new ModSet(add, mult);
     }
     /**获取伤害约束的Buff调整值表 不会触发触发器
      * @param isHurt     是受到攻击触发的buff
      * @param damageInfo 伤害信息
      */
-    getModTableSet(damageInfo) {
+    getModSetTable(damageInfo) {
         //计算伤害约束的buff
         const vaildList = Object.values(this._table)
             .filter(item => matchCons(damageInfo, item?.buff.damageCons));
@@ -195,12 +194,7 @@ class BuffTable {
             stackAddArean(addModTable, stackAddTable, stack);
         }
         //console.log("addModTable",addModTable)
-        return {
-            /**倍率调整表 */
-            multModTable: multModTable,
-            /**加值调整表 */
-            addModTable: addModTable
-        };
+        return new ModSetTable(addModTable, multModTable);
     }
     /**获取buffTable中所有对应触发器 不包括全局触发器
      * @deprecated 这个函数仅供Character.getTiggers 或内部调用
@@ -244,7 +238,7 @@ class BuffTable {
 exports.BuffTable = BuffTable;
 ;
 /**对某个属性的调整组 */
-class ModSet1 {
+class ModSet {
     add;
     mult;
     constructor(add = 0, mult = 1) {
@@ -255,70 +249,125 @@ class ModSet1 {
     modValue(base) {
         return (base + this.add) * this.mult;
     }
-}
-exports.ModSet1 = ModSet1;
-function addAddTable(baseTable, modTable) {
-    for (let flag of Object.keys(modTable)) {
-        if (baseTable[flag] == null)
-            baseTable[flag] = 0;
-        baseTable[flag] += modTable[flag];
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    addSet(...sets) {
+        return ModSet.addSet(this, ...sets);
+    }
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    multSet(...sets) {
+        return ModSet.multSet(this, ...sets);
+    }
+    /**将多个ModSet相加
+     * 加值相加 倍率相加
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static addSet(...sets) {
+        let add = 0;
+        let mult = 1;
+        for (let set of sets) {
+            add += set.add;
+            mult += (set.mult - 1);
+        }
+        return new ModSet(add, mult);
+    }
+    /**将多个ModSet相乘
+     * 加值相加 倍率相乘
+     * @param sets ModSet组
+     * @returns 新的ModSet
+     */
+    static multSet(...sets) {
+        let add = 0;
+        let mult = 1;
+        for (let set of sets) {
+            add += set.add;
+            mult *= set.mult;
+        }
+        return new ModSet(add, mult);
+    }
+    toJSON() {
+        return { add: this.add, mult: this.mult };
     }
 }
-function addMultTable(baseTable, modTable) {
-    for (let flag of Object.keys(modTable)) {
-        if (baseTable[flag] == null)
-            baseTable[flag] = 1;
-        baseTable[flag] += (modTable[flag] - 1);
+exports.ModSet = ModSet;
+/**累加的 对所有属性的调整组表 */
+class ModSetTable {
+    addTable;
+    multTable;
+    constructor(addTable, multTable) {
+        this.addTable = addTable || {};
+        this.multTable = multTable || {};
+    }
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    addSet(...sets) {
+        return ModSetTable.addSet(this, ...sets);
+    }
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    multSet(...sets) {
+        return ModSetTable.multSet(this, ...sets);
+    }
+    /**获取某个属性的调整值
+     * @param field      所要应用的调整字段
+     */
+    getModSet(field) {
+        return new ModSet(this.addTable[field], this.multTable[field]);
+    }
+    /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
+    static addSet(...sets) {
+        const outset = new ModSetTable();
+        for (let set of sets)
+            ModSetTable.addTableSet(outset, set);
+        return outset;
+    }
+    /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
+    static multSet(...sets) {
+        const outset = new ModSetTable();
+        for (let set of sets)
+            ModSetTable.multTableSet(outset, set);
+        return outset;
+    }
+    static multTableSet(baseSet, modSet) {
+        ModSetTable.multMultTable(baseSet.multTable, modSet.multTable);
+        ModSetTable.addAddTable(baseSet.addTable, modSet.addTable);
+    }
+    static addTableSet(baseSet, modSet) {
+        ModSetTable.addMultTable(baseSet.multTable, modSet.multTable);
+        ModSetTable.addAddTable(baseSet.addTable, modSet.addTable);
+    }
+    static addAddTable(baseTable, modTable) {
+        for (let flag of Object.keys(modTable)) {
+            if (baseTable[flag] == null)
+                baseTable[flag] = 0;
+            baseTable[flag] += modTable[flag];
+        }
+    }
+    static addMultTable(baseTable, modTable) {
+        for (let flag of Object.keys(modTable)) {
+            if (baseTable[flag] == null)
+                baseTable[flag] = 1;
+            baseTable[flag] += (modTable[flag] - 1);
+        }
+    }
+    static multMultTable(baseTable, modTable) {
+        for (let flag of Object.keys(modTable)) {
+            if (baseTable[flag] == null)
+                baseTable[flag] = 1;
+            baseTable[flag] *= modTable[flag];
+        }
+    }
+    toJSON() {
+        return {
+            addTable: (0, utils_1.deepClone)(this.addTable),
+            multTable: (0, utils_1.deepClone)(this.multTable)
+        };
     }
 }
-function multMultTable(baseTable, modTable) {
-    for (let flag of Object.keys(modTable)) {
-        if (baseTable[flag] == null)
-            baseTable[flag] = 1;
-        baseTable[flag] *= modTable[flag];
-    }
-}
-function addTableSet(baseSet, modSet) {
-    addMultTable(baseSet.multModTable, modSet.multModTable);
-    addAddTable(baseSet.addModTable, modSet.addModTable);
-}
-function multTableSet(baseSet, modSet) {
-    multMultTable(baseSet.multModTable, modSet.multModTable);
-    addAddTable(baseSet.addModTable, modSet.addModTable);
-}
-/**对ModTableSet进行加运算 乘区加算 加值加算*/
-function addModTableSet(...sets) {
-    const outset = { addModTable: {}, multModTable: {} };
-    for (let set of sets)
-        addTableSet(outset, set);
-    return outset;
-}
-exports.addModTableSet = addModTableSet;
-/**对ModTableSet进行乘运算 乘区乘算 加值加算*/
-function multModTableSet(...sets) {
-    const outset = { addModTable: {}, multModTable: {} };
-    for (let set of sets)
-        multTableSet(outset, set);
-    return outset;
-}
-exports.multModTableSet = multModTableSet;
-function addModSet(...sets) {
-    let baseSet = { add: 0, mult: 1 };
-    for (let set of sets) {
-        baseSet.add += set.add;
-        baseSet.mult += (set.mult - 1);
-    }
-    return baseSet;
-}
-exports.addModSet = addModSet;
-function multModSet(...sets) {
-    let baseSet = { add: 0, mult: 1 };
-    for (let set of sets) {
-        baseSet.add += set.add;
-        baseSet.mult *= set.mult;
-    }
-    return baseSet;
-}
-exports.multModSet = multModSet;
-exports.DefModSet = { add: 0, mult: 1 };
-exports.DefModTableSet = { addModTable: {}, multModTable: {} };
+exports.ModSetTable = ModSetTable;
