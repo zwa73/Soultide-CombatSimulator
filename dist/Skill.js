@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.genSkillInfo = exports.procMTSkill = exports.procSTSkill = void 0;
 //———————————————————— 技能 ————————————————————//
 /**技能类型 */
-const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
+const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "其他", "非"];
 /**技能范围 */
 const SkillRangeList = ["单体", "群体", "无范围"];
 /**技能子类型 */

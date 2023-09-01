@@ -111,7 +111,7 @@ var Aurora;
     };
     /**续存战意被动效果 */
     Aurora.存续战意 = {
-        info: (0, Skill_1.genSkillInfo)("技能:存续战意", "非技能", "被动技能", "无范围技能", "特性技能"),
+        info: (0, Skill_1.genSkillInfo)("技能:存续战意", "其他技能", "被动技能", "无范围技能", "特性技能"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:存续战意"),
                 hook: "释放技能后",

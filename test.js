@@ -6,6 +6,7 @@ let aurora = Souls.Aurora.genChar("Aurora",{
     攻击:6088,
 });
 let andrea = Souls.Andrea.genChar("Andrea",{});
+andrea.addSkill(Souls.Silenus.能流感知);
 let 稻草人 = Monsters.稻草人.genChar();
 
 稻草人.addBuff(GenericBuff.极寒,10);
@@ -15,6 +16,7 @@ DefaultBattlefield.endRound();
 DefaultBattlefield.endRound();
 DefaultBattlefield.endRound();
 
+andrea.useSkill(Souls.Silenus.星尘余烬, [稻草人]);
 andrea.useSkill(Souls.Silenus.寂灭昭示, [稻草人]);
 for(let i=0;i<20;i++){
     稻草人.useSkill(Souls.Colcher.王女的祝福, [andrea]);

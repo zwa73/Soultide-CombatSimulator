@@ -51,7 +51,9 @@ class BuffTable {
      * @param duration  持续回合    默认无限
      */
     addBuff(buff, stack = 1, duration = Infinity) {
-        if (this._table[buff.info.buffName] == null || buff.canSatck != true)
+        if (stack <= 0 || duration <= 0)
+            return;
+        if (this._table[buff.info.buffName] == null || buff.canSatck !== true)
             this._table[buff.info.buffName] = { buff, stack, duration };
         else {
             let stakcbuff = this._table[buff.info.buffName];

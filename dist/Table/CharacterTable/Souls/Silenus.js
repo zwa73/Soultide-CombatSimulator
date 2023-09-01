@@ -54,15 +54,6 @@ var Silenus;
     };
     Silenus.寂灭昭示效果 = {
         info: (0, Modify_1.genBuffInfo)("效果:寂灭昭示", "负面效果"),
-        triggerList: [{
-                info: (0, Trigger_1.genTriggerInfo)("触发:寂灭昭示"),
-                hook: "获取效果层数后",
-                trigger(char, buff, stackCount) {
-                    if (buff === _GenericBuff_1.GenericBuff.极寒)
-                        return stackCount * 2;
-                    return stackCount;
-                },
-            }],
         specialModify(table) {
             const char = table.attacherChar;
             let dmg = 0.1;
@@ -72,6 +63,24 @@ var Silenus;
                     受到冰霜伤害: dmg
                 } };
         },
+    };
+    Silenus.能流感知 = {
+        info: (0, Skill_1.genSkillInfo)("技能:能流感知", "其他技能", "被动技能", "无范围技能", "特性技能"),
+        triggerList: [{
+                info: (0, Trigger_1.genTriggerInfo)("触发:能流感知"),
+                hook: "造成类型伤害后",
+                damageCons: ["冰霜技能"],
+                trigger(damage, target) {
+                    target.addBuff(Silenus.能流感知效果, target.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒), 1);
+                    return damage;
+                },
+            }]
+    };
+    Silenus.能流感知效果 = {
+        info: (0, Modify_1.genBuffInfo)("效果:能流感知", "负面效果"),
+        stackMultModify: {
+            受到穿透防御: 0.01
+        }
     };
 })(Silenus = exports.Silenus || (exports.Silenus = {}));
 (0, DataTable_1.regDataTable)(Silenus);

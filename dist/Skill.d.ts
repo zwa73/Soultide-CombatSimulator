@@ -3,7 +3,7 @@ import { Battlefield } from "./Battlefield";
 import { BuffStack, BuffTable } from "./Modify";
 import { AnyTrigger } from "./Trigger";
 /**技能类型 */
-declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "非"];
+declare const SkillMaintypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "其他", "非"];
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 /**技能范围 */
 declare const SkillRangeList: readonly ["单体", "群体", "无范围"];

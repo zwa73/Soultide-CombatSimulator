@@ -114,7 +114,7 @@ class Damage {
         def = this.hasSpecEffect(exports.穿防) || this.hasSpecEffect(exports.治疗) ? 0 : def;
         //穿防
         let pendef = Modify_1.ModSet.addSet(targetModTable.getModSet("受到穿透防御"), sourceModTable.getModSet("穿透防御"));
-        def = (def) * (1 - pendef.modValue(0));
+        def = (def - pendef.add) - (def * (pendef.mult - 1));
         //攻击
         let atk = modValue(0, "攻击", "受到攻击");
         dmg *= atk - def > 1 ? atk - def : 1;
