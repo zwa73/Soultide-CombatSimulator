@@ -16,7 +16,7 @@ class Character {
     /**角色的当前属性 */
     dynmaicStatus;
     /**所有的附加状态 */
-    buffTable = new Modify_1.BuffTable();
+    buffTable = new Modify_1.BuffTable(this);
     /**所有的技能 */
     skillTable = {};
     /**额外数据表 */
@@ -56,7 +56,7 @@ class Character {
             user: this,
             targetList: target,
             battlefield: this.battlefield,
-            buffTable: new Modify_1.BuffTable(),
+            buffTable: new Modify_1.BuffTable(this),
             isTriggerSkill: false,
             dataTable: {},
             uid: utils.genUUID()

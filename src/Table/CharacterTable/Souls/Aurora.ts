@@ -12,14 +12,25 @@ export namespace Aurora {
         info:genSkillInfo("技能:失心童话","雷电技能","伤害技能","单体技能","奥义技能"),
         cost:64,
         cast(skillData:SkillData){
-            skillData.isTriggerSkill=true;
             const {user,targetList}=skillData;
-            if(!user.hasBuff(噩廻)) user.dataTable["上一次失心童话潜境"] = skillData;
-            else skillData = user.dataTable["上一次失心童话潜境"];
+            //获取上次子技能的数据
+            let presubdata = undefined;
+            if(user.hasBuff(噩廻)) presubdata = user.dataTable["上一次失心童话潜境"];
+            else{
+                user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
+                user.dynmaicStatus.当前怒气=0;
+            }
+            user.triggerSkill(失心童话伤害,targetList,presubdata);
+        }
+    }
+    export const 失心童话伤害:Skill={
+        info:genSkillInfo("技能:失心童话伤害","雷电技能","伤害技能","单体技能","奥义技能"),
+        cast(skillData:SkillData){
+            const {user,targetList}=skillData;
+            //记录子技能数据
+            user.dataTable["上一次失心童话潜境"] = skillData;
             /**随机目标 */
             const rdt = ()=>targetList[Math.floor(targetList.length*Math.random())];
-            user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
-            user.dynmaicStatus.当前怒气=0;
             let atk = genAttack(skillData,1,"雷电伤害");
             for(let i=0;i<3;i++)
                 rdt().getHit(atk);
@@ -103,27 +114,27 @@ export namespace Aurora {
             hook:"释放技能后",
             trigger(skillData:SkillData){
                 const {user} = skillData;
-                user.addBuff(存续战意A);
-                if(user.getBuffStackCountAndT(存续战意A)>=5 && !user.buffTable.hasBuff(存续战意B))
-                    user.addBuff(存续战意B);
+                user.addBuff(存续战意效果);
             }
         }]
     }
     /**续存战意 每层效果 */
-    export const 存续战意A:Buff={
-        info:genBuffInfo("效果:存续战意A","正面效果"),
+    export const 存续战意效果:Buff={
+        info:genBuffInfo("效果:存续战意","正面效果"),
         canSatck:true,
         stackLimit:5,
         stackMultModify:{
             攻击:0.015,
-        }
-    }
-    /**续存战意 5层效果 */
-    export const 存续战意B:Buff={
-        info:genBuffInfo("效果:存续战意B","正面效果"),
-        multModify:{
-            攻击:0.075,
-        }
+        },
+        specialModify(table) {
+            const char = table.attacherChar;
+            let atk = 0;
+            if(char.getBuffStackCountAndT(存续战意效果)>=5)
+                atk=0.075
+            return{multModify:{
+                攻击:atk
+            }}
+        },
     }
     export const baseStatus:StaticStatusOption = {
         攻击:10000

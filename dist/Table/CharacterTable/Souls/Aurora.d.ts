@@ -4,6 +4,7 @@ import { Skill } from "../../../Skill";
 import { StaticStatusOption } from "../../../Status";
 export declare namespace Aurora {
     const 失心童话: Skill;
+    const 失心童话伤害: Skill;
     const 噩廻: Buff;
     /**荆雷奔袭技能 */
     const 荆雷奔袭: Skill;
@@ -16,9 +17,7 @@ export declare namespace Aurora {
     /**续存战意被动效果 */
     const 存续战意: Skill;
     /**续存战意 每层效果 */
-    const 存续战意A: Buff;
-    /**续存战意 5层效果 */
-    const 存续战意B: Buff;
+    const 存续战意效果: Buff;
     const baseStatus: StaticStatusOption;
     function genChar(name?: string, status?: StaticStatusOption): Character;
 }

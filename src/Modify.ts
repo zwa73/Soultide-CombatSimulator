@@ -3,6 +3,7 @@ import { AddiDamageType, Damage, DamageInfo, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
+import { Character } from "./Character";
 
 //———————————————————— 调整值 ————————————————————//
 
@@ -71,14 +72,21 @@ export type Buff={
     readonly stackLimit?:number;
     /**结束时间点 下一次hook触发时结束*/
     readonly endWith?:AnyHook;
-    /**倍率增益 */
+    /**倍率增益 从0起算 +25%为0.25*/
     readonly multModify?:StaticStatusOption;
-    /**叠加的倍率增益 */
+    /**叠加的倍率增益 从0起算 +25%为0.25*/
     readonly stackMultModify?:StaticStatusOption;
     /**数值增益 */
     readonly addModify?:StaticStatusOption;
     /**叠加的数值增益 */
     readonly stackAddModify?:StaticStatusOption;
+    /**特殊的数值增益 */
+    readonly specialModify?:(table:BuffTable)=>{
+        /**数值增益 */
+        addModify?:StaticStatusOption,
+        /**倍率增益 从0起算 +25%为0.25*/
+        multModify?:StaticStatusOption
+    };
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?:DamageConsAnd;
     /**触发器 */
@@ -97,10 +105,18 @@ export type BuffStack={
     /**额外的表 */
     dataTable?:Record<string,any>
 }
+
 /**buff表 */
 export class BuffTable{
+    /**buff表附着于哪个角色 */
+    attacherChar:Character;
     private _table:Record<BuffName,BuffStack|undefined>={};
-    constructor(){}
+    /**
+     * @param attacherChar buff表附着于哪个角色
+     */
+    constructor(attacherChar:Character){
+        this.attacherChar=attacherChar;
+    }
     /**添加一个buff
      * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
@@ -215,6 +231,12 @@ export class BuffTable{
                 add += buff.addModify[field]||0;
             if(buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field]||0);
+
+            if(buff.specialModify){
+                let modset = buff.specialModify(this);
+                mult += modset.multModify? (modset.multModify[field]||0):0;
+                add  += modset.addModify ? (modset.addModify[field] ||0):0;
+            }
         }
         return new ModSet(add,mult);
     }
@@ -242,18 +264,26 @@ export class BuffTable{
                 baseMap[flag]!+=modMap[flag]!*stack;
             }
         }
-        for(const item of vaildList){
-            if(item==null) continue;
-            const basedMultTable = item.buff.multModify||{};
-            const stackMultTable = item.buff.stackMultModify||{};
-            const basedAddTable  = item.buff.addModify||{};
-            const stackAddTable  = item.buff.stackAddModify||{};
-            const stack = item.stack;
+        for(const buffstack of vaildList){
+            if(buffstack==null) continue;
+
+            const basedMultTable = buffstack.buff.multModify||{};
+            const stackMultTable = buffstack.buff.stackMultModify||{};
+            const basedAddTable  = buffstack.buff.addModify||{};
+            const stackAddTable  = buffstack.buff.stackAddModify||{};
+            const specialTable  = buffstack.buff.specialModify?
+                buffstack.buff.specialModify(this):{};
+            const specialAddTable   = specialTable.addModify ||{};
+            const specialMultTable  = specialTable.multModify||{};
+            const stack = buffstack.stack;
             //叠加同乘区
-            stackMultArean(multModTable, basedMultTable, 1      );
-            stackMultArean(multModTable, stackMultTable, stack  );
-            stackAddArean (addModTable , basedAddTable , 1      );
-            stackAddArean (addModTable , stackAddTable , stack  );
+            stackMultArean(multModTable, basedMultTable   , 1      );
+            stackMultArean(multModTable, stackMultTable   , stack  );
+            stackMultArean(multModTable, specialMultTable , 1      );
+
+            stackAddArean (addModTable , basedAddTable    , 1      );
+            stackAddArean (addModTable , stackAddTable    , stack  );
+            stackAddArean (addModTable , specialAddTable  , 1      );
         }
         //console.log("addModTable",addModTable)
         return new ModSetTable(addModTable,multModTable);
@@ -280,7 +310,7 @@ export class BuffTable{
         return arr;
     }
     clone():BuffTable{
-        let nbuff = new BuffTable();
+        let nbuff = new BuffTable(this.attacherChar);
         for(let key in this._table){
             let bn = key as BuffName;
             let bs = this._table[bn];
@@ -357,7 +387,9 @@ export class ModSet implements IJData{
 }
 /**累加的 对所有属性的调整组表 */
 export class ModSetTable implements IJData{
+    /**加值增益表 */
     readonly addTable:Readonly<StaticStatusOption>;
+    /**倍率增益表 从1起算 +25%为1.25*/
     readonly multTable:Readonly<StaticStatusOption>;
     constructor(addTable?:StaticStatusOption,multTable?:StaticStatusOption){
         this.addTable=addTable||{};

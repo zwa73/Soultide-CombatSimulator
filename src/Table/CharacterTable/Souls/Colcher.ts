@@ -24,7 +24,7 @@ export namespace Colcher {
                 if(skillData.skill.info.skillName=="技能:王女的祝福") return;
                 if(skillData.skill.info.skillCategory != "奥义技能") return;
                 skillData.user.buffTable.removeBuff(Colcher.回音);
-                let bufftable = new BuffTable();
+                let bufftable = new BuffTable(skillData.user);
                 bufftable.addBuff({
                     info:genBuffInfo("效果:回音奥义伤害减少","负面效果"),
                     multModify:{

@@ -10,12 +10,13 @@ class Attack {
     /**攻击来源 */
     source;
     /**只应用于此次攻击的Buff */
-    buffTable = new Modify_1.BuffTable();
+    buffTable;
     /**
      * @param source 攻击来源
      * @param damage 攻击造成的伤害
      */
     constructor(source, damage) {
+        this.buffTable = new Modify_1.BuffTable(source.char);
         this.source = source;
         this.damage = damage;
         this.damage.source.attack = this;

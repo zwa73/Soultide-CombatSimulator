@@ -3,6 +3,7 @@ import { AddiDamageType, Damage, DamageType } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
+import { Character } from "./Character";
 type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
 type ModifyTypeAtk = DamageType | `${SkillCategory}伤害` | `${SkillRange}伤害` | AddiDamageType | "技能伤害" | "攻击" | "暴击率" | "暴击伤害" | "所有伤害" | "伤害系数" | "穿透防御";
 /**加成类型 区分乘区 */
@@ -35,14 +36,21 @@ export type Buff = {
     readonly stackLimit?: number;
     /**结束时间点 下一次hook触发时结束*/
     readonly endWith?: AnyHook;
-    /**倍率增益 */
+    /**倍率增益 从0起算 +25%为0.25*/
     readonly multModify?: StaticStatusOption;
-    /**叠加的倍率增益 */
+    /**叠加的倍率增益 从0起算 +25%为0.25*/
     readonly stackMultModify?: StaticStatusOption;
     /**数值增益 */
     readonly addModify?: StaticStatusOption;
     /**叠加的数值增益 */
     readonly stackAddModify?: StaticStatusOption;
+    /**特殊的数值增益 */
+    readonly specialModify?: (table: BuffTable) => {
+        /**数值增益 */
+        addModify?: StaticStatusOption;
+        /**倍率增益 从0起算 +25%为0.25*/
+        multModify?: StaticStatusOption;
+    };
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?: DamageConsAnd;
     /**触发器 */
@@ -62,8 +70,13 @@ export type BuffStack = {
 };
 /**buff表 */
 export declare class BuffTable {
+    /**buff表附着于哪个角色 */
+    attacherChar: Character;
     private _table;
-    constructor();
+    /**
+     * @param attacherChar buff表附着于哪个角色
+     */
+    constructor(attacherChar: Character);
     /**添加一个buff
      * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
@@ -151,7 +164,9 @@ export declare class ModSet implements IJData {
 }
 /**累加的 对所有属性的调整组表 */
 export declare class ModSetTable implements IJData {
+    /**加值增益表 */
     readonly addTable: Readonly<StaticStatusOption>;
+    /**倍率增益表 从1起算 +25%为1.25*/
     readonly multTable: Readonly<StaticStatusOption>;
     constructor(addTable?: StaticStatusOption, multTable?: StaticStatusOption);
     /**对 ModSetTable 进行加运算 乘区加算 加值加算*/

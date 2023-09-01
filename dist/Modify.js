@@ -35,8 +35,15 @@ function genBuffInfo(buffName, buffType) {
 exports.genBuffInfo = genBuffInfo;
 /**buff表 */
 class BuffTable {
+    /**buff表附着于哪个角色 */
+    attacherChar;
     _table = {};
-    constructor() { }
+    /**
+     * @param attacherChar buff表附着于哪个角色
+     */
+    constructor(attacherChar) {
+        this.attacherChar = attacherChar;
+    }
     /**添加一个buff
      * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
@@ -153,6 +160,11 @@ class BuffTable {
                 add += buff.addModify[field] || 0;
             if (buff.stackAddModify)
                 add += stack * (buff.stackAddModify[field] || 0);
+            if (buff.specialModify) {
+                let modset = buff.specialModify(this);
+                mult += modset.multModify ? (modset.multModify[field] || 0) : 0;
+                add += modset.addModify ? (modset.addModify[field] || 0) : 0;
+            }
         }
         return new ModSet(add, mult);
     }
@@ -182,19 +194,25 @@ class BuffTable {
                 baseMap[flag] += modMap[flag] * stack;
             }
         }
-        for (const item of vaildList) {
-            if (item == null)
+        for (const buffstack of vaildList) {
+            if (buffstack == null)
                 continue;
-            const basedMultTable = item.buff.multModify || {};
-            const stackMultTable = item.buff.stackMultModify || {};
-            const basedAddTable = item.buff.addModify || {};
-            const stackAddTable = item.buff.stackAddModify || {};
-            const stack = item.stack;
+            const basedMultTable = buffstack.buff.multModify || {};
+            const stackMultTable = buffstack.buff.stackMultModify || {};
+            const basedAddTable = buffstack.buff.addModify || {};
+            const stackAddTable = buffstack.buff.stackAddModify || {};
+            const specialTable = buffstack.buff.specialModify ?
+                buffstack.buff.specialModify(this) : {};
+            const specialAddTable = specialTable.addModify || {};
+            const specialMultTable = specialTable.multModify || {};
+            const stack = buffstack.stack;
             //叠加同乘区
             stackMultArean(multModTable, basedMultTable, 1);
             stackMultArean(multModTable, stackMultTable, stack);
+            stackMultArean(multModTable, specialMultTable, 1);
             stackAddArean(addModTable, basedAddTable, 1);
             stackAddArean(addModTable, stackAddTable, stack);
+            stackAddArean(addModTable, specialAddTable, 1);
         }
         //console.log("addModTable",addModTable)
         return new ModSetTable(addModTable, multModTable);
@@ -222,7 +240,7 @@ class BuffTable {
         return arr;
     }
     clone() {
-        let nbuff = new BuffTable();
+        let nbuff = new BuffTable(this.attacherChar);
         for (let key in this._table) {
             let bn = key;
             let bs = this._table[bn];
@@ -303,7 +321,9 @@ class ModSet {
 exports.ModSet = ModSet;
 /**累加的 对所有属性的调整组表 */
 class ModSetTable {
+    /**加值增益表 */
     addTable;
+    /**倍率增益表 从1起算 +25%为1.25*/
     multTable;
     constructor(addTable, multTable) {
         this.addTable = addTable || {};

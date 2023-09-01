@@ -20,12 +20,13 @@ export class Attack{
     /**攻击来源 */
     readonly source:AttackSource;
     /**只应用于此次攻击的Buff */
-    readonly buffTable:BuffTable = new BuffTable();
+    readonly buffTable:BuffTable;
     /**
      * @param source 攻击来源
      * @param damage 攻击造成的伤害
      */
     constructor(source:AttackSource,damage:Damage){
+        this.buffTable = new BuffTable(source.char);
         this.source=source;
         this.damage=damage;
         this.damage.source.attack = this;
