@@ -133,25 +133,25 @@ export declare class ModSet implements IJData {
     constructor(add?: number, mult?: number);
     /**对某个值进行增益 */
     modValue(base: number): number;
-    /**将多个ModSet相加
+    /**将多个ModSet相加 返回新的ModSet
      * 加值相加 倍率相加
      * @param sets ModSet组
      * @returns 新的ModSet
      */
     addSet(...sets: ModSet[]): ModSet;
-    /**将多个ModSet相乘
+    /**将多个ModSet相乘 返回新的ModSet
      * 加值相加 倍率相乘
      * @param sets ModSet组
      * @returns 新的ModSet
      */
     multSet(...sets: ModSet[]): ModSet;
-    /**将多个ModSet相加
+    /**将多个ModSet相加 返回新的ModSet
      * 加值相加 倍率相加
      * @param sets ModSet组
      * @returns 新的ModSet
      */
     static addSet(...sets: ModSet[]): ModSet;
-    /**将多个ModSet相乘
+    /**将多个ModSet相乘 返回新的ModSet
      * 加值相加 倍率相乘
      * @param sets ModSet组
      * @returns 新的ModSet

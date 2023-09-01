@@ -272,7 +272,7 @@ class ModSet {
     modValue(base) {
         return (base + this.add) * this.mult;
     }
-    /**将多个ModSet相加
+    /**将多个ModSet相加 返回新的ModSet
      * 加值相加 倍率相加
      * @param sets ModSet组
      * @returns 新的ModSet
@@ -280,7 +280,7 @@ class ModSet {
     addSet(...sets) {
         return ModSet.addSet(this, ...sets);
     }
-    /**将多个ModSet相乘
+    /**将多个ModSet相乘 返回新的ModSet
      * 加值相加 倍率相乘
      * @param sets ModSet组
      * @returns 新的ModSet
@@ -288,7 +288,7 @@ class ModSet {
     multSet(...sets) {
         return ModSet.multSet(this, ...sets);
     }
-    /**将多个ModSet相加
+    /**将多个ModSet相加 返回新的ModSet
      * 加值相加 倍率相加
      * @param sets ModSet组
      * @returns 新的ModSet
@@ -302,7 +302,7 @@ class ModSet {
         }
         return new ModSet(add, mult);
     }
-    /**将多个ModSet相乘
+    /**将多个ModSet相乘 返回新的ModSet
      * 加值相加 倍率相乘
      * @param sets ModSet组
      * @returns 新的ModSet

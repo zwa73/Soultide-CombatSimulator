@@ -105,26 +105,44 @@ export interface TGetBuffStackCountAfter extends TriggerBase{
      */
     readonly trigger:(char:Character,buff:Buff,stackCount:number)=>number;
 }
-/**被攻击前 */
+/**受攻击前 */
 export interface TTakeAttackBefore extends TriggerBase{
     readonly hook:"受攻击前";
     /**触发 使用技能前 触发器
-     * @param victmin 受害者
      * @param attack  攻击
+     * @param victmin 受害者
      * @returns 修改的 攻击
      */
-    readonly trigger:(victmin:Character,attack:Attack)=>Attack;
+    readonly trigger:(attack:Attack,victmin:Character)=>Attack;
 }
-/**被攻击后 */
+/**受攻击后 */
 export interface TTakeAttackAfter extends TriggerBase{
     readonly hook:"受攻击后";
     /**触发 使用技能前 触发器
-     * @param victmin 受害者
      * @param attack  攻击
+     * @param victmin 受害者
      */
-    readonly trigger:(victmin:Character,attack:Attack)=>void;
+    readonly trigger:(attack:Attack,victmin:Character)=>void;
 }
-
+/**攻击前 */
+export interface TCauseAttackBefore extends TriggerBase{
+    readonly hook:"攻击前";
+    /**触发 使用技能前 触发器
+     * @param attack  攻击
+     * @param victmin 受害者
+     * @returns 修改的 攻击
+     */
+    readonly trigger:(attack:Attack, victmin:Character)=>Attack;
+}
+/**攻击后 */
+export interface TCauseAttackAfter extends TriggerBase{
+    readonly hook:"攻击后";
+    /**触发 使用技能前 触发器
+     * @param attack  攻击
+     * @param victmin 受害者
+     */
+    readonly trigger:(attack:Attack, victmin:Character)=>void;
+}
 
 export type TriggerName = `触发:${string}`;
 export type TriggerInfo = {
@@ -152,6 +170,8 @@ export type HookTriggerMap = {
     readonly 获取效果层数后   : TGetBuffStackCountAfter   ;
     readonly 受攻击前         : TTakeAttackBefore         ;
     readonly 受攻击后         : TTakeAttackAfter          ;
+    readonly 攻击前           : TCauseAttackBefore        ;
+    readonly 攻击后           : TCauseAttackAfter         ;
     readonly 造成类型伤害前   : TCauseTypeDamageBefore    ;
     readonly 造成类型伤害后   : TCauseTypeDamageAfter     ;
 };

@@ -30,7 +30,7 @@ var Andrea;
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:寒霜"),
                 hook: "受攻击后",
-                trigger(victmin, attack) {
+                trigger(attack, victmin) {
                     if (attack.source.skillData.skill.info.skillName != "技能:极寒狙击")
                         return;
                     let count = victmin.getBuffStackCountAndT(Andrea.寒霜);
@@ -40,12 +40,60 @@ var Andrea;
                 },
             }]
     };
+    Andrea.冷凝循环 = {
+        info: (0, Skill_1.genSkillInfo)("技能:冷凝循环", "冰霜技能", "被动技能", "无范围技能", "秘术技能"),
+        triggerList: [{
+                info: (0, Trigger_1.genTriggerInfo)("触发:冷凝循环"),
+                hook: "攻击前",
+                trigger(attack, victmin) {
+                    let stack = victmin.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒);
+                    attack.source.char.addBuff(Andrea.冷凝循环效果, stack, 1);
+                    if (stack >= 10)
+                        attack.source.char.addBuff(Andrea.冷凝循环效果A, 1, 1);
+                    return attack;
+                },
+            }]
+    };
+    Andrea.冷凝循环效果 = {
+        info: (0, Modify_1.genBuffInfo)("效果:冷凝循环", "正面效果"),
+        stackMultModify: {
+            攻击: 0.015
+        }
+    };
+    Andrea.冷凝循环效果A = {
+        info: (0, Modify_1.genBuffInfo)("效果:冷凝循环A", "正面效果"),
+        stackMultModify: {
+            攻击: 0.1
+        }
+    };
+    Andrea.冻寒标记 = {
+        info: (0, Skill_1.genSkillInfo)("技能:冻寒标记", "其他技能", "被动技能", "无范围技能", "特性技能"),
+        triggerList: [{
+                info: (0, Trigger_1.genTriggerInfo)("触发:冻寒标记"),
+                hook: "攻击前",
+                trigger(attack, victmin) {
+                    let stack = victmin.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒);
+                    attack.source.char.addBuff(Andrea.冻寒标记效果, stack);
+                    return attack;
+                },
+            }]
+    };
+    Andrea.冻寒标记效果 = {
+        info: (0, Modify_1.genBuffInfo)("效果:冻寒标记", "正面效果"),
+        canSatck: true,
+        stackLimit: 10,
+        stackMultModify: {
+            冰霜伤害: 0.03
+        }
+    };
     Andrea.baseStatus = {
         攻击: 10000
     };
     function genChar(name, status) {
         let opt = Object.assign({}, Andrea.baseStatus, status);
         let char = new Character_1.Character(name || "Andrea", opt);
+        char.addSkill(Andrea.冷凝循环);
+        char.addSkill(Andrea.冻寒标记);
         return char;
     }
     Andrea.genChar = genChar;

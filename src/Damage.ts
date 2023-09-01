@@ -17,7 +17,10 @@ export type DamageType = `${typeof DamageBaseTypeList[number]}伤害`;
 /**附伤类型 additional damage */
 export type AddiDamageType = `${typeof DamageBaseTypeList[number]}附伤`;
 
-/**子伤害依赖表 key可以由value[number] 增加 */
+/**子伤害依赖表
+ * 如果key的值非undefine
+ * 则 key 使用 value[number] 作为基础伤害乘区 自身伤害类型作为额外乘区
+ */
 const SubDamageRelyMap:Record<DamageType,DamageType[]>=
     DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [] }), {}) as any;
 SubDamageRelyMap.电击伤害 = ["雷电伤害"];
@@ -129,6 +132,9 @@ export class Damage {
 		const { dmgType, skillCategory, skillRange } = this.info;
 		//需要附伤
 		const needAdd = this.isSkillDamage();
+		//是子伤害
+		const isSubDamage = SubDamageRelyMap[dmgType].length>0;
+
 		//基础系数
 		let dmg = this.factor;
         //console.log("基础系数",this.factor)
@@ -171,16 +177,24 @@ export class Damage {
 		//泛伤和属性伤害 乘区
 		let baseDmgMod = ModSet.addSet(
 			sourceModTable.getModSet("所有伤害"),
-			targetModTable.getModSet("受到所有伤害"),
-			sourceModTable.getModSet(dmgType),
-			targetModTable.getModSet(`受到${dmgType}`));
+			targetModTable.getModSet("受到所有伤害"));
+		//子伤害使用主伤害作为基础区
+		if(isSubDamage){
+			for (let t of SubDamageRelyMap[dmgType]!){
+				baseDmgMod = baseDmgMod.addSet(sourceModTable.getModSet(t),
+					targetModTable.getModSet(`受到${t}`));
+			}
+		}else{
+			baseDmgMod = baseDmgMod.addSet(sourceModTable.getModSet(dmgType),
+				targetModTable.getModSet(`受到${dmgType}`));
+		}
 		dmg = baseDmgMod.modValue(dmg);
 		if (needAdd) adddmg = baseDmgMod.modValue(adddmg);
 
-		//下级伤害 乘区
-		for (let t of SubDamageRelyMap[dmgType]) {
-			dmg = modValue(dmg, t, `受到${t}`);
-			if (needAdd) adddmg = modValue(adddmg, t, `受到${t}`);
+		//子伤害 乘区
+		if(isSubDamage){
+			dmg = modValue(dmg, dmgType, `受到${dmgType}`);
+			if (needAdd) adddmg = modValue(adddmg, dmgType, `受到${dmgType}`);
 		}
 
 		//技伤和技能类别伤害 乘区
@@ -188,7 +202,7 @@ export class Damage {
 			sourceModTable.getModSet(`技能伤害`),
 			targetModTable.getModSet(`受到技能伤害`));
 		if(skillCategory!=undefined)
-			skillDmgMod.addSet(
+			skillDmgMod = skillDmgMod.addSet(
 				sourceModTable.getModSet(`${skillCategory}伤害`),
 				targetModTable.getModSet(`受到${skillCategory}伤害`));
 		dmg = skillDmgMod.modValue(dmg);

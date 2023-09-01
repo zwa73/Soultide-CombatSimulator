@@ -80,9 +80,9 @@ export type Skill={
      * @param skillData 技能参数
      */
     readonly beforeCast?:(skillData:SkillData)=>void;
-    /**被动Buff 加入技能时会被直接添加 */
+    /**被动Buff 角色加入技能时会被直接添加 */
     readonly passiveList?:ReadonlyArray<Readonly<BuffStack>>;
-    /**触发器 */
+    /**触发器 加入角色就会获得的 */
     readonly triggerList?:ReadonlyArray<AnyTrigger>;
 }
 

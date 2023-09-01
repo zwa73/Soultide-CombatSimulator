@@ -158,10 +158,12 @@ export class Character {
     }
     /**受到攻击击中 */
     getHit(attack:Attack){
-        this.getTriggers("受攻击前").forEach(t=>attack=t.trigger(this,attack));
+        attack.source.char.getTriggers("攻击前").forEach(t=>attack=t.trigger(attack,this));
+        this.getTriggers("受攻击前").forEach(t=>attack=t.trigger(attack,this));
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
-        this.getTriggers("受攻击后").forEach(t=>t.trigger(this,attack));
+        this.getTriggers("受攻击后").forEach(t=>t.trigger(attack,this));
+        attack.source.char.getTriggers("攻击后").forEach(t=>t.trigger(attack,this));
     }
     /**克隆角色 */
     clone():Character{
