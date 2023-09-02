@@ -24,11 +24,10 @@ var Colcher;
                 hook: "释放技能后",
                 weight: -Infinity,
                 trigger(skillData) {
-                    if (skillData.skill.info.skillName == "技能:王女的祝福")
+                    const { user, uid } = skillData;
+                    if (uid != user.dataTable["回音技能注册"])
                         return;
-                    if (skillData.skill.info.skillCategory != "奥义技能")
-                        return;
-                    skillData.user.buffTable.removeBuff(Colcher.回音);
+                    skillData.user.removeBuff(Colcher.回音);
                     let bufftable = new Modify_1.BuffTable(skillData.user);
                     bufftable.addBuff({
                         info: (0, Modify_1.genBuffInfo)("效果:回音奥义伤害减少", "负面效果"),
@@ -39,6 +38,21 @@ var Colcher;
                     skillData.user.triggerSkill(skillData.skill, skillData.targetList, {
                         buffTable: bufftable
                     });
+                }
+            }, {
+                info: (0, Trigger_1.genTriggerInfo)("触发:回音注册技能"),
+                hook: "释放技能前",
+                weight: Infinity,
+                trigger(skillData) {
+                    const { user, uid, skill } = skillData;
+                    if (skill.info.skillName == "技能:王女的祝福")
+                        return skillData;
+                    if (skill.info.skillCategory != "奥义技能")
+                        return skillData;
+                    if (user.dataTable["回音技能注册"] != null)
+                        return skillData;
+                    user.dataTable["回音技能注册"] = uid;
+                    return skillData;
                 }
             }]
     };

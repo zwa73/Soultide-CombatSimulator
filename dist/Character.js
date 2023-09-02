@@ -15,12 +15,17 @@ class Character {
     battlefield = Battlefield_1.DefaultBattlefield;
     /**角色的当前属性 */
     dynmaicStatus;
-    /**所有的附加状态 */
-    buffTable = new Modify_1.BuffTable(this);
+    /**所有的附加状态
+     * @deprecated 这个成员仅供伤害攻击计算系统或内部调用
+     * 对角色操作buff是应经过角色函数 用于触发触发器
+     */
+    _buffTable = new Modify_1.BuffTable(this);
     /**所有的技能 */
     skillTable = {};
     /**额外数据表 */
     dataTable = {};
+    /**释放的技能表 用于存储不会立即结束的技能 */
+    castingSkillData = {};
     constructor(name, status) {
         this.name = name;
         let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
@@ -38,11 +43,11 @@ class Character {
     }
     /**获取角色的基础属性 */
     getBaseStatus() {
-        return this.buffTable.getBuff((this.name + "基础属性"));
+        return this._buffTable.getBuff((this.name + "基础属性"));
     }
     /**获取某个计算完增益的属性 */
     getStaticStatus(field, damage) {
-        let mod = this.buffTable.modValue(0, field, damage);
+        let mod = this._buffTable.modValue(0, field, damage);
         return mod;
     }
     /**释放某个技能
@@ -51,28 +56,53 @@ class Character {
      * @param isTiggerSkill 是触发技能
      */
     useSkill(skill, target, skillDataOpt) {
-        let skillData = {
-            skill: skill,
-            user: this,
-            targetList: target,
-            battlefield: this.battlefield,
-            buffTable: new Modify_1.BuffTable(this),
-            isTriggerSkill: false,
-            dataTable: {},
-            uid: utils.genUUID()
-        };
-        skillData = Object.assign({}, skillData, skillDataOpt);
-        console.log(this.name, "开始向", target.map(char => char.name), "释放", skillData.skill.info.skillName);
-        skill.beforeCast ? skill.beforeCast(skillData) : undefined;
-        this.getTriggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
-        //消耗怒气
-        if (!skillData.isTriggerSkill)
-            this.dynmaicStatus.当前怒气 -= skill.cost || 0;
+        let skillData;
+        const preSkill = this.getCastingSkill(skillDataOpt?.uid);
+        //如果uid是释放中的技能 则视为继续释放
+        if (preSkill) {
+            skillData = Object.assign({}, preSkill, skillDataOpt);
+        }
+        else {
+            skillData = {
+                skill: skill,
+                user: this,
+                targetList: target,
+                battlefield: this.battlefield,
+                buffTable: new Modify_1.BuffTable(this),
+                isTriggerSkill: false,
+                uid: utils.genUUID()
+            };
+            skillData = Object.assign({}, skillData, skillDataOpt);
+            this.getTriggers("释放技能前").forEach(t => skillData = t.trigger(skillData));
+            console.log(this.name, "开始向", skillData.targetList.map(char => char.name), "释放", skillData.skill.info.skillName);
+            //消耗怒气
+            if (!skillData.isTriggerSkill)
+                this.dynmaicStatus.当前怒气 -= skill.cost || 0;
+        }
         //产生效果
         if (skill.cast)
             skill.cast(skillData);
+        //记录释放中
+        this.castingSkillData[skillData.uid] = skillData;
+        //结束技能
+        if (skill.willNotEnd !== false)
+            this.endSkill(skillData.uid);
+    }
+    /**获取某个释放中的技能 */
+    getCastingSkill(uid) {
+        if (uid == null)
+            return undefined;
+        return this.castingSkillData[uid];
+    }
+    /**结束某个技能 仅用于不会自动结束的技能
+     * @param uid 技能的唯一ID
+     */
+    endSkill(uid) {
+        const skillData = this.castingSkillData[uid];
+        const { targetList } = skillData;
+        console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName);
+        console.log();
         this.getTriggers("释放技能后").forEach(t => t.trigger(skillData));
-        skill.afterCast ? skill.afterCast(skillData) : undefined;
     }
     /**被动的触发某个技能
      * @param skill  技能
@@ -88,7 +118,7 @@ class Character {
     }
     /**结算回合 */
     endRound() {
-        this.buffTable.endRound();
+        this._buffTable.endRound();
         this.dynmaicStatus.当前怒气 += this.getStaticStatus("怒气回复");
         let maxEnergy = this.getStaticStatus("最大怒气");
         if (this.dynmaicStatus.当前怒气 > maxEnergy)
@@ -155,10 +185,14 @@ class Character {
     }
     /**克隆角色 */
     clone() {
-        let char = new Character(this.name, {});
-        let bt = this.buffTable.clone();
-        char.buffTable = bt;
-        return char;
+        let nchar = new Character(this.name, {});
+        nchar._buffTable = this._buffTable.clone();
+        const { ...skills } = this.skillTable;
+        nchar.skillTable = { ...skills };
+        nchar.dataTable = utils.deepClone(this.dataTable);
+        const { ...status } = this.dynmaicStatus;
+        nchar.dynmaicStatus = { ...status };
+        return nchar;
     }
     /**添加技能 同时加入技能的被动buff*/
     addSkill(skill) {
@@ -171,7 +205,7 @@ class Character {
     /**获取所有对应触发器 包括全局触发器 技能触发器 */
     getTriggers(hook) {
         //触发器数组
-        const tiggers = this.buffTable.getTriggers(hook);
+        const tiggers = this._buffTable.getTriggers(hook);
         //全局触发器
         for (const key in DataTable_1.GlobalTiggerTable) {
             let tigger = DataTable_1.GlobalTiggerTable[key];
@@ -192,35 +226,29 @@ class Character {
         return tiggers;
     }
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
-     * @deprecated 这个函数不会触发"获取状态层数"触发器
-     */
-    getBuffStackCountNoT(buff) {
-        return this.buffTable.getBuffStackCount(buff);
-    }
     /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
-    getBuffStackCountAndT(buff) {
-        let count = this.getBuffStackCountNoT(buff);
+    getBuffStackCount(buff) {
+        let count = this._buffTable.getBuffStackCount(buff);
         this.getTriggers("获取效果层数后").forEach(t => count = t.trigger(this, buff, count));
         return count;
     }
-    /**获取BuffStack */
-    getBuffStack(buff) {
-        return this.buffTable.getBuffStack(buff);
-    }
-    /**添加一个buff
+    /**添加一个buff 并触发触发器
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
     addBuff(buff, stack = 1, duration = Infinity) {
-        return this.buffTable.addBuff(buff, stack, duration);
+        return this._buffTable.addBuff(buff, stack, duration);
+    }
+    /**移除某个buff 并触发触发器 */
+    removeBuff(buff) {
+        return this._buffTable.removeBuff(buff);
     }
     /**含有某个Buff
      * @param buff      buff
      */
     hasBuff(buff) {
-        return this.buffTable.hasBuff(buff);
+        return this._buffTable.hasBuff(buff);
     }
 }
 exports.Character = Character;

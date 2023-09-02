@@ -34,9 +34,9 @@ export class Attack{
     /**计算一段攻击伤害 */
     calcDamage(target:Character):Damage{
         //暴击率
-        const charCrit = this.source.char.buffTable.getModSet("暴击率");
+        const charCrit = this.source.char._buffTable.getModSet("暴击率");
         const skillCrit = this.source.skillData.buffTable.getModSet("暴击率");
-        const targetCrit = target.buffTable.getModSet("受到暴击率");
+        const targetCrit = target._buffTable.getModSet("受到暴击率");
         const critSet = ModSet.multSet(targetCrit,ModSet.addSet(charCrit,skillCrit));
         const critRate = critSet.modValue(0);
         let currDamage = this.damage.clone();

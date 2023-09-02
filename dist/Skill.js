@@ -3,13 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.genSkillInfo = exports.procMTSkill = exports.procSTSkill = void 0;
 //———————————————————— 技能 ————————————————————//
 /**技能类型 */
-const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "其他", "非"];
+const SkillMaintypeList = ["雷电", "冰霜", "火焰", "魔法", "物理", "无类型", "非"];
 /**技能范围 */
 const SkillRangeList = ["单体", "群体", "无范围"];
 /**技能子类型 */
 const SkillSubtypeList = ["伤害", "治疗", "辅助", "被动"];
 /**技能类别 */
-const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "特性"];
+const SkillCategoryList = ["普攻", "核心", "秘术", "奥义", "特性", "无类别"];
 /**处理单体技能 process single skill*/
 function procSTSkill(skillData, func) {
     checkTargets(skillData.targetList, 1, 1);

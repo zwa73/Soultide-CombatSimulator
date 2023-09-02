@@ -34,7 +34,7 @@ var Silenus;
             }],
         specialModify(table) {
             const char = table.attacherChar;
-            let dmg = char.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒) * 0.02;
+            let dmg = char.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒) * 0.02;
             return { multModify: {
                     受到所有伤害: dmg
                 } };
@@ -57,7 +57,7 @@ var Silenus;
         specialModify(table) {
             const char = table.attacherChar;
             let dmg = 0.1;
-            if (char.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒) >= 5)
+            if (char.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒) >= 5)
                 dmg += 0.1;
             return { multModify: {
                     受到冰霜伤害: dmg
@@ -65,13 +65,13 @@ var Silenus;
         },
     };
     Silenus.能流感知 = {
-        info: (0, Skill_1.genSkillInfo)("技能:能流感知", "其他技能", "被动技能", "无范围技能", "特性技能"),
+        info: (0, Skill_1.genSkillInfo)("技能:能流感知", "无类型技能", "被动技能", "无范围技能", "特性技能"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:能流感知"),
                 hook: "造成类型伤害后",
                 damageCons: ["冰霜技能"],
                 trigger(damage, target) {
-                    target.addBuff(Silenus.能流感知效果, target.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒), 1);
+                    target.addBuff(Silenus.能流感知效果, target.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒), 1);
                     return damage;
                 },
             }]

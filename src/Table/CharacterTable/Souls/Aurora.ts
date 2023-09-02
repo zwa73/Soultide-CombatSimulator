@@ -8,35 +8,52 @@ import { StaticStatusOption } from "@src/Status";
 import { genTriggerInfo } from "@src/Trigger";
 
 export namespace Aurora {
+    const 上次失心童话 = "上次失心童话潜境";
+    const 触发深境 = "触发深境";
     export const 失心童话:Skill={
         info:genSkillInfo("技能:失心童话","雷电技能","伤害技能","单体技能","奥义技能"),
         cost:64,
         cast(skillData:SkillData){
-            const {user,targetList}=skillData;
-            //获取上次子技能的数据
-            let presubdata = undefined;
-            if(user.hasBuff(噩廻)) presubdata = user.dataTable["上一次失心童话潜境"];
-            else{
+            const {user}=skillData;
+            if(!user.hasBuff(噩廻)) {
                 user.addBuff(噩廻,user.dynmaicStatus.当前怒气,1);
                 user.dynmaicStatus.当前怒气=0;
+                user.dataTable[触发深境]=false;
+            }else
+                user.dataTable[触发深境]=true;
+        },
+        triggerList:[{
+            info:genTriggerInfo("触发:失心童话"),
+            hook:"释放技能后",
+            weight:-Number.MAX_VALUE,
+            trigger(skillData) {
+                const {user,targetList,skill}=skillData;
+                if(skill!=失心童话) return;
+                if(user.dataTable[触发深境]===true) {
+                    let preuid = (user.dataTable[上次失心童话] as string);
+                    user.triggerSkill(失心童话伤害,targetList,{uid:preuid});
+                    user.endSkill(preuid);
+                }else{
+                    user.triggerSkill(失心童话伤害,targetList);
+                }
             }
-            user.triggerSkill(失心童话伤害,targetList,presubdata);
-        }
+        }]
     }
     export const 失心童话伤害:Skill={
         info:genSkillInfo("技能:失心童话伤害","雷电技能","伤害技能","单体技能","奥义技能"),
+        willNotEnd:true,
         cast(skillData:SkillData){
             const {user,targetList}=skillData;
             //记录子技能数据
-            user.dataTable["上一次失心童话潜境"] = skillData;
+            user.dataTable[上次失心童话] = skillData.uid;
             /**随机目标 */
             const rdt = ()=>targetList[Math.floor(targetList.length*Math.random())];
             let atk = genAttack(skillData,1,"雷电伤害");
             for(let i=0;i<3;i++)
                 rdt().getHit(atk);
-            let count = user.getBuffStackCountAndT(噩廻);
+            let count = user.getBuffStackCount(噩廻);
             if(count>=32){
-                let factor = 0.2+(user.getBuffStackCountAndT(电棘丛生效果)*0.2);
+                let factor = 0.2+(user.getBuffStackCount(电棘丛生效果)*0.2);
                 let addatk = genAttack(skillData,factor,"雷电伤害");
                 rdt().getHit(addatk);
             }
@@ -85,12 +102,12 @@ export namespace Aurora {
                 if(damage.source.char == null) return;
                 let char = damage.source.char;
                 const countFlag = "电荆丛生攻击计数";
-                if(char.getBuffStackCountAndT(电棘丛生效果)<3){
+                if(char.getBuffStackCount(电棘丛生效果)<3){
                     if(char.dataTable[countFlag]==null)
                         char.dataTable[countFlag]=0;
-                    char.dataTable[countFlag]+=1;
+                    (char.dataTable[countFlag] as number)+=1;
                 }
-                if(char.dataTable[countFlag]>=3){
+                if((char.dataTable[countFlag] as number)>=3){
                     char.dataTable[countFlag]=0;
                     char.addBuff(电棘丛生效果, 1);
                 }
@@ -108,7 +125,7 @@ export namespace Aurora {
     }
     /**续存战意被动效果 */
     export const 存续战意:Skill={
-        info:genSkillInfo("技能:存续战意","其他技能","被动技能","无范围技能","特性技能"),
+        info:genSkillInfo("技能:存续战意","无类型技能","被动技能","无范围技能","特性技能"),
         triggerList:[{
             info:genTriggerInfo("触发:存续战意"),
             hook:"释放技能后",
@@ -129,7 +146,7 @@ export namespace Aurora {
         specialModify(table) {
             const char = table.attacherChar;
             let atk = 0;
-            if(char.getBuffStackCountAndT(存续战意效果)>=5)
+            if(char.getBuffStackCount(存续战意效果)>=5)
                 atk=0.075
             return{multModify:{
                 攻击:atk
@@ -142,6 +159,8 @@ export namespace Aurora {
     export function genChar(name?:string,status?:StaticStatusOption){
         let opt = Object.assign({},baseStatus,status);
         let char = new Character(name||"Aurora",opt);
+        char.addSkill(失心童话);
+        char.addSkill(荆雷奔袭);
         char.addSkill(存续战意);
         char.addSkill(电棘丛生);
         return char;

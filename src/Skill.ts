@@ -8,7 +8,7 @@ import { AnyTrigger } from "./Trigger";
 //———————————————————— 技能 ————————————————————//
 
 /**技能类型 */
-const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","其他","非"] as const;
+const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","无类型","非"] as const;
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 
 /**技能范围 */
@@ -23,7 +23,7 @@ export type SkillSubtype = `${typeof SkillSubtypeList[number]}技能`;
 export type SkillTarget = "友军"|"我方"|"敌方"|"敌方前排"|"敌方后排";
 
 /**技能类别 */
-const SkillCategoryList = ["普攻","核心","秘术","奥义","特性"] as const;
+const SkillCategoryList = ["普攻","核心","秘术","奥义","特性","无类别"] as const;
 export type SkillCategory = `${typeof SkillCategoryList[number]}技能`;
 
 /**技能数据 */
@@ -41,8 +41,6 @@ export type SkillData={
     isTriggerSkill:boolean;
     /**唯一ID */
     uid:string;
-    /**额外的表 */
-    dataTable:Record<string,any>;
 }
 /**可选的技能数据 */
 export type SkillDataOption = Partial<SkillData>;
@@ -68,18 +66,12 @@ export type Skill={
     readonly info:SkillInfo;
     /**技能的怒气消耗 默认0*/
     readonly cost?:number;
+    /**不会自动结束的技能 */
+    readonly willNotEnd?:boolean;
     /**使用技能
      * @param skillData 技能参数
      */
     readonly cast?:(skillData:SkillData)=>void;
-    /**使用技能前的额外效果
-     * @param skillData 技能参数
-     */
-    readonly afterCast?:(skillData:SkillData)=>void;
-    /**使用技能后的额外效果
-     * @param skillData 技能参数
-     */
-    readonly beforeCast?:(skillData:SkillData)=>void;
     /**被动Buff 角色加入技能时会被直接添加 */
     readonly passiveList?:ReadonlyArray<Readonly<BuffStack>>;
     /**触发器 加入角色就会获得的 */

@@ -1,9 +1,9 @@
-import { Writeable } from "@zwa73/utils";
+import { Writeable, JObject } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield } from "./Battlefield";
 import { Damage } from "./Damage";
-import { Buff, BuffStack, BuffTable } from "./Modify";
-import { Skill, SkillDataOption, SkillName } from "./Skill";
+import { Buff, BuffTable } from "./Modify";
+import { Skill, SkillData, SkillDataOption } from "./Skill";
 import { DynmaicStatus, StaticStatusOption } from "./Status";
 /**角色 */
 export declare class Character {
@@ -13,12 +13,17 @@ export declare class Character {
     battlefield: Battlefield;
     /**角色的当前属性 */
     dynmaicStatus: DynmaicStatus;
-    /**所有的附加状态 */
-    buffTable: BuffTable;
+    /**所有的附加状态
+     * @deprecated 这个成员仅供伤害攻击计算系统或内部调用
+     * 对角色操作buff是应经过角色函数 用于触发触发器
+     */
+    _buffTable: BuffTable;
     /**所有的技能 */
-    skillTable: Record<SkillName, Skill>;
+    private skillTable;
     /**额外数据表 */
-    dataTable: Record<string, any>;
+    dataTable: JObject;
+    /**释放的技能表 用于存储不会立即结束的技能 */
+    private castingSkillData;
     constructor(name: string, status: StaticStatusOption);
     /**获取角色的基础属性 */
     getBaseStatus(): Writeable<Buff>;
@@ -30,6 +35,12 @@ export declare class Character {
      * @param isTiggerSkill 是触发技能
      */
     useSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
+    /**获取某个释放中的技能 */
+    getCastingSkill(uid: string | undefined): SkillData | undefined;
+    /**结束某个技能 仅用于不会自动结束的技能
+     * @param uid 技能的唯一ID
+     */
+    endSkill(uid: string): void;
     /**被动的触发某个技能
      * @param skill  技能
      * @param target 目标
@@ -47,20 +58,16 @@ export declare class Character {
     addSkill(skill: Skill): void;
     /**获取所有对应触发器 包括全局触发器 技能触发器 */
     private getTriggers;
-    /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
-     * @deprecated 这个函数不会触发"获取状态层数"触发器
-     */
-    getBuffStackCountNoT(buff: Buff): number;
     /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
-    getBuffStackCountAndT(buff: Buff): number;
-    /**获取BuffStack */
-    getBuffStack(buff: Buff): BuffStack | undefined;
-    /**添加一个buff
+    getBuffStackCount(buff: Buff): number;
+    /**添加一个buff 并触发触发器
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
     addBuff(buff: Buff, stack?: number, duration?: number): void;
+    /**移除某个buff 并触发触发器 */
+    removeBuff(buff: Buff): void;
     /**含有某个Buff
      * @param buff      buff
      */

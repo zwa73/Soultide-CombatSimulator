@@ -45,7 +45,6 @@ class BuffTable {
         this.attacherChar = attacherChar;
     }
     /**添加一个buff
-     * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
@@ -64,7 +63,6 @@ class BuffTable {
         this.checkBuff(buff);
     }
     /**获取一个Buff的层数 不会触发触发器
-     * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
      */
     getBuffStackCount(buff) {
         let bs = this.getBuffStack(buff);
@@ -127,7 +125,6 @@ class BuffTable {
             return;
         bs.stack = 0;
         bs.duration = 0;
-        delete bs["dataTable"];
         delete this._table[buff.info.buffName];
     }
     /**获取某个计算完增益的属性
@@ -248,10 +245,9 @@ class BuffTable {
             let bs = this._table[bn];
             if (bs == null)
                 continue;
-            const { dataTable, ...rest } = bs;
+            const { ...rest } = bs;
             let nbs = {
-                ...rest,
-                dataTable: {}
+                ...rest
             };
             nbuff._table[bn] = nbs;
         }

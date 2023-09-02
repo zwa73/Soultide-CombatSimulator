@@ -9,36 +9,55 @@ const Skill_1 = require("../../../Skill");
 const Trigger_1 = require("../../../Trigger");
 var Aurora;
 (function (Aurora) {
+    const 上次失心童话 = "上次失心童话潜境";
+    const 触发深境 = "触发深境";
     Aurora.失心童话 = {
         info: (0, Skill_1.genSkillInfo)("技能:失心童话", "雷电技能", "伤害技能", "单体技能", "奥义技能"),
         cost: 64,
         cast(skillData) {
-            const { user, targetList } = skillData;
-            //获取上次子技能的数据
-            let presubdata = undefined;
-            if (user.hasBuff(Aurora.噩廻))
-                presubdata = user.dataTable["上一次失心童话潜境"];
-            else {
+            const { user } = skillData;
+            if (!user.hasBuff(Aurora.噩廻)) {
                 user.addBuff(Aurora.噩廻, user.dynmaicStatus.当前怒气, 1);
                 user.dynmaicStatus.当前怒气 = 0;
+                user.dataTable[触发深境] = false;
             }
-            user.triggerSkill(Aurora.失心童话伤害, targetList, presubdata);
-        }
+            else
+                user.dataTable[触发深境] = true;
+        },
+        triggerList: [{
+                info: (0, Trigger_1.genTriggerInfo)("触发:失心童话"),
+                hook: "释放技能后",
+                weight: -Number.MAX_VALUE,
+                trigger(skillData) {
+                    const { user, targetList, skill } = skillData;
+                    if (skill != Aurora.失心童话)
+                        return;
+                    if (user.dataTable[触发深境] === true) {
+                        let preuid = user.dataTable[上次失心童话];
+                        user.triggerSkill(Aurora.失心童话伤害, targetList, { uid: preuid });
+                        user.endSkill(preuid);
+                    }
+                    else {
+                        user.triggerSkill(Aurora.失心童话伤害, targetList);
+                    }
+                }
+            }]
     };
     Aurora.失心童话伤害 = {
         info: (0, Skill_1.genSkillInfo)("技能:失心童话伤害", "雷电技能", "伤害技能", "单体技能", "奥义技能"),
+        willNotEnd: true,
         cast(skillData) {
             const { user, targetList } = skillData;
             //记录子技能数据
-            user.dataTable["上一次失心童话潜境"] = skillData;
+            user.dataTable[上次失心童话] = skillData.uid;
             /**随机目标 */
             const rdt = () => targetList[Math.floor(targetList.length * Math.random())];
             let atk = (0, Attack_1.genAttack)(skillData, 1, "雷电伤害");
             for (let i = 0; i < 3; i++)
                 rdt().getHit(atk);
-            let count = user.getBuffStackCountAndT(Aurora.噩廻);
+            let count = user.getBuffStackCount(Aurora.噩廻);
             if (count >= 32) {
-                let factor = 0.2 + (user.getBuffStackCountAndT(Aurora.电棘丛生效果) * 0.2);
+                let factor = 0.2 + (user.getBuffStackCount(Aurora.电棘丛生效果) * 0.2);
                 let addatk = (0, Attack_1.genAttack)(skillData, factor, "雷电伤害");
                 rdt().getHit(addatk);
             }
@@ -88,7 +107,7 @@ var Aurora;
                         return;
                     let char = damage.source.char;
                     const countFlag = "电荆丛生攻击计数";
-                    if (char.getBuffStackCountAndT(Aurora.电棘丛生效果) < 3) {
+                    if (char.getBuffStackCount(Aurora.电棘丛生效果) < 3) {
                         if (char.dataTable[countFlag] == null)
                             char.dataTable[countFlag] = 0;
                         char.dataTable[countFlag] += 1;
@@ -111,7 +130,7 @@ var Aurora;
     };
     /**续存战意被动效果 */
     Aurora.存续战意 = {
-        info: (0, Skill_1.genSkillInfo)("技能:存续战意", "其他技能", "被动技能", "无范围技能", "特性技能"),
+        info: (0, Skill_1.genSkillInfo)("技能:存续战意", "无类型技能", "被动技能", "无范围技能", "特性技能"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:存续战意"),
                 hook: "释放技能后",
@@ -132,7 +151,7 @@ var Aurora;
         specialModify(table) {
             const char = table.attacherChar;
             let atk = 0;
-            if (char.getBuffStackCountAndT(Aurora.存续战意效果) >= 5)
+            if (char.getBuffStackCount(Aurora.存续战意效果) >= 5)
                 atk = 0.075;
             return { multModify: {
                     攻击: atk
@@ -145,6 +164,8 @@ var Aurora;
     function genChar(name, status) {
         let opt = Object.assign({}, Aurora.baseStatus, status);
         let char = new Character_1.Character(name || "Aurora", opt);
+        char.addSkill(Aurora.失心童话);
+        char.addSkill(Aurora.荆雷奔袭);
         char.addSkill(Aurora.存续战意);
         char.addSkill(Aurora.电棘丛生);
         return char;

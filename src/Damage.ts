@@ -108,7 +108,7 @@ export class Damage {
 	private calcSourceModSetTable(): ModSetTable {
 		//计算角色的buff
 		const charSetTable = this.source.char
-			? this.source.char.buffTable.getModSetTable(this)
+			? this.source.char._buffTable.getModSetTable(this)
 			: new ModSetTable();
         //console.log("charSetTable",charSetTable)
 		//计算技能的buff
@@ -140,7 +140,7 @@ export class Damage {
         //console.log("基础系数",this.factor)
 		if (this.hasSpecEffect(固定)) return dmg;
 
-		const targetModTable = target.buffTable.getModSetTable(this);
+		const targetModTable = target._buffTable.getModSetTable(this);
 		const sourceModTable = this.calcSourceModSetTable();
 		//console.log(sourceModSetTable);
 		//console.log(targetModSetTable);

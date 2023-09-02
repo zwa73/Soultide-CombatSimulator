@@ -18,7 +18,7 @@ var Andrea;
         cast(skillData) {
             (0, Skill_1.procSTSkill)(skillData, (data) => {
                 const { skill, user, target, uid } = data;
-                target.addBuff(Andrea.寒霜, target.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒));
+                target.addBuff(Andrea.寒霜, target.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒));
                 let atk = (0, Attack_1.genAttack)(skillData, 3.6, "冰霜伤害");
                 target.getHit(atk);
             });
@@ -33,7 +33,7 @@ var Andrea;
                 trigger(attack, victmin) {
                     if (attack.source.skillData.skill.info.skillName != "技能:极寒狙击")
                         return;
-                    let count = victmin.getBuffStackCountAndT(Andrea.寒霜);
+                    let count = victmin.getBuffStackCount(Andrea.寒霜);
                     let factor = count * (count * 0.0001 + 0.02);
                     let dmg = (0, Damage_1.genNonSkillDamage)(factor, "极寒伤害", attack.source.char);
                     victmin.getHurt(dmg);
@@ -46,7 +46,7 @@ var Andrea;
                 info: (0, Trigger_1.genTriggerInfo)("触发:冷凝循环"),
                 hook: "攻击前",
                 trigger(attack, victmin) {
-                    let stack = victmin.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒);
+                    let stack = victmin.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒);
                     attack.source.char.addBuff(Andrea.冷凝循环效果, stack, 1);
                     if (stack >= 10)
                         attack.source.char.addBuff(Andrea.冷凝循环效果A, 1, 1);
@@ -67,12 +67,12 @@ var Andrea;
         }
     };
     Andrea.冻寒标记 = {
-        info: (0, Skill_1.genSkillInfo)("技能:冻寒标记", "其他技能", "被动技能", "无范围技能", "特性技能"),
+        info: (0, Skill_1.genSkillInfo)("技能:冻寒标记", "无类型技能", "被动技能", "无范围技能", "特性技能"),
         triggerList: [{
                 info: (0, Trigger_1.genTriggerInfo)("触发:冻寒标记"),
                 hook: "攻击前",
                 trigger(attack, victmin) {
-                    let stack = victmin.getBuffStackCountAndT(_GenericBuff_1.GenericBuff.极寒);
+                    let stack = victmin.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒);
                     attack.source.char.addBuff(Andrea.冻寒标记效果, stack);
                     return attack;
                 },

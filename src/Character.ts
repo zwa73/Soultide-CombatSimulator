@@ -1,5 +1,5 @@
 import * as utils from "@zwa73/utils";
-import { Writeable } from "@zwa73/utils";
+import { Writeable,JObject } from "@zwa73/utils";
 import { Attack } from "./Attack";
 import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage, DamageInfo, 暴击 } from "./Damage";
@@ -8,8 +8,6 @@ import { Skill, SkillData, SkillDataOption, SkillName } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
 import { AnyHook, HookTriggerMap, TCauseDamageAfter, TCauseDamageBefore, TCauseSkillDamageAfter, TCauseSkillDamageBefore, TCauseTypeDamageAfter, TCauseTypeDamageBefore } from "./Trigger";
 import { GlobalTiggerTable } from "./DataTable";
-import { Souls } from "./Table";
-
 
 
 /**角色 */
@@ -20,12 +18,17 @@ export class Character {
     battlefield:Battlefield=DefaultBattlefield;
     /**角色的当前属性 */
     dynmaicStatus:DynmaicStatus;
-    /**所有的附加状态 */
-    buffTable:BuffTable=new BuffTable(this);
+    /**所有的附加状态
+     * @deprecated 这个成员仅供伤害攻击计算系统或内部调用
+     * 对角色操作buff是应经过角色函数 用于触发触发器
+     */
+    _buffTable:BuffTable=new BuffTable(this);
     /**所有的技能 */
-    skillTable:Record<SkillName,Skill>={};
+    private skillTable:Record<SkillName,Skill>={};
     /**额外数据表 */
-    dataTable:Record<string,any>={};
+    dataTable:JObject={};
+    /**释放的技能表 用于存储不会立即结束的技能 */
+    private castingSkillData:Record<string,SkillData>={};
 
     constructor(name:string,status:StaticStatusOption){
         this.name=name;
@@ -45,11 +48,11 @@ export class Character {
     }
     /**获取角色的基础属性 */
     getBaseStatus():Writeable<Buff>{
-        return this.buffTable.getBuff((this.name+"基础属性") as BuffName)!;
+        return this._buffTable.getBuff((this.name+"基础属性") as BuffName)!;
     }
     /**获取某个计算完增益的属性 */
     private getStaticStatus(field:ModifyType,damage?:Damage){
-        let mod = this.buffTable.modValue(0,field,damage);
+        let mod = this._buffTable.modValue(0,field,damage);
         return mod;
     }
     /**释放某个技能
@@ -58,28 +61,53 @@ export class Character {
      * @param isTiggerSkill 是触发技能
      */
     useSkill(skill:Skill,target:Character[],skillDataOpt?:SkillDataOption){
-        let skillData:SkillData = {
-            skill:skill,
-            user:this,
-            targetList:target,
-            battlefield:this.battlefield,
-            buffTable:new BuffTable(this),
-            isTriggerSkill:false,
-            dataTable:{},
-            uid:utils.genUUID()
+        let skillData:SkillData;
+        const preSkill = this.getCastingSkill(skillDataOpt?.uid);
+
+        //如果uid是释放中的技能 则视为继续释放
+        if(preSkill){
+            skillData=Object.assign({},preSkill,skillDataOpt);
+        }else {
+            skillData = {
+                skill:skill,
+                user:this,
+                targetList:target,
+                battlefield:this.battlefield,
+                buffTable:new BuffTable(this),
+                isTriggerSkill:false,
+                uid:utils.genUUID()
+            }
+            skillData = Object.assign({},skillData,skillDataOpt);
+
+            this.getTriggers("释放技能前").forEach(t=> skillData=t.trigger(skillData));
+
+            console.log(this.name,"开始向",skillData.targetList.map(char=>char.name),"释放",skillData.skill.info.skillName);
+            //消耗怒气
+            if(!skillData.isTriggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
         }
-        skillData = Object.assign({},skillData,skillDataOpt);
-        console.log(this.name,"开始向",target.map(char=>char.name),"释放",skillData.skill.info.skillName);
 
-
-        skill.beforeCast? skill.beforeCast(skillData):undefined;
-        this.getTriggers("释放技能前").forEach(t=> skillData=t.trigger(skillData));
-        //消耗怒气
-        if(!skillData.isTriggerSkill) this.dynmaicStatus.当前怒气-= skill.cost||0;
         //产生效果
         if(skill.cast) skill.cast(skillData);
+        //记录释放中
+        this.castingSkillData[skillData.uid] = skillData;
+
+        //结束技能
+        if(skill.willNotEnd!==false) this.endSkill(skillData.uid);
+    }
+    /**获取某个释放中的技能 */
+    getCastingSkill(uid:string|undefined):SkillData|undefined{
+        if(uid==null) return undefined;
+        return this.castingSkillData[uid];
+    }
+    /**结束某个技能 仅用于不会自动结束的技能
+     * @param uid 技能的唯一ID
+     */
+    endSkill(uid:string){
+        const skillData = this.castingSkillData[uid];
+        const {targetList} = skillData;
+        console.log(this.name,"结束了向",targetList.map(char=>char.name),"释放的",skillData.skill.info.skillName);
+        console.log();
         this.getTriggers("释放技能后").forEach(t=> t.trigger(skillData));
-        skill.afterCast? skill.afterCast(skillData):undefined;
     }
     /**被动的触发某个技能
      * @param skill  技能
@@ -95,7 +123,7 @@ export class Character {
     }
     /**结算回合 */
     endRound(){
-        this.buffTable.endRound();
+        this._buffTable.endRound();
         this.dynmaicStatus.当前怒气 += this.getStaticStatus("怒气回复");
         let maxEnergy = this.getStaticStatus("最大怒气");
         if(this.dynmaicStatus.当前怒气>maxEnergy) this.dynmaicStatus.当前怒气 = maxEnergy;
@@ -167,10 +195,14 @@ export class Character {
     }
     /**克隆角色 */
     clone():Character{
-        let char = new Character(this.name,{});
-        let bt = this.buffTable.clone();
-        char.buffTable = bt;
-        return char;
+        let nchar = new Character(this.name,{});
+        nchar._buffTable = this._buffTable.clone();
+        const {...skills} = this.skillTable;
+        nchar.skillTable = {...skills};
+        nchar.dataTable = utils.deepClone(this.dataTable);
+        const {...status} = this.dynmaicStatus;
+        nchar.dynmaicStatus = {...status};
+        return nchar;
     }
     /**添加技能 同时加入技能的被动buff*/
     addSkill(skill:Skill){
@@ -184,7 +216,7 @@ export class Character {
         //索引触发器类型
         type TT = HookTriggerMap[T];
         //触发器数组
-        const tiggers = this.buffTable.getTriggers(hook);
+        const tiggers = this._buffTable.getTriggers(hook);
         //全局触发器
         for (const key in GlobalTiggerTable){
             let tigger = GlobalTiggerTable[key as BuffName];
@@ -207,35 +239,29 @@ export class Character {
 
 
     //———————————————————— util ————————————————————//
-    /**获取一个Buff的层数 Get Buff Stack Count Without Trigger
-     * @deprecated 这个函数不会触发"获取状态层数"触发器
-     */
-    getBuffStackCountNoT(buff:Buff){
-        return this.buffTable.getBuffStackCount(buff);
-    }
     /**获取一个Buff的层数 并触发触发器 Get Buff Stack Count And Trigger*/
-    getBuffStackCountAndT(buff:Buff):number{
-        let count = this.getBuffStackCountNoT(buff);
+    getBuffStackCount(buff:Buff):number{
+        let count = this._buffTable.getBuffStackCount(buff);
         this.getTriggers("获取效果层数后").forEach(t=> count = t.trigger(this,buff,count));
         return count;
     }
-    /**获取BuffStack */
-    getBuffStack(buff:Buff):BuffStack|undefined{
-        return this.buffTable.getBuffStack(buff);
-    }
-    /**添加一个buff
+    /**添加一个buff 并触发触发器
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
     addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
-        return this.buffTable.addBuff(buff,stack,duration);
+        return this._buffTable.addBuff(buff,stack,duration);
+    }
+    /**移除某个buff 并触发触发器 */
+    removeBuff(buff:Buff){
+        return this._buffTable.removeBuff(buff);
     }
     /**含有某个Buff
      * @param buff      buff
      */
     hasBuff(buff:Buff){
-        return this.buffTable.hasBuff(buff);
+        return this._buffTable.hasBuff(buff);
     }
 }
 

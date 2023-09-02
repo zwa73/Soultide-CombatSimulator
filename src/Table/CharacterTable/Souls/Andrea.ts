@@ -16,7 +16,7 @@ export namespace Andrea{
         cast(skillData){
             procSTSkill(skillData,(data)=>{
                 const {skill,user,target,uid}=data;
-                target.addBuff(寒霜,target.getBuffStackCountAndT(GenericBuff.极寒));
+                target.addBuff(寒霜,target.getBuffStackCount(GenericBuff.极寒));
                 let atk = genAttack(skillData,3.6,"冰霜伤害");
                 target.getHit(atk);
             })
@@ -30,7 +30,7 @@ export namespace Andrea{
             hook:"受攻击后",
             trigger(attack, victmin) {
                 if(attack.source.skillData.skill.info.skillName!="技能:极寒狙击") return;
-                let count = victmin.getBuffStackCountAndT(寒霜);
+                let count = victmin.getBuffStackCount(寒霜);
                 let factor = count*(count*0.0001+0.02);
                 let dmg = genNonSkillDamage(factor,"极寒伤害",attack.source.char);
                 victmin.getHurt(dmg);
@@ -43,7 +43,7 @@ export namespace Andrea{
             info:genTriggerInfo("触发:冷凝循环"),
             hook:"攻击前",
             trigger(attack, victmin) {
-                let stack = victmin.getBuffStackCountAndT(GenericBuff.极寒);
+                let stack = victmin.getBuffStackCount(GenericBuff.极寒);
                 attack.source.char.addBuff(冷凝循环效果,stack,1);
                 if(stack>=10)
                     attack.source.char.addBuff(冷凝循环效果A,1,1);
@@ -64,12 +64,12 @@ export namespace Andrea{
         }
     }
     export const 冻寒标记:Skill={
-        info:genSkillInfo("技能:冻寒标记","其他技能","被动技能","无范围技能","特性技能"),
+        info:genSkillInfo("技能:冻寒标记","无类型技能","被动技能","无范围技能","特性技能"),
         triggerList:[{
             info:genTriggerInfo("触发:冻寒标记"),
             hook:"攻击前",
             trigger(attack, victmin) {
-                let stack = victmin.getBuffStackCountAndT(GenericBuff.极寒);
+                let stack = victmin.getBuffStackCount(GenericBuff.极寒);
                 attack.source.char.addBuff(冻寒标记效果,stack);
                 return attack;
             },

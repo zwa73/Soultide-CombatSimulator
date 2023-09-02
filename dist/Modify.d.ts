@@ -65,8 +65,6 @@ export type BuffStack = {
     stack: number;
     /**持续时间倒计时 */
     duration: number;
-    /**额外的表 */
-    dataTable?: Record<string, any>;
 };
 /**buff表 */
 export declare class BuffTable {
@@ -78,14 +76,12 @@ export declare class BuffTable {
      */
     constructor(attacherChar: Character);
     /**添加一个buff
-     * @deprecated 这个函数仅供Character.addBuff 或内部调用
      * @param buff      buff
      * @param stack     层数        默认1
      * @param duration  持续回合    默认无限
      */
     addBuff(buff: Buff, stack?: number, duration?: number): void;
     /**获取一个Buff的层数 不会触发触发器
-     * @deprecated 这个函数仅供Character.getBuffStackCountWithoutT 或内部调用
      */
     getBuffStackCount(buff: Buff): number;
     /**获取一个Buff
