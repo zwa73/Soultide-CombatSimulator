@@ -8,7 +8,7 @@ import { AnyTrigger } from "./Trigger";
 //———————————————————— 技能 ————————————————————//
 
 /**技能类型 */
-const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","无类型","非"] as const;
+const SkillMaintypeList = ["雷电","冰霜","火焰","魔法","物理","无类型"] as const;
 export type SkillType = `${typeof SkillMaintypeList[number]}技能`;
 
 /**技能范围 */

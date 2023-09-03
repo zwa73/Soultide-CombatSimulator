@@ -28,4 +28,4 @@ export declare class Attack {
     clone(): Attack;
 }
 /**产生攻击 */
-export declare function genAttack(skillData: SkillData, factor: number, dmgType: DamageType, dmgCategory: DamageCategory, ...specEffects: SpecEffect[]): Attack;
+export declare function genAttack<DT extends DamageCategory>(skillData: SkillData, factor: number, dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), ...specEffects: SpecEffect[]): Attack;

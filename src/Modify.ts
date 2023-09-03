@@ -1,5 +1,5 @@
 import { IJData, deepClone } from "@zwa73/utils";
-import { AddiDamageType, Damage, DamageCategory, DamageInfo, DamageType, SpecEffect } from "./Damage";
+import { AddiDamageType, Damage, DamageCategory, DamageInfo, DamageType, NoSkillDamageInfo, SpecEffect } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
 import { StaticStatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
@@ -16,7 +16,8 @@ export type ModifyType = ModifyTypeAtk|`受到${ModifyTypeAtk}`|ModiftTypeBase;
 
 
 /**伤害具体类型约束 Damage Info Constraint*/
-export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|DamageType|SkillName|SpecEffect|DamageCategory;
+export type DamageConsType=SkillType|SkillRange|SkillCategory|SkillSubtype|
+    DamageType|SkillName|SpecEffect|DamageCategory|NoSkillDamageInfo["skillType"];
 /**伤害约束 或 数组或单独的伤害约束组成*/
 export type DamageConsOr  = ReadonlyArray<DamageConsType>|DamageConsType;
 /**伤害约束 与 N个伤害约束或组成*/

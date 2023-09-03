@@ -43,7 +43,7 @@ class Attack {
 }
 exports.Attack = Attack;
 /**产生攻击 */
-function genAttack(skillData, factor, dmgType, dmgCategory, ...specEffects) {
-    return new Attack({ char: skillData.user, skillData: skillData }, (0, Damage_1.genSkillDamage)(factor, dmgType, dmgCategory, skillData, ...specEffects));
+function genAttack(skillData, factor, dmgCategory, dmgType, ...specEffects) {
+    return new Attack({ char: skillData.user, skillData: skillData }, (0, Damage_1.genSkillDamage)(factor, dmgCategory, dmgType, skillData, ...specEffects));
 }
 exports.genAttack = genAttack;

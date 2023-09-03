@@ -55,7 +55,13 @@ export class Attack{
 
 
 /**产生攻击 */
-export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,dmgCategory:DamageCategory,...specEffects:SpecEffect[]):Attack{
+export function genAttack<DT extends DamageCategory>(
+        skillData:SkillData,
+        factor:number,
+        dmgCategory:DT,
+        dmgType?:(DT extends "所有伤害"? DamageType:undefined),
+        ...specEffects:SpecEffect[]
+    ):Attack{
     return new Attack({char:skillData.user,skillData:skillData},
-        genSkillDamage(factor,dmgType,dmgCategory,skillData,...specEffects));
+        genSkillDamage(factor,dmgCategory,dmgType,skillData,...specEffects));
 }

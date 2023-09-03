@@ -13,13 +13,26 @@ export type AddiDamageType = `${typeof DamageBaseTypeList[number]}附伤`;
 declare const SpecEffectList: readonly ["固定", "稳定", "穿盾", "穿防", "暴击", "鸣响", "不击破"];
 /**伤害特效 */
 export type SpecEffect = `${typeof SpecEffectList[number]}特效`;
-/**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
-export type DamageInfo = {
+/**技能造成的伤害 */
+export type SkillDamageInfo = Writeable<SkillInfo>;
+/**非技能造成的伤害 */
+export type NoSkillDamageInfo = {
+    skillType: "非技能";
+};
+/**伤害效果 */
+export type NgDamageInfo = {
     /**伤害类别 */
     dmgCategory: DamageCategory;
     /**伤害类型 */
     dmgType: DamageType;
-} & Omit<Partial<Writeable<SkillInfo>>, "skillType"> & Pick<Writeable<SkillInfo>, "skillType">;
+};
+/**f非伤害效果 */
+export type HealDamageInfo = {
+    /**治疗或护盾类别 */
+    dmgCategory: Exclude<DamageCategory, "所有伤害">;
+};
+/**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
+export type DamageInfo = (NgDamageInfo | HealDamageInfo) & (SkillDamageInfo | NoSkillDamageInfo);
 /**伤害来源 */
 export type DamageSource = {
     /**攻击来源 */
@@ -60,9 +73,9 @@ export declare class Damage {
     clone(): Damage;
 }
 /**生成伤害信息 */
-export declare function genDamageInfo(dmgType: DamageType, dmgCategory: DamageCategory, info?: SkillInfo): DamageInfo;
+export declare function genDamageInfo<DT extends DamageCategory>(dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), info?: SkillInfo): DamageInfo;
 /**产生非技能伤害 */
-export declare function genNonSkillDamage(factor: number, dmgType: DamageType, dmgCategory: DamageCategory, char?: Character, ...specEffects: SpecEffect[]): Damage;
+export declare function genNonSkillDamage<DT extends DamageCategory>(factor: number, dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), char?: Character, ...specEffects: SpecEffect[]): Damage;
 /**产生技能伤害 */
-export declare function genSkillDamage(factor: number, dmgType: DamageType, dmgCategory: DamageCategory, skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
+export declare function genSkillDamage<DT extends DamageCategory>(factor: number, dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
 export {};

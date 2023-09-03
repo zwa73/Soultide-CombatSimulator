@@ -19,7 +19,7 @@ var Andrea;
             (0, Skill_1.procSTSkill)(skillData, (data) => {
                 const { skill, user, target, uid } = data;
                 target.addBuff(Andrea.寒霜, target.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒));
-                let atk = (0, Attack_1.genAttack)(skillData, 3.6, "冰霜伤害", "所有伤害");
+                let atk = (0, Attack_1.genAttack)(skillData, 3.6, "所有伤害", "冰霜伤害");
                 target.getHit(atk);
             });
         }
@@ -35,7 +35,7 @@ var Andrea;
                         return;
                     let count = victmin.getBuffStackCount(Andrea.寒霜);
                     let factor = count * (count * 0.0001 + 0.02);
-                    let dmg = (0, Damage_1.genNonSkillDamage)(factor, "极寒伤害", "所有伤害", attack.source.char);
+                    let dmg = (0, Damage_1.genNonSkillDamage)(factor, "所有伤害", "极寒伤害", attack.source.char);
                     victmin.getHurt(dmg);
                 },
             }]

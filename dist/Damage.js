@@ -75,18 +75,36 @@ class Damage {
     /**含有任何一个特效 */
     hasSpecEffect(...flags) {
         for (let flag of flags) {
-            if (this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType].includes(flag))
+            let typeEffect = [];
+            if ("dmgType" in this.info)
+                DamageSpecMap[this.info.dmgType];
+            if (this.specEffects.includes(flag) || typeEffect.includes(flag))
                 return true;
         }
         return false;
     }
     /**获取所有特效 */
     getSpecEffectList() {
-        return [...this.specEffects, ...DamageSpecMap[this.info.dmgType]];
+        let typeEffect = [];
+        if ("dmgType" in this.info)
+            DamageSpecMap[this.info.dmgType];
+        return [...this.specEffects, ...typeEffect];
     }
     /**计算伤害 */
     calcOverdamage(target) {
-        const { dmgType, dmgCategory, skillCategory, skillRange } = this.info;
+        if (!("dmgType" in this.info))
+            throw "试图计算一个治疗伤害";
+        const { dmgType, dmgCategory } = this.info;
+        let skillCategory;
+        let skillRange;
+        if (this.info.skillType != "非技能") {
+            skillCategory = this.info.skillCategory;
+            skillRange = this.info.skillRange;
+        }
+        else {
+            skillCategory = undefined;
+            skillRange = undefined;
+        }
         //需要附伤
         const needAdd = this.isSkillDamage();
         //是子伤害
@@ -210,28 +228,33 @@ class Damage {
 }
 exports.Damage = Damage;
 /**生成伤害信息 */
-function genDamageInfo(dmgType, dmgCategory, info) {
-    return {
-        skillName: info ? info.skillName : undefined,
-        skillCategory: info ? info.skillCategory : undefined,
-        skillRange: info ? info.skillRange : undefined,
-        skillType: info ? info.skillType : "非技能",
-        skillSubtype: info ? info.skillSubtype : undefined,
-        dmgType: dmgType,
-        dmgCategory: dmgCategory,
-    };
+function genDamageInfo(dmgCategory, dmgType, info) {
+    const defnoskill = { skillType: "非技能" };
+    const { ...skinfor } = info ? info : defnoskill;
+    if (dmgType && dmgCategory == "所有伤害")
+        return {
+            dmgCategory,
+            dmgType,
+            ...skinfor
+        };
+    else if (dmgCategory != "所有伤害")
+        return {
+            dmgCategory,
+            ...skinfor
+        };
+    throw "genDamageInfo 未知错误";
 }
 exports.genDamageInfo = genDamageInfo;
 /**产生非技能伤害 */
-function genNonSkillDamage(factor, dmgType, dmgCategory, char, ...specEffects) {
-    return new Damage({ char: char }, factor, genDamageInfo(dmgType, dmgCategory), ...specEffects);
+function genNonSkillDamage(factor, dmgCategory, dmgType, char, ...specEffects) {
+    return new Damage({ char: char }, factor, genDamageInfo(dmgCategory, dmgType), ...specEffects);
 }
 exports.genNonSkillDamage = genNonSkillDamage;
 /**产生技能伤害 */
-function genSkillDamage(factor, dmgType, dmgCategory, skillData, ...specEffects) {
+function genSkillDamage(factor, dmgCategory, dmgType, skillData, ...specEffects) {
     return new Damage({
         char: skillData?.user,
         skillData: skillData
-    }, factor, genDamageInfo(dmgType, dmgCategory, skillData?.skill.info), ...specEffects);
+    }, factor, genDamageInfo(dmgCategory, dmgType, skillData?.skill.info), ...specEffects);
 }
 exports.genSkillDamage = genSkillDamage;

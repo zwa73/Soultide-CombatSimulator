@@ -184,8 +184,10 @@ export class Character {
         }
         if(hasSource)
             log+=" 造成的"
-
-        console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
+        if(damage.info.dmgCategory=="所有伤害")
+            console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
+        else
+            console.log(log,dmg,"点",damage.info.dmgCategory,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
     }
     /**受到攻击击中 */
     getHit(attack:Attack){

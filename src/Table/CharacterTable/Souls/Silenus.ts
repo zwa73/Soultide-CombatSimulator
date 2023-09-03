@@ -13,7 +13,7 @@ export namespace Silenus{
             procSTSkill(skillData,(data)=>{
                 const {target} = data;
                 target.addBuff(极寒诅咒,1,2);
-                let atk = genAttack(skillData,3.6,"冰霜伤害","所有伤害");
+                let atk = genAttack(skillData,3.6,"所有伤害","冰霜伤害");
                 target.getHit(atk);
             })
         },
@@ -44,7 +44,7 @@ export namespace Silenus{
             procSTSkill(skillData,(data)=>{
                 const {target} = data;
                 target.addBuff(寂灭昭示效果,1,2);
-                let atk = genAttack(skillData,2.1,"冰霜伤害","所有伤害");
+                let atk = genAttack(skillData,2.1,"所有伤害","冰霜伤害");
                 target.getHit(atk);
             })
         },
