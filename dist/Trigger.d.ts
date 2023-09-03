@@ -139,6 +139,44 @@ export interface TCauseAttackAfter extends TriggerBase {
      */
     readonly trigger: (attack: Attack, victmin: Character) => void;
 }
+/**造成治疗前 */
+export interface TCauseHealBefore extends TriggerBase {
+    readonly hook: "造成治疗前";
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     * @returns 修改的 伤害
+     */
+    readonly trigger: (damage: Damage, target: Character) => Damage;
+}
+/**造成治疗后 */
+export interface TCauseHealAfter extends TriggerBase {
+    readonly hook: "造成治疗后";
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     */
+    readonly trigger: (damage: Damage, target: Character) => void;
+}
+/**造成护盾前 */
+export interface TCauseShieldBefore extends TriggerBase {
+    readonly hook: "造成护盾前";
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     * @returns 修改的 伤害
+     */
+    readonly trigger: (damage: Damage, target: Character) => Damage;
+}
+/**造成护盾后 */
+export interface TCauseShieldAfter extends TriggerBase {
+    readonly hook: "造成护盾后";
+    /**触发 使用技能前 触发器
+     * @param damage 伤害
+     * @param target 伤害目标
+     */
+    readonly trigger: (damage: Damage, target: Character) => void;
+}
 export type TriggerName = `触发:${string}`;
 export type TriggerInfo = {
     readonly triggerName: TriggerName;
@@ -160,6 +198,10 @@ export type HookTriggerMap = {
     readonly 攻击后: TCauseAttackAfter;
     readonly 造成类型伤害前: TCauseTypeDamageBefore;
     readonly 造成类型伤害后: TCauseTypeDamageAfter;
+    readonly 造成治疗前: TCauseHealBefore;
+    readonly 造成治疗后: TCauseHealAfter;
+    readonly 造成护盾前: TCauseShieldBefore;
+    readonly 造成护盾后: TCauseShieldAfter;
 };
 export type AnyHook = keyof HookTriggerMap;
 export type AnyTrigger = HookTriggerMap[AnyHook];

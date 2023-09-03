@@ -7,10 +7,12 @@ import { SkillData, SkillInfo } from "./Skill";
 //———————————————————— 伤害 ————————————————————//
 
 
+/**伤害类别 */
+export type DamageCategory = "伤害效果"|"治疗效果"|"护盾效果";
 
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电","冰霜","火焰","魔法","物理",
-    "电击","极寒","燃烧","暗蚀","流血","治疗","固定"] as const;
+    "电击","极寒","燃烧","暗蚀","流血","固定"] as const;
 
 /**伤害类型 */
 export type DamageType = `${typeof DamageBaseTypeList[number]}伤害`;
@@ -33,33 +35,27 @@ SubDamageRelyMap.流血伤害 = ["物理伤害"];
 const AddiDamageIncludeMap:Record<DamageType,AddiDamageType>=
     DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [`${key}伤害`]: [`${key}附伤`] }), {}) as any;
 
+const SpecEffectList=["固定","稳定","穿盾","穿防","暴击","鸣响","不击破"] as const;
 /**伤害特效 */
-export enum SpecEffect{
-    /**造成治疗 */
-    治疗="治疗",
-    /**不享受任何加成 造成相当于系数的伤害 */
-    固定="固定",
-    /**不会浮动 */
-    稳定="稳定",
-    /**穿透护盾 */
-    穿盾="穿盾",
-    /**忽视防御 */
-    穿防="穿防",
-    /**暴击伤害 */
-    暴击="暴击",
-};
-export const {治疗,固定,稳定,穿盾,穿防,暴击}=SpecEffect;
-
+export type SpecEffect=`${typeof SpecEffectList[number]}特效`;
+//固定 不享受任何加成 造成相当于系数的伤害
+//稳定 不会浮动
+//穿盾 穿透护盾
+//穿防 忽视防御
+//暴击 暴击伤害
+//鸣响 鸣响技能的伤害
+//不击破 不击破弱点
 
 /**伤害特殊效果表 */
-const DamageSpecMap:Record<DamageType,SpecEffect[]|undefined> =
-    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: undefined }), {}) as any;;
-DamageSpecMap.治疗伤害 = [治疗];
-DamageSpecMap.固定伤害 = [固定,稳定,穿防];
-DamageSpecMap.燃烧伤害 = [穿盾];
+const DamageSpecMap:Record<DamageType,SpecEffect[]> =
+    DamageBaseTypeList.reduce((acc, key) => ({ ...acc, [key]: [] }), {}) as any;;
+DamageSpecMap.固定伤害 = ["固定特效","稳定特效","穿防特效"];
+DamageSpecMap.燃烧伤害 = ["穿盾特效"];
 
 /**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
 export type DamageInfo={
+	/**伤害类别 */
+	dmgCategory:DamageCategory;
     /**伤害类型 */
     dmgType:DamageType;
 }&Omit<Partial<Writeable<SkillInfo>>,"skillType">&
@@ -123,13 +119,21 @@ export class Damage {
         return ModSetTable.addSet(charSetTable,skillSetTable,attackSetTable);
 	}
 
-	/**含有某个特效 */
-	hasSpecEffect(flag: SpecEffect) {
-		return this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType]?.includes(flag);
+	/**含有任何一个特效 */
+	hasSpecEffect(...flags: SpecEffect[]) {
+		for(let flag of flags){
+			if(this.specEffects.includes(flag) || DamageSpecMap[this.info.dmgType].includes(flag))
+				return true;
+		}
+		return false;
+	}
+	/**获取所有特效 */
+	getSpecEffectList():SpecEffect[] {
+		return [...this.specEffects,...DamageSpecMap[this.info.dmgType]];
 	}
 	/**计算伤害 */
 	calcOverdamage(target: Character): number {
-		const { dmgType, skillCategory, skillRange } = this.info;
+		const { dmgType, dmgCategory, skillCategory, skillRange } = this.info;
 		//需要附伤
 		const needAdd = this.isSkillDamage();
 		//是子伤害
@@ -138,7 +142,7 @@ export class Damage {
 		//基础系数
 		let dmg = this.factor;
         //console.log("基础系数",this.factor)
-		if (this.hasSpecEffect(固定)) return dmg;
+		if (this.hasSpecEffect("固定特效")) return dmg;
 
 		const targetModTable = target._buffTable.getModSetTable(this);
 		const sourceModTable = this.calcSourceModSetTable();
@@ -159,7 +163,7 @@ export class Damage {
 
 		//防御
 		let def = targetModTable.getModSet("防御").modValue(0);
-		def = this.hasSpecEffect(穿防) || this.hasSpecEffect(治疗)? 0:def;
+		def = this.hasSpecEffect("穿防特效")? 0:def;
 		//穿防
 		let pendef = ModSet.addSet(targetModTable.getModSet("受到穿透防御"),
 			sourceModTable.getModSet("穿透防御"));
@@ -174,10 +178,11 @@ export class Damage {
             adddmg = modValue(0, AddiDamageIncludeMap[dmgType],
                 `受到${AddiDamageIncludeMap[dmgType]}`);
 
-		//泛伤和属性伤害 乘区
+		//泛伤和属性伤害 乘区 治疗不享受此乘区
 		let baseDmgMod = ModSet.addSet(
-			sourceModTable.getModSet("所有伤害"),
-			targetModTable.getModSet("受到所有伤害"));
+				sourceModTable.getModSet(dmgCategory),
+				targetModTable.getModSet(`受到${dmgCategory}`));
+
 		//子伤害使用主伤害作为基础区
 		if(isSubDamage){
 			for (let t of SubDamageRelyMap[dmgType]!){
@@ -215,7 +220,7 @@ export class Damage {
 		}
 
         //暴击伤害
-        if(this.hasSpecEffect(暴击)){
+        if(this.hasSpecEffect("暴击特效")){
             let critdmg = modValue(0, `暴击伤害`,`受到暴击伤害`);
             dmg = dmg*critdmg;
 			if (needAdd) adddmg = adddmg*critdmg
@@ -224,7 +229,39 @@ export class Damage {
 		//合并附伤
 		dmg += adddmg;
 		//浮动 +-5%
-		if (!this.hasSpecEffect(稳定)) dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
+		if (!this.hasSpecEffect("稳定特效")) dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
+		return Math.floor(dmg);
+	}
+	/**计算治疗或护盾 */
+	calcOverHeal(target: Character): number {
+		const { dmgType, dmgCategory } = this.info;
+		const targetModTable = target._buffTable.getModSetTable(this);
+		const sourceModTable = this.calcSourceModSetTable();
+
+		/**对数值进行增益  目标Set与来源Set加算
+		 * @param base       		基础值
+		 * @param flag       		标签
+    	 * @param targetFlag 		目标的标签
+		 */
+		function modValue(base: number, flag: ModifyType, targetFlag:ModifyType) {
+			return ModSet.addSet(sourceModTable.getModSet(flag),targetModTable.getModSet(targetFlag)).modValue(base);
+		}
+
+		//基础系数
+		let dmg = this.factor;
+        //console.log("基础系数",this.factor)
+		if (this.hasSpecEffect("固定特效")) return dmg;
+
+		dmg = modValue(dmg,dmgCategory,`受到${dmgCategory}`);
+
+		//暴击伤害
+        if(this.hasSpecEffect("暴击特效")){
+            let critdmg = modValue(0, `暴击伤害`,`受到暴击伤害`);
+            dmg = dmg*critdmg;
+        }
+
+		//浮动 +-5%
+		if (!this.hasSpecEffect("稳定特效")) dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
 		return Math.floor(dmg);
 	}
     /**是技能伤害 */
@@ -240,7 +277,7 @@ export class Damage {
 
 
 /**生成伤害信息 */
-export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
+export function genDamageInfo(dmgType:DamageType,dmgCategory:DamageCategory,info?:SkillInfo):DamageInfo{
     return {
         skillName:info? info.skillName:undefined,
         skillCategory:info? info.skillCategory:undefined,
@@ -248,16 +285,17 @@ export function genDamageInfo(dmgType:DamageType,info?:SkillInfo):DamageInfo{
         skillType:info? info.skillType:"非技能",
         skillSubtype:info? info.skillSubtype:undefined,
         dmgType:dmgType,
+		dmgCategory:dmgCategory,
     }
 }
 /**产生非技能伤害 */
-export function genNonSkillDamage(factor:number,dmgType:DamageType,char?:Character,...specEffects:SpecEffect[]):Damage{
-    return new Damage({char:char},factor,genDamageInfo(dmgType),...specEffects);
+export function genNonSkillDamage(factor:number,dmgType:DamageType,dmgCategory:DamageCategory,char?:Character,...specEffects:SpecEffect[]):Damage{
+    return new Damage({char:char},factor,genDamageInfo(dmgType,dmgCategory),...specEffects);
 }
 /**产生技能伤害 */
-export function genSkillDamage(factor:number,dmgType:DamageType,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
+export function genSkillDamage(factor:number,dmgType:DamageType,dmgCategory:DamageCategory,skillData?:SkillData,...specEffects:SpecEffect[]):Damage{
     return new Damage({
         char:skillData?.user,
         skillData:skillData
-    },factor,genDamageInfo(dmgType,skillData?.skill.info),...specEffects);
+    },factor,genDamageInfo(dmgType,dmgCategory,skillData?.skill.info),...specEffects);
 }

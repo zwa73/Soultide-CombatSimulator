@@ -12,9 +12,10 @@ function matchCons(dmg, cons) {
     //展开info
     let infos = [];
     if (dmg != null) {
+        //加入info
         Object.values(dmg.info).forEach(element => infos.push(element));
-        if (dmg.source.skillData?.isTriggerSkill === true)
-            infos.push("鸣响技能");
+        //加入特效
+        infos.push(...dmg.getSpecEffectList());
     }
     //遍历约束 判断infos是否包含所有的And
     for (let con of cons) {

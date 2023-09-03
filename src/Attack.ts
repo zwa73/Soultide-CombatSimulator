@@ -1,5 +1,5 @@
 import { Character } from "./Character";
-import { Damage, SpecEffect, genSkillDamage, 暴击, DamageType } from "./Damage";
+import { Damage, SpecEffect, genSkillDamage, DamageType, DamageCategory } from "./Damage";
 import { BuffTable, ModSet } from "./Modify";
 import { SkillData } from "./Skill";
 
@@ -16,7 +16,7 @@ export type AttackSource={
 /**造成技能攻击 */
 export class Attack{
     /**攻击的伤害 */
-    private readonly damage:Damage;
+    readonly damage:Damage;
     /**攻击来源 */
     readonly source:AttackSource;
     /**只应用于此次攻击的Buff */
@@ -41,7 +41,9 @@ export class Attack{
         const critRate = critSet.modValue(0);
         let currDamage = this.damage.clone();
         if(Math.random()<critRate)
-            currDamage.specEffects.push(暴击);
+            currDamage.specEffects.push("暴击特效");
+        if(this.source.skillData.isTriggerSkill)
+            currDamage.specEffects.push("鸣响特效");
         return currDamage;
     }
     /**复制攻击 */
@@ -53,7 +55,7 @@ export class Attack{
 
 
 /**产生攻击 */
-export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,...specEffects:SpecEffect[]):Attack{
+export function genAttack(skillData:SkillData,factor:number,dmgType:DamageType,dmgCategory:DamageCategory,...specEffects:SpecEffect[]):Attack{
     return new Attack({char:skillData.user,skillData:skillData},
-        genSkillDamage(factor,dmgType,skillData,...specEffects));
+        genSkillDamage(factor,dmgType,dmgCategory,skillData,...specEffects));
 }

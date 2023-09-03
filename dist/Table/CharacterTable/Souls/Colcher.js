@@ -42,7 +42,7 @@ var Colcher;
             }, {
                 info: (0, Trigger_1.genTriggerInfo)("触发:回音注册技能"),
                 hook: "释放技能前",
-                weight: Infinity,
+                weight: -Infinity,
                 trigger(skillData) {
                     const { user, uid, skill } = skillData;
                     if (skill.info.skillName == "技能:王女的祝福")

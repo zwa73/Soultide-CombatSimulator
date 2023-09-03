@@ -31,7 +31,9 @@ class Attack {
         const critRate = critSet.modValue(0);
         let currDamage = this.damage.clone();
         if (Math.random() < critRate)
-            currDamage.specEffects.push(Damage_1.暴击);
+            currDamage.specEffects.push("暴击特效");
+        if (this.source.skillData.isTriggerSkill)
+            currDamage.specEffects.push("鸣响特效");
         return currDamage;
     }
     /**复制攻击 */
@@ -41,7 +43,7 @@ class Attack {
 }
 exports.Attack = Attack;
 /**产生攻击 */
-function genAttack(skillData, factor, dmgType, ...specEffects) {
-    return new Attack({ char: skillData.user, skillData: skillData }, (0, Damage_1.genSkillDamage)(factor, dmgType, skillData, ...specEffects));
+function genAttack(skillData, factor, dmgType, dmgCategory, ...specEffects) {
+    return new Attack({ char: skillData.user, skillData: skillData }, (0, Damage_1.genSkillDamage)(factor, dmgType, dmgCategory, skillData, ...specEffects));
 }
 exports.genAttack = genAttack;

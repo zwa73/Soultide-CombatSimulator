@@ -16,7 +16,7 @@ var Silenus;
             (0, Skill_1.procSTSkill)(skillData, (data) => {
                 const { target } = data;
                 target.addBuff(Silenus.极寒诅咒, 1, 2);
-                let atk = (0, Attack_1.genAttack)(skillData, 3.6, "冰霜伤害");
+                let atk = (0, Attack_1.genAttack)(skillData, 3.6, "冰霜伤害", "伤害效果");
                 target.getHit(atk);
             });
         },
@@ -36,7 +36,7 @@ var Silenus;
             const char = table.attacherChar;
             let dmg = char.getBuffStackCount(_GenericBuff_1.GenericBuff.极寒) * 0.02;
             return { multModify: {
-                    受到所有伤害: dmg
+                    受到伤害效果: dmg
                 } };
         },
     };
@@ -47,7 +47,7 @@ var Silenus;
             (0, Skill_1.procSTSkill)(skillData, (data) => {
                 const { target } = data;
                 target.addBuff(Silenus.寂灭昭示效果, 1, 2);
-                let atk = (0, Attack_1.genAttack)(skillData, 2.1, "冰霜伤害");
+                let atk = (0, Attack_1.genAttack)(skillData, 2.1, "冰霜伤害", "伤害效果");
                 target.getHit(atk);
             });
         },

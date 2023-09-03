@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Character = void 0;
 const utils = require("@zwa73/utils");
 const Battlefield_1 = require("./Battlefield");
-const Damage_1 = require("./Damage");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
 const DataTable_1 = require("./DataTable");
@@ -85,7 +84,7 @@ class Character {
         //记录释放中
         this.castingSkillData[skillData.uid] = skillData;
         //结束技能
-        if (skill.willNotEnd !== false)
+        if (skill.willNotEnd !== true)
             this.endSkill(skillData.uid);
     }
     /**获取某个释放中的技能 */
@@ -103,6 +102,7 @@ class Character {
         console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName);
         console.log();
         this.getTriggers("释放技能后").forEach(t => t.trigger(skillData));
+        delete this.castingSkillData[uid];
     }
     /**被动的触发某个技能
      * @param skill  技能
@@ -135,9 +135,10 @@ class Character {
             causeDBeforeT.push(...(source.getTriggers("造成类型伤害前") || []));
             causeDBeforeT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => {
-                if ((t.hook == "造成技能伤害前" && damage.isSkillDamage()) ||
-                    (t.hook == "造成类型伤害前" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
-                    (t.hook == "造成伤害前"))
+                const category = damage.info.dmgCategory;
+                if ((t.hook == "造成技能伤害前" && category == "伤害效果" && damage.isSkillDamage()) ||
+                    (t.hook == "造成类型伤害前" && category == "伤害效果" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
+                    (t.hook == "造成伤害前" && category == "伤害效果"))
                     damage = t.trigger(damage, this);
             });
         }
@@ -153,9 +154,10 @@ class Character {
             causeDAfterT.push(...(source.getTriggers("造成类型伤害后") || []));
             causeDAfterT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => {
-                if ((t.hook == "造成技能伤害后" && damage.isSkillDamage()) ||
-                    (t.hook == "造成类型伤害后" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
-                    (t.hook == "造成伤害后"))
+                const category = damage.info.dmgCategory;
+                if ((t.hook == "造成技能伤害后" && category == "伤害效果" && damage.isSkillDamage()) ||
+                    (t.hook == "造成类型伤害后" && category == "伤害效果" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
+                    (t.hook == "造成伤害后" && category == "伤害效果"))
                     t.trigger(damage, this);
             });
         }
@@ -172,16 +174,32 @@ class Character {
         }
         if (hasSource)
             log += " 造成的";
-        console.log(log, dmg, "点", damage.info.dmgType, `${damage.hasSpecEffect(Damage_1.暴击) ? "暴击" : ""}`);
+        console.log(log, dmg, "点", damage.info.dmgType, `${damage.hasSpecEffect("暴击特效") ? "暴击" : ""}`);
     }
     /**受到攻击击中 */
     getHit(attack) {
-        attack.source.char.getTriggers("攻击前").forEach(t => attack = t.trigger(attack, this));
-        this.getTriggers("受攻击前").forEach(t => attack = t.trigger(attack, this));
+        attack.source.char.getTriggers("攻击前").forEach(t => {
+            const category = attack.damage.info.dmgCategory;
+            if (category == "伤害效果")
+                attack = t.trigger(attack, this);
+        });
+        this.getTriggers("受攻击前").forEach(t => {
+            const category = attack.damage.info.dmgCategory;
+            if (category == "伤害效果")
+                attack = t.trigger(attack, this);
+        });
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
-        this.getTriggers("受攻击后").forEach(t => t.trigger(attack, this));
-        attack.source.char.getTriggers("攻击后").forEach(t => t.trigger(attack, this));
+        this.getTriggers("受攻击后").forEach(t => {
+            const category = attack.damage.info.dmgCategory;
+            if (category == "伤害效果")
+                t.trigger(attack, this);
+        });
+        attack.source.char.getTriggers("攻击后").forEach(t => {
+            const category = attack.damage.info.dmgCategory;
+            if (category == "伤害效果")
+                t.trigger(attack, this);
+        });
     }
     /**克隆角色 */
     clone() {

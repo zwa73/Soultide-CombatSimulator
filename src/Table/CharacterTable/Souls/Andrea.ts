@@ -17,7 +17,7 @@ export namespace Andrea{
             procSTSkill(skillData,(data)=>{
                 const {skill,user,target,uid}=data;
                 target.addBuff(寒霜,target.getBuffStackCount(GenericBuff.极寒));
-                let atk = genAttack(skillData,3.6,"冰霜伤害");
+                let atk = genAttack(skillData,3.6,"冰霜伤害","伤害效果");
                 target.getHit(atk);
             })
         }
@@ -32,7 +32,7 @@ export namespace Andrea{
                 if(attack.source.skillData.skill.info.skillName!="技能:极寒狙击") return;
                 let count = victmin.getBuffStackCount(寒霜);
                 let factor = count*(count*0.0001+0.02);
-                let dmg = genNonSkillDamage(factor,"极寒伤害",attack.source.char);
+                let dmg = genNonSkillDamage(factor,"极寒伤害","伤害效果",attack.source.char);
                 victmin.getHurt(dmg);
             },
         }]

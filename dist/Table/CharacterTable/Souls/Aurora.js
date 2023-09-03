@@ -52,13 +52,13 @@ var Aurora;
             user.dataTable[上次失心童话] = skillData.uid;
             /**随机目标 */
             const rdt = () => targetList[Math.floor(targetList.length * Math.random())];
-            let atk = (0, Attack_1.genAttack)(skillData, 1, "雷电伤害");
+            let atk = (0, Attack_1.genAttack)(skillData, 1, "雷电伤害", "伤害效果");
             for (let i = 0; i < 3; i++)
                 rdt().getHit(atk);
             let count = user.getBuffStackCount(Aurora.噩廻);
             if (count >= 32) {
                 let factor = 0.2 + (user.getBuffStackCount(Aurora.电棘丛生效果) * 0.2);
-                let addatk = (0, Attack_1.genAttack)(skillData, factor, "雷电伤害");
+                let addatk = (0, Attack_1.genAttack)(skillData, factor, "雷电伤害", "伤害效果");
                 rdt().getHit(addatk);
             }
         }
@@ -81,7 +81,7 @@ var Aurora;
         cast(skillData) {
             (0, Skill_1.procSTSkill)(skillData, (data) => {
                 const { user, target } = data;
-                let atk = (0, Attack_1.genAttack)(skillData, 0.9, "雷电伤害");
+                let atk = (0, Attack_1.genAttack)(skillData, 0.9, "雷电伤害", "伤害效果");
                 for (let i = 0; i < 2; i++)
                     target.getHit(atk);
                 user.addBuff(Aurora.荆雷奔袭效果, 1, 2);
