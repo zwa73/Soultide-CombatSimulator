@@ -48,13 +48,13 @@ export namespace Aurora {
             user.dataTable[上次失心童话] = skillData.uid;
             /**随机目标 */
             const rdt = ()=>targetList[Math.floor(targetList.length*Math.random())];
-            let atk = genAttack(skillData,1,"雷电伤害","伤害效果");
+            let atk = genAttack(skillData,1,"雷电伤害","所有伤害");
             for(let i=0;i<3;i++)
                 rdt().getHit(atk);
             let count = user.getBuffStackCount(噩廻);
             if(count>=32){
                 let factor = 0.2+(user.getBuffStackCount(电棘丛生效果)*0.2);
-                let addatk = genAttack(skillData,factor,"雷电伤害","伤害效果");
+                let addatk = genAttack(skillData,factor,"雷电伤害","所有伤害");
                 rdt().getHit(addatk);
             }
         }
@@ -77,7 +77,7 @@ export namespace Aurora {
         cast(skillData:SkillData){
             procSTSkill(skillData,(data)=>{
                 const {user,target}=data;
-                let atk = genAttack(skillData,0.9,"雷电伤害","伤害效果");
+                let atk = genAttack(skillData,0.9,"雷电伤害","所有伤害");
                 for(let i=0;i<2;i++)
                     target.getHit(atk);
                 user.addBuff(荆雷奔袭效果,1,2);

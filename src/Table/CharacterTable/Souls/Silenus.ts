@@ -13,7 +13,7 @@ export namespace Silenus{
             procSTSkill(skillData,(data)=>{
                 const {target} = data;
                 target.addBuff(极寒诅咒,1,2);
-                let atk = genAttack(skillData,3.6,"冰霜伤害","伤害效果");
+                let atk = genAttack(skillData,3.6,"冰霜伤害","所有伤害");
                 target.getHit(atk);
             })
         },
@@ -33,7 +33,7 @@ export namespace Silenus{
             const char = table.attacherChar;
             let dmg = char.getBuffStackCount(GenericBuff.极寒)*0.02;
             return{multModify:{
-                受到伤害效果:dmg
+                受到所有伤害:dmg
             }}
         },
     }
@@ -44,7 +44,7 @@ export namespace Silenus{
             procSTSkill(skillData,(data)=>{
                 const {target} = data;
                 target.addBuff(寂灭昭示效果,1,2);
-                let atk = genAttack(skillData,2.1,"冰霜伤害","伤害效果");
+                let atk = genAttack(skillData,2.1,"冰霜伤害","所有伤害");
                 target.getHit(atk);
             })
         },

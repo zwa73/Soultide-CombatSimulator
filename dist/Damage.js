@@ -172,7 +172,7 @@ class Damage {
     }
     /**计算治疗或护盾 */
     calcOverHeal(target) {
-        const { dmgType, dmgCategory } = this.info;
+        const { dmgCategory } = this.info;
         const targetModTable = target._buffTable.getModSetTable(this);
         const sourceModTable = this.calcSourceModSetTable();
         /**对数值进行增益  目标Set与来源Set加算

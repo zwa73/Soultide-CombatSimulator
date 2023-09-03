@@ -8,7 +8,7 @@ import { SkillData, SkillInfo } from "./Skill";
 
 
 /**伤害类别 */
-export type DamageCategory = "伤害效果"|"治疗效果"|"护盾效果";
+export type DamageCategory = "所有伤害"|"治疗效果"|"护盾效果";
 
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电","冰霜","火焰","魔法","物理",
@@ -234,7 +234,7 @@ export class Damage {
 	}
 	/**计算治疗或护盾 */
 	calcOverHeal(target: Character): number {
-		const { dmgType, dmgCategory } = this.info;
+		const { dmgCategory } = this.info;
 		const targetModTable = target._buffTable.getModSetTable(this);
 		const sourceModTable = this.calcSourceModSetTable();
 

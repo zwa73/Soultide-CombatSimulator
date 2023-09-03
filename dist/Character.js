@@ -136,9 +136,9 @@ class Character {
             causeDBeforeT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => {
                 const category = damage.info.dmgCategory;
-                if ((t.hook == "造成技能伤害前" && category == "伤害效果" && damage.isSkillDamage()) ||
-                    (t.hook == "造成类型伤害前" && category == "伤害效果" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
-                    (t.hook == "造成伤害前" && category == "伤害效果"))
+                if ((t.hook == "造成技能伤害前" && category == "所有伤害" && damage.isSkillDamage()) ||
+                    (t.hook == "造成类型伤害前" && category == "所有伤害" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
+                    (t.hook == "造成伤害前" && category == "所有伤害"))
                     damage = t.trigger(damage, this);
             });
         }
@@ -155,9 +155,9 @@ class Character {
             causeDAfterT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
                 .forEach(t => {
                 const category = damage.info.dmgCategory;
-                if ((t.hook == "造成技能伤害后" && category == "伤害效果" && damage.isSkillDamage()) ||
-                    (t.hook == "造成类型伤害后" && category == "伤害效果" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
-                    (t.hook == "造成伤害后" && category == "伤害效果"))
+                if ((t.hook == "造成技能伤害后" && category == "所有伤害" && damage.isSkillDamage()) ||
+                    (t.hook == "造成类型伤害后" && category == "所有伤害" && (0, Modify_1.matchCons)(damage, t.damageCons)) ||
+                    (t.hook == "造成伤害后" && category == "所有伤害"))
                     t.trigger(damage, this);
             });
         }
@@ -180,24 +180,24 @@ class Character {
     getHit(attack) {
         attack.source.char.getTriggers("攻击前").forEach(t => {
             const category = attack.damage.info.dmgCategory;
-            if (category == "伤害效果")
+            if (category == "所有伤害")
                 attack = t.trigger(attack, this);
         });
         this.getTriggers("受攻击前").forEach(t => {
             const category = attack.damage.info.dmgCategory;
-            if (category == "伤害效果")
+            if (category == "所有伤害")
                 attack = t.trigger(attack, this);
         });
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
         this.getTriggers("受攻击后").forEach(t => {
             const category = attack.damage.info.dmgCategory;
-            if (category == "伤害效果")
+            if (category == "所有伤害")
                 t.trigger(attack, this);
         });
         attack.source.char.getTriggers("攻击后").forEach(t => {
             const category = attack.damage.info.dmgCategory;
-            if (category == "伤害效果")
+            if (category == "所有伤害")
                 t.trigger(attack, this);
         });
     }

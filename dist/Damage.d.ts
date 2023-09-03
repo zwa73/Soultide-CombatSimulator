@@ -3,7 +3,7 @@ import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { SkillData, SkillInfo } from "./Skill";
 /**伤害类别 */
-export type DamageCategory = "伤害效果" | "治疗效果" | "护盾效果";
+export type DamageCategory = "所有伤害" | "治疗效果" | "护盾效果";
 /**伤害类型枚举 */
 declare const DamageBaseTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "固定"];
 /**伤害类型 */
