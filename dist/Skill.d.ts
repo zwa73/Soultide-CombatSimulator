@@ -82,4 +82,11 @@ type FixedLengthTuple<T, N extends number, R extends unknown[] = []> = R['length
 export declare function procMTSkill<T, L extends number>(skillData: SkillData, targetCount: L, func: (skillData: MTSkillData<L>) => T): T;
 /**生成技能信息 */
 export declare function genSkillInfo(skillName: SkillName, skillType: SkillType, skillSubtype: SkillSubtype, skillRange: SkillRange, skillCategory: SkillCategory): SkillInfo;
+/**技能生成器 */
+export interface SkillGener {
+    /**技能生成器
+     * @param lvl 等级
+     */
+    (lvl?: number): Skill;
+}
 export {};

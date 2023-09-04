@@ -161,7 +161,7 @@ var Aurora;
     Aurora.baseStatus = {
         攻击: 10000
     };
-    function genChar(name, status) {
+    Aurora.genChar = function (name, status) {
         let opt = Object.assign({}, Aurora.baseStatus, status);
         let char = new Character_1.Character(name || "Aurora", opt);
         char.addSkill(Aurora.失心童话);
@@ -169,7 +169,6 @@ var Aurora;
         char.addSkill(Aurora.存续战意);
         char.addSkill(Aurora.电棘丛生);
         return char;
-    }
-    Aurora.genChar = genChar;
+    };
 })(Aurora = exports.Aurora || (exports.Aurora = {}));
 (0, DataTable_1.regDataTable)(Aurora);

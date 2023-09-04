@@ -89,13 +89,12 @@ var Andrea;
     Andrea.baseStatus = {
         攻击: 10000
     };
-    function genChar(name, status) {
+    Andrea.genChar = function (name, status) {
         let opt = Object.assign({}, Andrea.baseStatus, status);
         let char = new Character_1.Character(name || "Andrea", opt);
         char.addSkill(Andrea.冷凝循环);
         char.addSkill(Andrea.冻寒标记);
         return char;
-    }
-    Andrea.genChar = genChar;
+    };
 })(Andrea = exports.Andrea || (exports.Andrea = {}));
 (0, DataTable_1.regDataTable)(Andrea);

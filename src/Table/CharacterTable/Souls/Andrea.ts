@@ -1,6 +1,6 @@
 import { GenericBuff } from "@GenericBuff";
 import { genAttack } from "@src/Attack";
-import { Character } from "@src/Character";
+import { CharGener, Character } from "@src/Character";
 import { genNonSkillDamage } from "@src/Damage";
 import { regDataTable } from "@src/DataTable";
 import { Buff, genBuffInfo } from "@src/Modify";
@@ -86,7 +86,7 @@ export namespace Andrea{
     export const baseStatus:StaticStatusOption = {
         攻击:10000
     };
-    export function genChar(name?:string,status?:StaticStatusOption){
+    export const genChar:CharGener = function (name?,status?){
         let opt = Object.assign({},baseStatus,status);
         let char = new Character(name||"Andrea",opt);
         char.addSkill(冷凝循环);

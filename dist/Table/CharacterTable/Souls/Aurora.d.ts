@@ -1,4 +1,4 @@
-import { Character } from "../../../Character";
+import { CharGener } from "../../../Character";
 import { Buff } from "../../../Modify";
 import { Skill } from "../../../Skill";
 import { StaticStatusOption } from "../../../Status";
@@ -19,5 +19,5 @@ export declare namespace Aurora {
     /**续存战意 每层效果 */
     const 存续战意效果: Buff;
     const baseStatus: StaticStatusOption;
-    function genChar(name?: string, status?: StaticStatusOption): Character;
+    const genChar: CharGener;
 }

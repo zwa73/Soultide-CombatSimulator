@@ -136,3 +136,11 @@ function checkTargets(targets:Character[],needMin?:number,needMax?:number){
     if(targets.length>needMax || targets.length<needMin)
         throw "checkTargets错误 需求目标数: "+needMin+"~"+needMax+" 实际目标数:"+targets.length;
 }
+
+/**技能生成器 */
+export interface SkillGener{
+    /**技能生成器
+     * @param lvl 等级
+     */
+    (lvl?:number):Skill;
+}

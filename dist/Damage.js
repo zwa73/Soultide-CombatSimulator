@@ -242,6 +242,7 @@ function genDamageInfo(dmgCategory, dmgType, info) {
             dmgCategory,
             ...skinfor
         };
+    console.log(arguments);
     throw "genDamageInfo 未知错误";
 }
 exports.genDamageInfo = genDamageInfo;

@@ -99,8 +99,7 @@ class Character {
     endSkill(uid) {
         const skillData = this.castingSkillData[uid];
         const { targetList } = skillData;
-        console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName);
-        console.log();
+        console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName, "\n");
         this.getTriggers("释放技能后").forEach(t => t.trigger(skillData));
         delete this.castingSkillData[uid];
     }

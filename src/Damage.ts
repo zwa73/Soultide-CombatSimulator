@@ -313,16 +313,17 @@ export function genDamageInfo<DT extends DamageCategory>(
 		info?:SkillInfo
 	):DamageInfo{
 	const defnoskill:NoSkillDamageInfo={skillType:"非技能"};
-	const {...skinfor} = info? 	info:defnoskill;
+	const {...skinfor} = info? info:defnoskill;
 	if(dmgType && dmgCategory=="所有伤害") return{
-			dmgCategory,
-			dmgType,
-			...skinfor
+		dmgCategory,
+		dmgType,
+		...skinfor
 	}
 	else if(dmgCategory!="所有伤害") return{
-			dmgCategory,
-			...skinfor
+		dmgCategory,
+		...skinfor
 	}
+	console.log(arguments);
 	throw "genDamageInfo 未知错误";
 }
 /**产生非技能伤害 */

@@ -187,4 +187,12 @@ export declare class ModSetTable implements IJData {
         multTable: Readonly<Partial<import("./Status").StaticStatus>>;
     };
 }
+/**效果生成器 */
+export interface BuffGener {
+    /**效果生成器
+     * @param lvl 等级
+     * @param opt 其他可选项
+     */
+    (lvl?: number, ...opt: any): Buff;
+}
 export {};

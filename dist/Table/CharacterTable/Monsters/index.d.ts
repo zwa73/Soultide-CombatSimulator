@@ -1,6 +1,4 @@
+import { 稻草人 } from './稻草人';
 export declare const Monsters: {
-    readonly 稻草人: {
-        baseStatus: Partial<import("../../..").StaticStatus>;
-        genChar(name?: string | undefined, status?: Partial<import("../../..").StaticStatus> | undefined): import("../../..").Character;
-    };
+    readonly 稻草人: typeof 稻草人;
 };
