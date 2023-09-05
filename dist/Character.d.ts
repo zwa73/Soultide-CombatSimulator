@@ -61,6 +61,8 @@ export declare class Character {
     endTurn(): void;
     /**进行一次行动 */
     turn(func: (char: Character) => void): void;
+    /**进行一次技能行动 */
+    skillTurn(skill: Skill, target: Character[], opt?: SkillDataOption): void;
     /**触发造成伤害前的触发器 */
     getHurtBefore(damage: Damage): void;
     /**触发造成伤害后的触发器 */

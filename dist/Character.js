@@ -158,6 +158,10 @@ class Character {
             func(this);
         this.endTurn();
     }
+    /**进行一次技能行动 */
+    skillTurn(skill, target, opt) {
+        this.turn(() => this.useSkill(skill, target, opt));
+    }
     //———————————————————— 伤害 ————————————————————//
     /**触发造成伤害前的触发器 */
     getHurtBefore(damage) {

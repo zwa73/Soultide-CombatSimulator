@@ -167,6 +167,10 @@ export class Character {
         if(func) func(this);
         this.endTurn();
     }
+    /**进行一次技能行动 */
+    skillTurn(skill:Skill,target:Character[],opt?:SkillDataOption){
+        this.turn(()=>this.useSkill(skill,target,opt))
+    }
 
 
 
