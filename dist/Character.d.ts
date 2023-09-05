@@ -48,6 +48,10 @@ export declare class Character {
     triggerSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
     /**结算回合 */
     endRound(): void;
+    /**开始行动 */
+    startTurn(): void;
+    /**结束行动 */
+    endTurn(): void;
     /**受到伤害 */
     getHurt(damage: Damage): void;
     /**受到攻击击中 */

@@ -128,6 +128,14 @@ export class Character {
         let maxEnergy = this.getStaticStatus("最大怒气");
         if(this.dynmaicStatus.当前怒气>maxEnergy) this.dynmaicStatus.当前怒气 = maxEnergy;
     }
+    /**开始行动 */
+    startTurn(){
+
+    }
+    /**结束行动 */
+    endTurn(){
+
+    }
     /**受到伤害 */
     getHurt(damage:Damage){
         //造成伤害前
@@ -160,6 +168,27 @@ export class Character {
 
 
 
+        //log
+        let log = `${this.name} 受到`;
+        let hasSource = false;
+        if(damage.source.char!=null){
+            hasSource = true;
+            log += ` ${damage.source.char.name}`
+        }
+        if(damage.source.skillData!=null){
+            hasSource = true;
+            log += ` ${damage.source.skillData.skill.info.skillName}`
+        }
+        if(hasSource)
+            log+=" 造成的"
+        if(damage.info.dmgCategory=="所有伤害")
+            console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
+        else
+            console.log(log,dmg,"点",damage.info.dmgCategory,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
+
+
+
+
         //造成伤害后
         let causeDAfterT:Array<TDamageAfter> = [];
         if(damage.source.char){
@@ -181,26 +210,6 @@ export class Character {
                         t.trigger(damage,this);
                 }
             });
-
-
-
-        //log
-        let log = `${this.name} 受到`;
-        let hasSource = false;
-        if(damage.source.char!=null){
-            hasSource = true;
-            log += ` ${damage.source.char.name}`
-        }
-        if(damage.source.skillData!=null){
-            hasSource = true;
-            log += ` ${damage.source.skillData.skill.info.skillName}`
-        }
-        if(hasSource)
-            log+=" 造成的"
-        if(damage.info.dmgCategory=="所有伤害")
-            console.log(log,dmg,"点",damage.info.dmgType,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
-        else
-            console.log(log,dmg,"点",damage.info.dmgCategory,`${damage.hasSpecEffect("暴击特效")? "暴击":""}`)
     }
     /**受到攻击击中 */
     getHit(attack:Attack){
@@ -294,7 +303,8 @@ export class Character {
      * @param duration  持续回合    默认无限
      */
     addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
-        console.log(this.name,"获得了",buff.info.buffName);
+        let log = `获得了${stack==1?"":" "+stack+" 层"}${duration==Infinity? "":" "+duration+" 回合"}`
+        console.log(this.name,log,buff.info.buffName);
         return this._buffTable.addBuff(buff,stack,duration);
     }
     /**移除某个buff 并触发触发器 */
