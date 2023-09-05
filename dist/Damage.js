@@ -36,6 +36,8 @@ class Damage {
     info;
     /**系数 */
     factor;
+    /**额外倍率 */
+    magnification = 1;
     /**特效 */
     specEffects = [];
     /**来源 */
@@ -183,6 +185,8 @@ class Damage {
         }
         //合并附伤
         dmg += adddmg;
+        //额外倍率
+        dmg *= this.magnification;
         //浮动 +-5%
         if (!this.hasSpecEffect("稳定特效"))
             dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
@@ -231,13 +235,13 @@ exports.Damage = Damage;
 function genDamageInfo(dmgCategory, dmgType, info) {
     const defnoskill = { skillType: "非技能" };
     const { ...skinfor } = info ? info : defnoskill;
-    if (dmgType && dmgCategory == "所有伤害")
+    if (dmgType !== undefined)
         return {
             dmgCategory,
             dmgType,
             ...skinfor
         };
-    else if (dmgCategory != "所有伤害")
+    else if (dmgCategory !== "所有伤害")
         return {
             dmgCategory,
             ...skinfor

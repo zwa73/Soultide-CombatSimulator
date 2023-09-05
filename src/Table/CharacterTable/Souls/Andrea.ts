@@ -27,7 +27,7 @@ export namespace Andrea{
         canSatck:true,
         triggerList:[{
             info:genTriggerInfo("触发:寒霜"),
-            hook:"受攻击后",
+            hook:"受到攻击后",
             trigger(attack, victmin) {
                 if(attack.source.skillData.skill.info.skillName!="技能:极寒狙击") return;
                 let count = victmin.getBuffStackCount(寒霜);
@@ -41,7 +41,7 @@ export namespace Andrea{
         info:genSkillInfo("技能:冷凝循环","冰霜技能","被动技能","无范围技能","秘术技能"),
         triggerList:[{
             info:genTriggerInfo("触发:冷凝循环"),
-            hook:"攻击前",
+            hook:"造成攻击前",
             trigger(attack, victmin) {
                 let stack = victmin.getBuffStackCount(GenericBuff.极寒);
                 attack.source.char.addBuff(冷凝循环效果,stack,1);
@@ -67,7 +67,7 @@ export namespace Andrea{
         info:genSkillInfo("技能:冻寒标记","无类型技能","被动技能","无范围技能","特性技能"),
         triggerList:[{
             info:genTriggerInfo("触发:冻寒标记"),
-            hook:"攻击前",
+            hook:"造成攻击前",
             trigger(attack, victmin) {
                 let stack = victmin.getBuffStackCount(GenericBuff.极寒);
                 attack.source.char.addBuff(冻寒标记效果,stack);

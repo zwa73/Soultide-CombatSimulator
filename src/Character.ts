@@ -6,7 +6,7 @@ import { Damage } from "./Damage";
 import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo, matchCons } from "./Modify";
 import { Skill, SkillData, SkillDataOption, SkillName } from "./Skill";
 import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
-import { AnyHook, HookTriggerMap, TCauseDamageAfter, TCauseDamageBefore, TCauseSkillDamageAfter, TCauseSkillDamageBefore, TCauseTypeDamageAfter, TCauseTypeDamageBefore } from "./Trigger";
+import { AnyHook, HookTriggerMap, TCauseAttackAfter, TCauseAttackBefore, TCauseDamageAfter, TCauseDamageBefore, TCauseSkillDamageAfter, TCauseSkillDamageBefore, TDamageAfter, TDamageBefore, TTakeAttackAfter, TTakeAttackBefore } from "./Trigger";
 import { GlobalTiggerTable } from "./DataTable";
 
 
@@ -38,7 +38,7 @@ export class Character {
             addModify:staticStatus
         }
         //console.log(name,"staticStatus",staticStatus)
-        this.addBuff(baseBuff);
+        this._buffTable.addBuff(baseBuff);
 
         this.dynmaicStatus = {
             当前生命:staticStatus.最大生命||0,
@@ -131,42 +131,56 @@ export class Character {
     /**受到伤害 */
     getHurt(damage:Damage){
         //造成伤害前
+        let causeDBeforeT:Array<TDamageBefore> = [];
         if(damage.source.char){
             let source = damage.source.char;
-            let causeDBeforeT:Array<TCauseDamageBefore|TCauseSkillDamageBefore|TCauseTypeDamageBefore> = [];
-            causeDBeforeT.push(...(source.getTriggers("造成伤害前")||[]));
-            causeDBeforeT.push(...(source.getTriggers("造成技能伤害前")||[]));
-            causeDBeforeT.push(...(source.getTriggers("造成类型伤害前")||[]));
-            causeDBeforeT.sort((a, b) => (b.weight||0) - (a.weight||0))
-                .forEach(t=>{
-                    const category = damage.info.dmgCategory;
-                    if( (t.hook=="造成技能伤害前" && category=="所有伤害" && damage.isSkillDamage()) ||
-                        (t.hook=="造成类型伤害前" && category=="所有伤害" && matchCons(damage,t.damageCons)) ||
-                        (t.hook=="造成伤害前"     && category=="所有伤害"))
-                        damage = t.trigger(damage,this);
-                });
+            causeDBeforeT.push(...source.getTriggers("造成伤害前"));
+            causeDBeforeT.push(...source.getTriggers("造成技能伤害前"));
         }
+        causeDBeforeT.push(...this.getTriggers("受到伤害前"));
+        causeDBeforeT.push(...this.getTriggers("受到技能伤害前"));
+        causeDBeforeT.sort((a, b) => (b.weight||0) - (a.weight||0))
+            .forEach(t=>{
+                const category = damage.info.dmgCategory;
+                if(!matchCons(damage,t.damageCons)) return;
+                if(category=="所有伤害"){
+                    if( (t.hook=="造成技能伤害前" && damage.isSkillDamage()) ||
+                        (t.hook=="受到技能伤害前" && damage.isSkillDamage()) ||
+                        (t.hook=="造成伤害前"   ) ||
+                        (t.hook=="受到伤害前"   ) )
+                        damage = t.trigger(damage,this);
+                }
+            });
+
+
 
         //计算伤害
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命-=dmg;
 
+
+
         //造成伤害后
+        let causeDAfterT:Array<TDamageAfter> = [];
         if(damage.source.char){
             let source = damage.source.char;
-            let causeDAfterT:Array<TCauseDamageAfter|TCauseSkillDamageAfter|TCauseTypeDamageAfter> = [];
-            causeDAfterT.push(...(source.getTriggers("造成伤害后")||[]));
-            causeDAfterT.push(...(source.getTriggers("造成技能伤害后")||[]));
-            causeDAfterT.push(...(source.getTriggers("造成类型伤害后")||[]));
-            causeDAfterT.sort((a, b) => (b.weight||0) - (a.weight||0))
-                .forEach(t=>{
-                    const category = damage.info.dmgCategory;
-                    if( (t.hook=="造成技能伤害后" && category=="所有伤害"&& damage.isSkillDamage()) ||
-                        (t.hook=="造成类型伤害后" && category=="所有伤害"&& matchCons(damage,t.damageCons)) ||
-                        (t.hook=="造成伤害后"     && category=="所有伤害"))
-                        t.trigger(damage,this);
-                });
+            causeDAfterT.push(...source.getTriggers("造成伤害后"));
+            causeDAfterT.push(...source.getTriggers("造成技能伤害后"));
         }
+        causeDAfterT.push(...this.getTriggers("受到伤害后"));
+        causeDAfterT.push(...this.getTriggers("受到技能伤害后"));
+        causeDAfterT.sort((a, b) => (b.weight||0) - (a.weight||0))
+            .forEach(t=>{
+                const category = damage.info.dmgCategory;
+                if(!matchCons(damage,t.damageCons)) return;
+                if(category=="所有伤害"){
+                    if( (t.hook=="造成技能伤害后" && damage.isSkillDamage()) ||
+                        (t.hook=="受到技能伤害后" && damage.isSkillDamage()) ||
+                        (t.hook=="造成伤害后"   ) ||
+                        (t.hook=="受到伤害后"   ) )
+                        t.trigger(damage,this);
+                }
+            });
 
 
 
@@ -190,26 +204,37 @@ export class Character {
     }
     /**受到攻击击中 */
     getHit(attack:Attack){
-        attack.source.char.getTriggers("攻击前").forEach(t=>{
-            const category = attack.damage.info.dmgCategory;
-            if(category=="所有伤害") attack=t.trigger(attack,this)
-        });
-        this.getTriggers("受攻击前").forEach(t=>{
-            const category = attack.damage.info.dmgCategory;
-            if(category=="所有伤害") attack=t.trigger(attack,this)
-        });
+        //攻击前
+        let causeABeforeT:Array<TCauseAttackBefore|TTakeAttackBefore> = [];
+        let source = attack.source.char;
+        causeABeforeT.push(...source.getTriggers("造成攻击前"))
+        causeABeforeT.push(...this.  getTriggers("受到攻击前"))
+        causeABeforeT.sort((a, b) => (b.weight||0) - (a.weight||0))
+            .forEach(t=>{
+                const category = attack.damage.info.dmgCategory;
+                if( (t.hook=="造成攻击前" && category=="所有伤害") ||
+                    (t.hook=="受到攻击前" && category=="所有伤害"))
+                    attack = t.trigger(attack,this);
+            })
+
+
 
         let dmg = attack.calcDamage(this);
         this.getHurt(dmg);
 
-        this.getTriggers("受攻击后").forEach(t=>{
-            const category = attack.damage.info.dmgCategory;
-            if(category=="所有伤害") t.trigger(attack,this)
-        });
-        attack.source.char.getTriggers("攻击后").forEach(t=>{
-            const category = attack.damage.info.dmgCategory;
-            if(category=="所有伤害") t.trigger(attack,this)
-        });
+
+
+        //攻击后
+        let causeAAfterT:Array<TCauseAttackAfter|TTakeAttackAfter> = [];
+        causeAAfterT.push(...source.getTriggers("造成攻击后"));
+        causeAAfterT.push(...this.  getTriggers("受到攻击后"));
+        causeAAfterT.sort((a, b) => (b.weight||0) - (a.weight||0))
+            .forEach(t=>{
+                const category = attack.damage.info.dmgCategory;
+                if( (t.hook=="造成攻击后" && category=="所有伤害") ||
+                    (t.hook=="受到攻击后" && category=="所有伤害"))
+                    t.trigger(attack,this);
+            });
     }
     /**克隆角色 */
     clone():Character{
@@ -269,6 +294,7 @@ export class Character {
      * @param duration  持续回合    默认无限
      */
     addBuff(buff:Buff,stack:number=1,duration:number=Infinity){
+        console.log(this.name,"获得了",buff.info.buffName);
         return this._buffTable.addBuff(buff,stack,duration);
     }
     /**移除某个buff 并触发触发器 */

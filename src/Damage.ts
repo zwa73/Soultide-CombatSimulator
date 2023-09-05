@@ -3,12 +3,16 @@ import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { ModSet, ModSetTable, ModifyType } from "./Modify";
 import { SkillCategory, SkillData, SkillInfo, SkillRange } from "./Skill";
+import { GenericBuff } from "./Table";
 
 //———————————————————— 伤害 ————————————————————//
 
 
+/**负面的伤害类型 */
+export type NgDamageCategory = "所有伤害";
+export type HealDamageCategory = "治疗效果"|"护盾效果";
 /**伤害类别 */
-export type DamageCategory = "所有伤害"|"治疗效果"|"护盾效果";
+export type DamageCategory = NgDamageCategory|HealDamageCategory;
 
 /**伤害类型枚举 */
 const DamageBaseTypeList = ["雷电","冰霜","火焰","魔法","物理",
@@ -57,19 +61,19 @@ DamageSpecMap.燃烧伤害 = ["穿盾特效"];
 export type SkillDamageInfo = Writeable<SkillInfo>;
 /**非技能造成的伤害 */
 export type NoSkillDamageInfo = {skillType:"非技能"};
+
 /**伤害效果 */
 export type NgDamageInfo = {
 	/**伤害类别 */
-	dmgCategory:DamageCategory;
+	dmgCategory: NgDamageCategory;
     /**伤害类型 */
     dmgType: DamageType;
 };
 /**f非伤害效果 */
 export type HealDamageInfo = {
 	/**治疗或护盾类别 */
-	dmgCategory:Exclude<DamageCategory, "所有伤害">;
+	dmgCategory:HealDamageCategory;
 };
-
 /**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
 export type DamageInfo=(NgDamageInfo|HealDamageInfo)&(SkillDamageInfo|NoSkillDamageInfo);
 
@@ -89,6 +93,8 @@ export class Damage {
 	info: DamageInfo;
 	/**系数 */
 	factor: number;
+	/**额外倍率 */
+	magnification: number=1;
 	/**特效 */
 	specEffects: SpecEffect[] = [];
 	/**来源 */
@@ -259,6 +265,10 @@ export class Damage {
 
 		//合并附伤
 		dmg += adddmg;
+
+		//额外倍率
+		dmg*=this.magnification;
+
 		//浮动 +-5%
 		if (!this.hasSpecEffect("稳定特效")) dmg = dmg - (dmg * 0.05) + (Math.random() * dmg * 0.1);
 		return Math.floor(dmg);
@@ -307,40 +317,41 @@ export class Damage {
 
 
 /**生成伤害信息 */
-export function genDamageInfo<DT extends DamageCategory>(
-		dmgCategory:DT,
-		dmgType?:(DT extends "所有伤害"? DamageType:undefined),
+export function genDamageInfo<DC extends DamageCategory>(
+		dmgCategory:DC,
+		dmgType?:(DC extends NgDamageCategory? DamageType:undefined),
 		info?:SkillInfo
 	):DamageInfo{
 	const defnoskill:NoSkillDamageInfo={skillType:"非技能"};
 	const {...skinfor} = info? info:defnoskill;
-	if(dmgType && dmgCategory=="所有伤害") return{
+
+	if(dmgType!==undefined) return{
 		dmgCategory,
 		dmgType,
 		...skinfor
 	}
-	else if(dmgCategory!="所有伤害") return{
+	else if(dmgCategory!=="所有伤害") return{
 		dmgCategory,
 		...skinfor
 	}
 	console.log(arguments);
-	throw "genDamageInfo 未知错误";
+	throw "genDamageInfo 未知错误"
 }
 /**产生非技能伤害 */
-export function genNonSkillDamage<DT extends DamageCategory>(
+export function genNonSkillDamage<DC extends DamageCategory>(
 		factor:number,
-		dmgCategory:DT,
-		dmgType?:(DT extends "所有伤害"? DamageType:undefined),
+		dmgCategory:DC,
+		dmgType?:(DC extends NgDamageCategory? DamageType:undefined),
 		char?:Character,
 		...specEffects:SpecEffect[]
 	):Damage{
     return new Damage({char:char},factor,genDamageInfo(dmgCategory,dmgType),...specEffects);
 }
 /**产生技能伤害 */
-export function genSkillDamage<DT extends DamageCategory>(
+export function genSkillDamage<DC extends DamageCategory>(
 		factor:number,
-		dmgCategory:DT,
-		dmgType?:(DT extends "所有伤害"? DamageType:undefined),
+		dmgCategory:DC,
+		dmgType?:(DC extends NgDamageCategory? DamageType:undefined),
 		skillData?:SkillData,
 		...specEffects:SpecEffect[]
 	):Damage{

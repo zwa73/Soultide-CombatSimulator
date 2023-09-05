@@ -2,8 +2,11 @@ import { Attack, AttackSource } from "./Attack";
 import { Writeable } from "@zwa73/utils";
 import { Character } from "./Character";
 import { SkillData, SkillInfo } from "./Skill";
+/**负面的伤害类型 */
+export type NgDamageCategory = "所有伤害";
+export type HealDamageCategory = "治疗效果" | "护盾效果";
 /**伤害类别 */
-export type DamageCategory = "所有伤害" | "治疗效果" | "护盾效果";
+export type DamageCategory = NgDamageCategory | HealDamageCategory;
 /**伤害类型枚举 */
 declare const DamageBaseTypeList: readonly ["雷电", "冰霜", "火焰", "魔法", "物理", "电击", "极寒", "燃烧", "暗蚀", "流血", "固定"];
 /**伤害类型 */
@@ -22,14 +25,14 @@ export type NoSkillDamageInfo = {
 /**伤害效果 */
 export type NgDamageInfo = {
     /**伤害类别 */
-    dmgCategory: DamageCategory;
+    dmgCategory: NgDamageCategory;
     /**伤害类型 */
     dmgType: DamageType;
 };
 /**f非伤害效果 */
 export type HealDamageInfo = {
     /**治疗或护盾类别 */
-    dmgCategory: Exclude<DamageCategory, "所有伤害">;
+    dmgCategory: HealDamageCategory;
 };
 /**伤害类型详情 非技能来源时 skillType 为 非技能 其他undefine*/
 export type DamageInfo = (NgDamageInfo | HealDamageInfo) & (SkillDamageInfo | NoSkillDamageInfo);
@@ -44,6 +47,8 @@ export declare class Damage {
     info: DamageInfo;
     /**系数 */
     factor: number;
+    /**额外倍率 */
+    magnification: number;
     /**特效 */
     specEffects: SpecEffect[];
     /**来源 */
@@ -73,9 +78,9 @@ export declare class Damage {
     clone(): Damage;
 }
 /**生成伤害信息 */
-export declare function genDamageInfo<DT extends DamageCategory>(dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), info?: SkillInfo): DamageInfo;
+export declare function genDamageInfo<DC extends DamageCategory>(dmgCategory: DC, dmgType?: (DC extends NgDamageCategory ? DamageType : undefined), info?: SkillInfo): DamageInfo;
 /**产生非技能伤害 */
-export declare function genNonSkillDamage<DT extends DamageCategory>(factor: number, dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), char?: Character, ...specEffects: SpecEffect[]): Damage;
+export declare function genNonSkillDamage<DC extends DamageCategory>(factor: number, dmgCategory: DC, dmgType?: (DC extends NgDamageCategory ? DamageType : undefined), char?: Character, ...specEffects: SpecEffect[]): Damage;
 /**产生技能伤害 */
-export declare function genSkillDamage<DT extends DamageCategory>(factor: number, dmgCategory: DT, dmgType?: (DT extends "所有伤害" ? DamageType : undefined), skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
+export declare function genSkillDamage<DC extends DamageCategory>(factor: number, dmgCategory: DC, dmgType?: (DC extends NgDamageCategory ? DamageType : undefined), skillData?: SkillData, ...specEffects: SpecEffect[]): Damage;
 export {};

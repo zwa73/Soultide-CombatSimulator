@@ -43,11 +43,15 @@ export function matchCons(dmg?:Damage,cons?:DamageConsAnd){
     //遍历约束 判断infos是否包含所有的And
     for(let con of cons){
         let orlist = Array.isArray(con)? con as DamageConsType[]:[con] as DamageConsType[];
+        let has = false;
         //判断infos是否包含任意的Or
         for(let or of orlist){
-            if(infos.includes(or)) continue;
-            return false;
+            if(infos.includes(or)){
+                has = true;
+                break;
+            }
         }
+        if(!has) return false;
     }
     return true;
 }

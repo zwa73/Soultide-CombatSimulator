@@ -65,7 +65,7 @@ export namespace Silenus{
         info:genSkillInfo("技能:能流感知","无类型技能","被动技能","无范围技能","特性技能"),
         triggerList:[{
             info:genTriggerInfo("触发:能流感知"),
-            hook:"造成类型伤害后",
+            hook:"造成伤害后",
             damageCons:["冰霜技能"],
             trigger(damage, target) {
                 target.addBuff(能流感知效果,target.getBuffStackCount(GenericBuff.极寒),1);

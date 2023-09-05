@@ -116,7 +116,7 @@ export namespace Aurora {
     }
     /**电棘丛生攻击力效果 */
     export const 电棘丛生效果:Buff={
-        info:genBuffInfo("效果:电棘丛生B","正面效果"),
+        info:genBuffInfo("效果:电棘丛生","正面效果"),
         canSatck:true,
         stackLimit:3,
         stackMultModify:{
