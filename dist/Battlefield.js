@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DefaultBattlefield = exports.Battlefield = exports.Formation = void 0;
+const _1 = require(".");
 /**队形 */
 class Formation {
     /**前排 */
@@ -45,20 +46,81 @@ class Battlefield {
         B: new Formation(),
     };
     roundCount = 1;
+    isStart = false;
     constructor() { }
     /**添加角色 */
     addCharacter(team, pos, ...chars) {
         this.teamMap[team][pos].push(...chars);
     }
+    /**触发 回合结束前 触发器 */
+    roundEndBefore() {
+        let endRoundT = [];
+        for (let key in this.teamMap) {
+            this.teamMap[key].getAllChars()
+                .forEach(char => endRoundT
+                .push(...char.getRoundEndBeforeT()
+                .map(t => { return { char, t }; })));
+        }
+        endRoundT.sort(_1.TriggerSort)
+            .forEach(item => item.t.trigger(this.roundCount, item.char));
+    }
+    /**触发 回合开始后 触发器 */
+    roundStartAfter() {
+        let endRoundT = [];
+        for (let key in this.teamMap) {
+            this.teamMap[key].getAllChars()
+                .forEach(char => endRoundT
+                .push(...char.getRoundStartAfterT()
+                .map(t => { return { char, t }; })));
+        }
+        endRoundT.sort(_1.TriggerSort)
+            .forEach(item => item.t.trigger(this.roundCount, item.char));
+    }
     /**经过一回合
      * @returns 回合数
      */
     endRound() {
-        for (let key in this.teamMap) {
-            this.teamMap[key].getAllChars().forEach(char => char.endRound());
-        }
+        //结束前
+        this.roundEndBefore();
+        //结算回合
+        for (let key in this.teamMap)
+            this.teamMap[key].getAllChars().forEach(char => char.endRound(this.roundCount));
+        console.log("结束第", this.roundCount, "回合");
+        console.log();
         console.log("开始第", ++this.roundCount, "回合");
+        //开始后
+        this.roundStartAfter();
         return this.roundCount;
+    }
+    /**进行一回合 */
+    round(func) {
+        if (!this.isStart)
+            this.startBattle();
+        if (func)
+            func();
+        this.endRound();
+    }
+    /**触发 战斗开始后 触发器 */
+    battleStartAfter() {
+        let endRoundT = [];
+        for (let key in this.teamMap) {
+            this.teamMap[key].getAllChars()
+                .forEach(char => endRoundT
+                .push(...char.getBattleStartT()
+                .map(t => { return { char, t }; })));
+        }
+        endRoundT.sort(_1.TriggerSort)
+            .forEach(item => item.t.trigger(item.char));
+    }
+    /**战斗开始时 */
+    startBattle() {
+        console.log("战斗开始");
+        //战斗开始后
+        this.battleStartAfter();
+        this.isStart = true;
+        console.log("开始第", this.roundCount, "回合");
+        //回合开始后
+        this.roundStartAfter();
     }
 }
 exports.Battlefield = Battlefield;

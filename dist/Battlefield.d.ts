@@ -23,12 +23,23 @@ export declare class Formation {
 export declare class Battlefield {
     teamMap: Record<TeamType, Formation>;
     roundCount: number;
+    isStart: boolean;
     constructor();
     /**添加角色 */
     addCharacter(team: TeamType, pos: "forward" | "backward", ...chars: Character[]): void;
+    /**触发 回合结束前 触发器 */
+    roundEndBefore(): void;
+    /**触发 回合开始后 触发器 */
+    roundStartAfter(): void;
     /**经过一回合
      * @returns 回合数
      */
     endRound(): number;
+    /**进行一回合 */
+    round(func?: () => void): void;
+    /**触发 战斗开始后 触发器 */
+    battleStartAfter(): void;
+    /**战斗开始时 */
+    startBattle(): void;
 }
 export declare const DefaultBattlefield: Battlefield;

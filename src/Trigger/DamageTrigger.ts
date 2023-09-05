@@ -5,6 +5,8 @@ import { AnyHook, Character, Damage, TriggerBase } from "..";
 //———————————————————— 伤害触发器 ————————————————————//
 
 
+
+//———————————————————— 伤害前 ————————————————————//
 /**伤害前触发器 */
 export interface TDamageBefore extends TriggerBase{
     readonly hook:`${"造成"|"受到"}${string}${"伤害"|"治疗"|"护盾"}前` & AnyHook;
@@ -50,6 +52,7 @@ export interface TCauseShieldBefore extends TDamageBefore{
 
 
 
+//———————————————————— 伤害后 ————————————————————//
 /**伤害后触发器 */
 export interface TDamageAfter extends TriggerBase{
     readonly hook:`${"造成"|"受到"}${string}${"伤害"|"治疗"|"护盾"}后` & AnyHook;

@@ -5,6 +5,7 @@ const utils = require("@zwa73/utils");
 const Battlefield_1 = require("./Battlefield");
 const Modify_1 = require("./Modify");
 const Status_1 = require("./Status");
+const Trigger_1 = require("./Trigger");
 const DataTable_1 = require("./DataTable");
 /**角色 */
 class Character {
@@ -49,6 +50,7 @@ class Character {
         let mod = this._buffTable.modValue(0, field, damage);
         return mod;
     }
+    //———————————————————— 技能 ————————————————————//
     /**释放某个技能
      * @param skill  技能
      * @param target 目标
@@ -99,7 +101,7 @@ class Character {
     endSkill(uid) {
         const skillData = this.castingSkillData[uid];
         const { targetList } = skillData;
-        console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName, "\n");
+        console.log(this.name, "结束了向", targetList.map(char => char.name), "释放的", skillData.skill.info.skillName);
         this.getTriggers("释放技能后").forEach(t => t.trigger(skillData));
         delete this.castingSkillData[uid];
     }
@@ -115,8 +117,21 @@ class Character {
         console.log(this.name, "触发了", skill.info.skillName);
         this.useSkill(skill, target, mergeOpt);
     }
+    //———————————————————— 行动 ————————————————————//
+    /**获取战斗开始后触发器 */
+    getBattleStartT() {
+        return this.getTriggers("战斗开始后");
+    }
+    /**获得回合结束前触发器 */
+    getRoundEndBeforeT() {
+        return this.getTriggers("回合结束前");
+    }
+    /**获得回合开始后触发器 */
+    getRoundStartAfterT() {
+        return this.getTriggers("回合开始后");
+    }
     /**结算回合 */
-    endRound() {
+    endRound(roundCount) {
         this._buffTable.endRound();
         this.dynmaicStatus.当前怒气 += this.getStaticStatus("怒气回复");
         let maxEnergy = this.getStaticStatus("最大怒气");
@@ -125,12 +140,27 @@ class Character {
     }
     /**开始行动 */
     startTurn() {
+        console.log(this.name, "开始行动");
+        this.getTriggers("行动开始后").sort(Trigger_1.TriggerSort)
+            .forEach(t => t.trigger(this));
     }
     /**结束行动 */
     endTurn() {
+        this.getTriggers("行动结束前").sort(Trigger_1.TriggerSort)
+            .forEach(t => t.trigger(this));
+        console.log(this.name, "结束行动");
+        console.log();
     }
-    /**受到伤害 */
-    getHurt(damage) {
+    /**进行一次行动 */
+    turn(func) {
+        this.startTurn();
+        if (func)
+            func(this);
+        this.endTurn();
+    }
+    //———————————————————— 伤害 ————————————————————//
+    /**触发造成伤害前的触发器 */
+    getHurtBefore(damage) {
         //造成伤害前
         let causeDBeforeT = [];
         if (damage.source.char) {
@@ -140,7 +170,7 @@ class Character {
         }
         causeDBeforeT.push(...this.getTriggers("受到伤害前"));
         causeDBeforeT.push(...this.getTriggers("受到技能伤害前"));
-        causeDBeforeT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
+        causeDBeforeT.sort(Trigger_1.TriggerSort)
             .forEach(t => {
             const category = damage.info.dmgCategory;
             if (!(0, Modify_1.matchCons)(damage, t.damageCons))
@@ -153,6 +183,35 @@ class Character {
                     damage = t.trigger(damage, this);
             }
         });
+    }
+    /**触发造成伤害后的触发器 */
+    getHurtAfter(damage) {
+        //造成伤害后
+        let causeDAfterT = [];
+        if (damage.source.char) {
+            let source = damage.source.char;
+            causeDAfterT.push(...source.getTriggers("造成伤害后"));
+            causeDAfterT.push(...source.getTriggers("造成技能伤害后"));
+        }
+        causeDAfterT.push(...this.getTriggers("受到伤害后"));
+        causeDAfterT.push(...this.getTriggers("受到技能伤害后"));
+        causeDAfterT.sort(Trigger_1.TriggerSort)
+            .forEach(t => {
+            const category = damage.info.dmgCategory;
+            if (!(0, Modify_1.matchCons)(damage, t.damageCons))
+                return;
+            if (category == "所有伤害") {
+                if ((t.hook == "造成技能伤害后" && damage.isSkillDamage()) ||
+                    (t.hook == "受到技能伤害后" && damage.isSkillDamage()) ||
+                    (t.hook == "造成伤害后") ||
+                    (t.hook == "受到伤害后"))
+                    t.trigger(damage, this);
+            }
+        });
+    }
+    /**受到伤害 */
+    getHurt(damage) {
+        this.getHurtBefore(damage);
         //计算伤害
         let dmg = damage.calcOverdamage(this);
         this.dynmaicStatus.当前生命 -= dmg;
@@ -173,50 +232,32 @@ class Character {
             console.log(log, dmg, "点", damage.info.dmgType, `${damage.hasSpecEffect("暴击特效") ? "暴击" : ""}`);
         else
             console.log(log, dmg, "点", damage.info.dmgCategory, `${damage.hasSpecEffect("暴击特效") ? "暴击" : ""}`);
-        //造成伤害后
-        let causeDAfterT = [];
-        if (damage.source.char) {
-            let source = damage.source.char;
-            causeDAfterT.push(...source.getTriggers("造成伤害后"));
-            causeDAfterT.push(...source.getTriggers("造成技能伤害后"));
-        }
-        causeDAfterT.push(...this.getTriggers("受到伤害后"));
-        causeDAfterT.push(...this.getTriggers("受到技能伤害后"));
-        causeDAfterT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
-            .forEach(t => {
-            const category = damage.info.dmgCategory;
-            if (!(0, Modify_1.matchCons)(damage, t.damageCons))
-                return;
-            if (category == "所有伤害") {
-                if ((t.hook == "造成技能伤害后" && damage.isSkillDamage()) ||
-                    (t.hook == "受到技能伤害后" && damage.isSkillDamage()) ||
-                    (t.hook == "造成伤害后") ||
-                    (t.hook == "受到伤害后"))
-                    t.trigger(damage, this);
-            }
-        });
+        this.getHurtAfter(damage);
     }
-    /**受到攻击击中 */
-    getHit(attack) {
+    //———————————————————— 攻击 ————————————————————//
+    /**触发受到攻击前的触发器 */
+    getHitBefore(attack) {
         //攻击前
         let causeABeforeT = [];
         let source = attack.source.char;
         causeABeforeT.push(...source.getTriggers("造成攻击前"));
         causeABeforeT.push(...this.getTriggers("受到攻击前"));
-        causeABeforeT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
+        causeABeforeT.sort(Trigger_1.TriggerSort)
             .forEach(t => {
             const category = attack.damage.info.dmgCategory;
             if ((t.hook == "造成攻击前" && category == "所有伤害") ||
                 (t.hook == "受到攻击前" && category == "所有伤害"))
                 attack = t.trigger(attack, this);
         });
-        let dmg = attack.calcDamage(this);
-        this.getHurt(dmg);
+    }
+    /**触发受到攻击后的触发器 */
+    getHitAfter(attack) {
         //攻击后
         let causeAAfterT = [];
+        let source = attack.source.char;
         causeAAfterT.push(...source.getTriggers("造成攻击后"));
         causeAAfterT.push(...this.getTriggers("受到攻击后"));
-        causeAAfterT.sort((a, b) => (b.weight || 0) - (a.weight || 0))
+        causeAAfterT.sort(Trigger_1.TriggerSort)
             .forEach(t => {
             const category = attack.damage.info.dmgCategory;
             if ((t.hook == "造成攻击后" && category == "所有伤害") ||
@@ -224,6 +265,14 @@ class Character {
                 t.trigger(attack, this);
         });
     }
+    /**受到攻击击中 */
+    getHit(attack) {
+        this.getHitBefore(attack);
+        let dmg = attack.calcDamage(this);
+        this.getHurt(dmg);
+        this.getHitAfter(attack);
+    }
+    //———————————————————— 其他 ————————————————————//
     /**克隆角色 */
     clone() {
         let nchar = new Character(this.name, {});
@@ -263,7 +312,7 @@ class Character {
                     tiggers.push(tigger);
             }
         }
-        tiggers.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+        tiggers.sort((a, b) => (0, Trigger_1.TriggerSort)(a, b));
         return tiggers;
     }
     //———————————————————— util ————————————————————//

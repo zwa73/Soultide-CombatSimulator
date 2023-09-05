@@ -5,6 +5,7 @@ import { Damage } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData, SkillDataOption } from "./Skill";
 import { DynmaicStatus, StaticStatusOption } from "./Status";
+import { TRoundEndBefore } from "./Trigger";
 /**角色 */
 export declare class Character {
     /**角色名称 */
@@ -46,14 +47,30 @@ export declare class Character {
      * @param target 目标
      */
     triggerSkill(skill: Skill, target: Character[], skillDataOpt?: SkillDataOption): void;
+    /**获取战斗开始后触发器 */
+    getBattleStartT(): import("./Trigger").TBattleStartAfter[];
+    /**获得回合结束前触发器 */
+    getRoundEndBeforeT(): TRoundEndBefore[];
+    /**获得回合开始后触发器 */
+    getRoundStartAfterT(): import("./Trigger").TRoundStartAfter[];
     /**结算回合 */
-    endRound(): void;
+    endRound(roundCount: number): void;
     /**开始行动 */
     startTurn(): void;
     /**结束行动 */
     endTurn(): void;
+    /**进行一次行动 */
+    turn(func: (char: Character) => void): void;
+    /**触发造成伤害前的触发器 */
+    getHurtBefore(damage: Damage): void;
+    /**触发造成伤害后的触发器 */
+    getHurtAfter(damage: Damage): void;
     /**受到伤害 */
     getHurt(damage: Damage): void;
+    /**触发受到攻击前的触发器 */
+    getHitBefore(attack: Attack): void;
+    /**触发受到攻击后的触发器 */
+    getHitAfter(attack: Attack): void;
     /**受到攻击击中 */
     getHit(attack: Attack): void;
     /**克隆角色 */
