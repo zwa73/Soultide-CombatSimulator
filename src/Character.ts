@@ -5,7 +5,7 @@ import { Battlefield, DefaultBattlefield } from "./Battlefield";
 import { Damage } from "./Damage";
 import { Buff, BuffName, BuffTable, ModifyType, genBuffInfo, matchCons } from "./Modify";
 import { Skill, SkillData, SkillDataOption, SkillName } from "./Skill";
-import { DefStaticStatus, DynmaicStatus, StaticStatusOption } from "./Status";
+import { DefStatus, DynmaicStatus, StatusOption } from "./Status";
 import { AnyHook, HookTriggerMap, TCauseAttackAfter, TCauseAttackBefore, TCauseDamageAfter, TCauseDamageBefore, TCauseSkillDamageAfter, TCauseSkillDamageBefore, TDamageAfter, TDamageBefore, TRoundEndBefore, TTakeAttackAfter, TTakeAttackBefore, TriggerSort } from "./Trigger";
 import { GlobalTiggerTable } from "./DataTable";
 
@@ -30,9 +30,9 @@ export class Character {
     /**释放的技能表 用于存储不会立即结束的技能 */
     private castingSkillData:Record<string,SkillData>={};
 
-    constructor(name:string,status:StaticStatusOption){
+    constructor(name:string,status:StatusOption){
         this.name=name;
-        let staticStatus:StaticStatusOption = Object.assign({},DefStaticStatus,status);
+        let staticStatus:StatusOption = Object.assign({},DefStatus,status);
         let baseBuff:Buff = {
             info: genBuffInfo((name+"基础属性")as BuffName,"其他效果"),
             addModify:staticStatus
@@ -378,5 +378,5 @@ export interface CharGener {
      * @param name 角色名
      * @param stat 角色属性
      */
-    (name?:string,stat?:StaticStatusOption):Character;
+    (name?:string,stat?:StatusOption):Character;
 }

@@ -85,7 +85,7 @@ export class Battlefield{
         endRoundT.sort(TriggerSort)
             .forEach(item=>item.t.trigger(this.roundCount,item.char));
     }
-    /**经过一回合
+    /**结束第x回合
      * @returns 回合数
      */
     endRound():number{
@@ -98,7 +98,13 @@ export class Battlefield{
 
         console.log("结束第",this.roundCount,"回合");
         console.log();
-        console.log("开始第",++this.roundCount,"回合");
+        return ++this.roundCount;
+    }
+    /**开始第x回合
+     * @returns 回合数
+     */
+    startRound(){
+        console.log("开始第",this.roundCount,"回合");
 
         //开始后
         this.roundStartAfter();
@@ -107,7 +113,10 @@ export class Battlefield{
     /**进行一回合 */
     round(func?:()=>void){
         if(!this.isStart) this.startBattle();
+        this.startRound();
+
         if(func) func();
+
         this.endRound();
     }
 
@@ -134,10 +143,6 @@ export class Battlefield{
         this.battleStartAfter();
 
         this.isStart=true;
-
-        console.log("开始第",this.roundCount,"回合");
-        //回合开始后
-        this.roundStartAfter();
     }
 }
 export const DefaultBattlefield = new Battlefield();

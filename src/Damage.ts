@@ -360,3 +360,4 @@ export function genSkillDamage<DC extends DamageCategory>(
         skillData:skillData
     },factor,genDamageInfo(dmgCategory,dmgType,skillData?.skill.info),...specEffects);
 }
+

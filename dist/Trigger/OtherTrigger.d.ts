@@ -1,4 +1,4 @@
-import { Buff } from "@src/Modify";
+import { Buff } from "../Modify";
 import { TriggerBase } from "./Trigger";
 import { AnyHook, Character } from "..";
 /**获取效果层数后 */

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefStaticStatus = void 0;
+exports.DefStatus = void 0;
 /**默认的属性 */
-exports.DefStaticStatus = {
+exports.DefStatus = {
     最大生命: 1,
     暴击率: 0.05,
     暴击伤害: 1.5,

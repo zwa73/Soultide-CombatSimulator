@@ -1,7 +1,7 @@
-import { CharGener } from "@src/Character";
-import { Buff } from "@src/Modify";
-import { Skill } from "@src/Skill";
-import { StaticStatusOption } from "@src/Status";
+import { CharGener } from "../../../Character";
+import { Buff } from "../../../Modify";
+import { Skill } from "../../../Skill";
+import { StaticStatus } from "../../../Status";
 export declare namespace Aurora {
     const 失心童话: Skill;
     const 失心童话伤害: Skill;
@@ -18,6 +18,6 @@ export declare namespace Aurora {
     const 存续战意: Skill;
     /**续存战意 每层效果 */
     const 存续战意效果: Buff;
-    const baseStatus: StaticStatusOption;
-    const genChar: CharGener;
+    const AuroraStatus: StaticStatus;
+    const AuroraGen: CharGener;
 }

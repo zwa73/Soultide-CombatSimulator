@@ -76,7 +76,7 @@ class Battlefield {
         endRoundT.sort(_1.TriggerSort)
             .forEach(item => item.t.trigger(this.roundCount, item.char));
     }
-    /**经过一回合
+    /**结束第x回合
      * @returns 回合数
      */
     endRound() {
@@ -87,7 +87,13 @@ class Battlefield {
             this.teamMap[key].getAllChars().forEach(char => char.endRound(this.roundCount));
         console.log("结束第", this.roundCount, "回合");
         console.log();
-        console.log("开始第", ++this.roundCount, "回合");
+        return ++this.roundCount;
+    }
+    /**开始第x回合
+     * @returns 回合数
+     */
+    startRound() {
+        console.log("开始第", this.roundCount, "回合");
         //开始后
         this.roundStartAfter();
         return this.roundCount;
@@ -96,6 +102,7 @@ class Battlefield {
     round(func) {
         if (!this.isStart)
             this.startBattle();
+        this.startRound();
         if (func)
             func();
         this.endRound();
@@ -118,9 +125,6 @@ class Battlefield {
         //战斗开始后
         this.battleStartAfter();
         this.isStart = true;
-        console.log("开始第", this.roundCount, "回合");
-        //回合开始后
-        this.roundStartAfter();
     }
 }
 exports.Battlefield = Battlefield;

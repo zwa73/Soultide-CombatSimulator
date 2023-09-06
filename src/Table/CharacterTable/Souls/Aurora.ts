@@ -4,7 +4,7 @@ import { Damage } from "@src/Damage";
 import { regDataTable } from "@src/DataTable";
 import { Buff, genBuffInfo } from "@src/Modify";
 import { Skill, SkillData, genSkillInfo, procSTSkill } from "@src/Skill";
-import { StaticStatusOption } from "@src/Status";
+import { StaticStatus, StatusOption } from "@src/Status";
 import { genTriggerInfo } from "@src/Trigger";
 
 export namespace Aurora {
@@ -153,11 +153,11 @@ export namespace Aurora {
             }}
         },
     }
-    export const baseStatus:StaticStatusOption = {
+    export const AuroraStatus:StaticStatus = {
         攻击:10000
     }
-    export const genChar:CharGener = function (name?,status?){
-        let opt = Object.assign({},baseStatus,status);
+    export const AuroraGen:CharGener = function (name?,status?){
+        let opt = Object.assign({},AuroraStatus,status);
         let char = new Character(name||"Aurora",opt);
         char.addSkill(失心童话);
         char.addSkill(荆雷奔袭);

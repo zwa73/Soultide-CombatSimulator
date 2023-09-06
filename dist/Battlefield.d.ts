@@ -31,10 +31,14 @@ export declare class Battlefield {
     roundEndBefore(): void;
     /**触发 回合开始后 触发器 */
     roundStartAfter(): void;
-    /**经过一回合
+    /**结束第x回合
      * @returns 回合数
      */
     endRound(): number;
+    /**开始第x回合
+     * @returns 回合数
+     */
+    startRound(): number;
     /**进行一回合 */
     round(func?: () => void): void;
     /**触发 战斗开始后 触发器 */

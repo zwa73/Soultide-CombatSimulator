@@ -1,6 +1,6 @@
-import { CharGener } from "@src/Character";
-import { StaticStatusOption } from "@src/Status";
+import { CharGener } from "../../../Character";
+import { StaticStatus } from "../../../Status";
 export declare namespace 稻草人 {
-    const baseStatus: StaticStatusOption;
-    const genChar: CharGener;
+    const 稻草人Status: StaticStatus;
+    const 稻草人Gen: CharGener;
 }

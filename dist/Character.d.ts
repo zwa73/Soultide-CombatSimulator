@@ -4,7 +4,7 @@ import { Battlefield } from "./Battlefield";
 import { Damage } from "./Damage";
 import { Buff, BuffTable } from "./Modify";
 import { Skill, SkillData, SkillDataOption } from "./Skill";
-import { DynmaicStatus, StaticStatusOption } from "./Status";
+import { DynmaicStatus, StatusOption } from "./Status";
 import { TRoundEndBefore } from "./Trigger";
 /**角色 */
 export declare class Character {
@@ -25,7 +25,7 @@ export declare class Character {
     dataTable: JObject;
     /**释放的技能表 用于存储不会立即结束的技能 */
     private castingSkillData;
-    constructor(name: string, status: StaticStatusOption);
+    constructor(name: string, status: StatusOption);
     /**获取角色的基础属性 */
     getBaseStatus(): Writeable<Buff>;
     /**获取某个计算完增益的属性 */
@@ -102,5 +102,5 @@ export interface CharGener {
      * @param name 角色名
      * @param stat 角色属性
      */
-    (name?: string, stat?: StaticStatusOption): Character;
+    (name?: string, stat?: StatusOption): Character;
 }

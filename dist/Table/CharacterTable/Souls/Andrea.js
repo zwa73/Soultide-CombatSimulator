@@ -86,11 +86,11 @@ var Andrea;
             冰霜伤害: 0.03
         }
     };
-    Andrea.baseStatus = {
+    Andrea.AndreaStatus = {
         攻击: 10000
     };
-    Andrea.genChar = function (name, status) {
-        let opt = Object.assign({}, Andrea.baseStatus, status);
+    Andrea.AndreaGen = function (name, status) {
+        let opt = Object.assign({}, Andrea.AndreaStatus, status);
         let char = new Character_1.Character(name || "Andrea", opt);
         char.addSkill(Andrea.冷凝循环);
         char.addSkill(Andrea.冻寒标记);

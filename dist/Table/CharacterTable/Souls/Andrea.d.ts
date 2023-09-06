@@ -1,7 +1,7 @@
-import { CharGener } from "@src/Character";
-import { Buff } from "@src/Modify";
-import { Skill } from "@src/Skill";
-import { StaticStatusOption } from "@src/Status";
+import { CharGener } from "../../../Character";
+import { Buff } from "../../../Modify";
+import { Skill } from "../../../Skill";
+import { StatusOption } from "../../../Status";
 export declare namespace Andrea {
     const 极寒狙击: Skill;
     const 寒霜: Buff;
@@ -10,6 +10,6 @@ export declare namespace Andrea {
     const 冷凝循环效果A: Buff;
     const 冻寒标记: Skill;
     const 冻寒标记效果: Buff;
-    const baseStatus: StaticStatusOption;
-    const genChar: CharGener;
+    const AndreaStatus: StatusOption;
+    const AndreaGen: CharGener;
 }

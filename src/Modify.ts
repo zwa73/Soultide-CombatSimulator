@@ -1,7 +1,7 @@
 import { IJData, deepClone } from "@zwa73/utils";
 import { AddiDamageType, Damage, DamageCategory, DamageInfo, DamageType, NoSkillDamageInfo, SpecEffect } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
-import { StaticStatusOption } from "./Status";
+import { StaticStatus, StatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 import { Character } from "./Character";
 
@@ -79,19 +79,19 @@ export type Buff={
     /**结束时间点 下一次hook触发时结束*/
     readonly endWith?:AnyHook;
     /**倍率增益 从0起算 +25%为0.25*/
-    readonly multModify?:StaticStatusOption;
+    readonly multModify?:StatusOption;
     /**叠加的倍率增益 从0起算 +25%为0.25*/
-    readonly stackMultModify?:StaticStatusOption;
+    readonly stackMultModify?:StatusOption;
     /**数值增益 */
-    readonly addModify?:StaticStatusOption;
+    readonly addModify?:StatusOption;
     /**叠加的数值增益 */
-    readonly stackAddModify?:StaticStatusOption;
+    readonly stackAddModify?:StatusOption;
     /**特殊的数值增益 */
     readonly specialModify?:(table:BuffTable)=>{
         /**数值增益 */
-        addModify?:StaticStatusOption,
+        addModify?:StatusOption,
         /**倍率增益 从0起算 +25%为0.25*/
-        multModify?:StaticStatusOption
+        multModify?:StatusOption
     };
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?:DamageConsAnd;
@@ -251,16 +251,16 @@ export class BuffTable{
         const vaildList = Object.values(this._table)
             .filter(item=>matchCons(damage,item?.buff.damageCons));
         //console.log("vaildList",vaildList)
-        const multModTable:StaticStatusOption={};
-        const addModTable :StaticStatusOption={};
+        const multModTable:StatusOption={};
+        const addModTable :StatusOption={};
         //叠加乘区
-        function stackMultArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
+        function stackMultArean(baseMap:StatusOption,modMap:StatusOption,stack:number){
             for(let flag of Object.keys(modMap) as ModifyType[]){
                 if(baseMap[flag]==null) baseMap[flag]=1;
                 baseMap[flag]!+=modMap[flag]!*stack;
             }
         }
-        function stackAddArean(baseMap:StaticStatusOption,modMap:StaticStatusOption,stack:number){
+        function stackAddArean(baseMap:StatusOption,modMap:StatusOption,stack:number){
             for(let flag of Object.keys(modMap) as ModifyType[]){
                 if(baseMap[flag]==null) baseMap[flag]=0;
                 baseMap[flag]!+=modMap[flag]!*stack;
@@ -389,10 +389,10 @@ export class ModSet implements IJData{
 /**累加的 对所有属性的调整组表 */
 export class ModSetTable implements IJData{
     /**加值增益表 */
-    readonly addTable:Readonly<StaticStatusOption>;
+    readonly addTable:Readonly<StatusOption>;
     /**倍率增益表 从1起算 +25%为1.25*/
-    readonly multTable:Readonly<StaticStatusOption>;
-    constructor(addTable?:StaticStatusOption,multTable?:StaticStatusOption){
+    readonly multTable:Readonly<StatusOption>;
+    constructor(addTable?:StatusOption,multTable?:StatusOption){
         this.addTable=addTable||{};
         this.multTable=multTable||{};
     }
@@ -432,19 +432,19 @@ export class ModSetTable implements IJData{
         ModSetTable.addMultTable(baseSet.multTable, modSet.multTable);
         ModSetTable.addAddTable(baseSet.addTable, modSet.addTable);
     }
-    private static addAddTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    private static addAddTable(baseTable: StatusOption, modTable: StatusOption) {
         for (let flag of Object.keys(modTable) as ModifyType[]) {
             if (baseTable[flag] == null) baseTable[flag] = 0;
             baseTable[flag]! += modTable[flag]!;
         }
     }
-    private static addMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    private static addMultTable(baseTable: StatusOption, modTable: StatusOption) {
         for (let flag of Object.keys(modTable) as ModifyType[]) {
             if (baseTable[flag] == null) baseTable[flag] = 1;
             baseTable[flag]! += (modTable[flag]!-1);
         }
     }
-    private static multMultTable(baseTable: StaticStatusOption, modTable: StaticStatusOption) {
+    private static multMultTable(baseTable: StatusOption, modTable: StatusOption) {
         for (let flag of Object.keys(modTable) as ModifyType[]) {
             if (baseTable[flag] == null) baseTable[flag] = 1;
             baseTable[flag]! *= modTable[flag]!;
@@ -466,4 +466,13 @@ export interface BuffGener{
      * @param opt 其他可选项
      */
     (lvl?:number,...opt:any):Buff;
+}
+
+/**属性生成器 */
+export interface StatusGener{
+    /**属性生成器
+     * @param lvl 等级
+     * @param opt 其他可选项
+     */
+    (lvl?:number,...opt:any):StaticStatus;
 }

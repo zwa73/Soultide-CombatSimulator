@@ -5,7 +5,7 @@ import { genNonSkillDamage } from "@src/Damage";
 import { regDataTable } from "@src/DataTable";
 import { Buff, genBuffInfo } from "@src/Modify";
 import { Skill, genSkillInfo, procSTSkill } from "@src/Skill";
-import { StaticStatusOption } from "@src/Status";
+import { StatusOption } from "@src/Status";
 import { genTriggerInfo } from "@src/Trigger";
 
 //const {skill,user,targetList,battlefield,buffTable,
@@ -83,11 +83,11 @@ export namespace Andrea{
             冰霜伤害:0.03
         }
     }
-    export const baseStatus:StaticStatusOption = {
+    export const AndreaStatus:StatusOption = {
         攻击:10000
     };
-    export const genChar:CharGener = function (name?,status?){
-        let opt = Object.assign({},baseStatus,status);
+    export const AndreaGen:CharGener = function (name?,status?){
+        let opt = Object.assign({},AndreaStatus,status);
         let char = new Character(name||"Andrea",opt);
         char.addSkill(冷凝循环);
         char.addSkill(冻寒标记);

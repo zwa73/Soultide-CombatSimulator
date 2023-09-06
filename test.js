@@ -1,13 +1,14 @@
-const { Souls, Monsters, GenericBuff, DefaultBattlefield, BuffTable } = require("./index");
+const { Souls, Monsters, GenericBuff, DefaultBattlefield, BuffTable, Equips } = require("./index");
 
-let aurora = Souls.Aurora.genChar("Aurora",{
+let aurora = Souls.Aurora.AuroraGen("Aurora",{
     初始怒气:72,
     最大怒气:120,
     攻击:6088,
 });
-let andrea = Souls.Andrea.genChar("Andrea",{});
+aurora.addBuff(Equips.女武神.女武神Gen(5))
+let andrea = Souls.Andrea.AndreaGen("Andrea",{});
 andrea.addSkill(Souls.Silenus.能流感知);
-let 稻草人 = Monsters.稻草人.genChar();
+let 稻草人 = Monsters.稻草人.稻草人Gen();
 
 
 

@@ -52,12 +52,12 @@ export type HookTriggerMap = {
     readonly 受到技能前         : TTakeSkillBefore          ;
     readonly 受到技能后         : TTakeSkillAfter           ;
     //其他
-    readonly 回合开始后         : TRoundStartAfter           ;
-    readonly 回合结束前         : TRoundEndBefore            ;
-    readonly 行动开始后         : TTurnStartAfter            ;
-    readonly 行动结束前         : TTurnEndBefore             ;
-    readonly 获取效果层数后     : TGetBuffStackCountAfter    ;
-    readonly 战斗开始后         : TBattleStartAfter          ;
+    readonly 回合开始后         : TRoundStartAfter          ;
+    readonly 回合结束前         : TRoundEndBefore           ;
+    readonly 行动开始后         : TTurnStartAfter           ;
+    readonly 行动结束前         : TTurnEndBefore            ;
+    readonly 获取效果层数后     : TGetBuffStackCountAfter   ;
+    readonly 战斗开始后         : TBattleStartAfter         ;
 };
 export type AnyHook   = keyof HookTriggerMap;
 export type AnyTrigger = HookTriggerMap[AnyHook];

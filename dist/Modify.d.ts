@@ -1,7 +1,7 @@
 import { IJData } from "@zwa73/utils";
 import { AddiDamageType, Damage, DamageCategory, DamageType, NoSkillDamageInfo, SpecEffect } from "./Damage";
 import { SkillCategory, SkillName, SkillRange, SkillSubtype, SkillType } from "./Skill";
-import { StaticStatusOption } from "./Status";
+import { StaticStatus, StatusOption } from "./Status";
 import { AnyHook, AnyTrigger, HookTriggerMap } from "./Trigger";
 import { Character } from "./Character";
 type ModiftTypeBase = "最大生命" | "速度" | "防御" | "初始怒气" | "闪避" | "最大怒气" | "怒气回复";
@@ -37,19 +37,19 @@ export type Buff = {
     /**结束时间点 下一次hook触发时结束*/
     readonly endWith?: AnyHook;
     /**倍率增益 从0起算 +25%为0.25*/
-    readonly multModify?: StaticStatusOption;
+    readonly multModify?: StatusOption;
     /**叠加的倍率增益 从0起算 +25%为0.25*/
-    readonly stackMultModify?: StaticStatusOption;
+    readonly stackMultModify?: StatusOption;
     /**数值增益 */
-    readonly addModify?: StaticStatusOption;
+    readonly addModify?: StatusOption;
     /**叠加的数值增益 */
-    readonly stackAddModify?: StaticStatusOption;
+    readonly stackAddModify?: StatusOption;
     /**特殊的数值增益 */
     readonly specialModify?: (table: BuffTable) => {
         /**数值增益 */
-        addModify?: StaticStatusOption;
+        addModify?: StatusOption;
         /**倍率增益 从0起算 +25%为0.25*/
-        multModify?: StaticStatusOption;
+        multModify?: StatusOption;
     };
     /**伤害约束 如果不为undefine 则只在造成伤害时参与计算*/
     readonly damageCons?: DamageConsAnd;
@@ -161,10 +161,10 @@ export declare class ModSet implements IJData {
 /**累加的 对所有属性的调整组表 */
 export declare class ModSetTable implements IJData {
     /**加值增益表 */
-    readonly addTable: Readonly<StaticStatusOption>;
+    readonly addTable: Readonly<StatusOption>;
     /**倍率增益表 从1起算 +25%为1.25*/
-    readonly multTable: Readonly<StaticStatusOption>;
-    constructor(addTable?: StaticStatusOption, multTable?: StaticStatusOption);
+    readonly multTable: Readonly<StatusOption>;
+    constructor(addTable?: StatusOption, multTable?: StatusOption);
     /**对 ModSetTable 进行加运算 乘区加算 加值加算*/
     addSet(...sets: ModSetTable[]): ModSetTable;
     /**对 ModSetTable 进行乘运算 乘区乘算 加值加算*/
@@ -183,8 +183,8 @@ export declare class ModSetTable implements IJData {
     private static addMultTable;
     private static multMultTable;
     toJSON(): {
-        addTable: Readonly<Partial<import("./Status").StaticStatus>>;
-        multTable: Readonly<Partial<import("./Status").StaticStatus>>;
+        addTable: Readonly<Partial<import("./Status").Status>>;
+        multTable: Readonly<Partial<import("./Status").Status>>;
     };
 }
 /**效果生成器 */
@@ -194,5 +194,13 @@ export interface BuffGener {
      * @param opt 其他可选项
      */
     (lvl?: number, ...opt: any): Buff;
+}
+/**属性生成器 */
+export interface StatusGener {
+    /**属性生成器
+     * @param lvl 等级
+     * @param opt 其他可选项
+     */
+    (lvl?: number, ...opt: any): StaticStatus;
 }
 export {};

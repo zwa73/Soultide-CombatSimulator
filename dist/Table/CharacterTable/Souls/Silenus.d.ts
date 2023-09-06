@@ -1,5 +1,5 @@
-import { Buff } from "@src/Modify";
-import { Skill } from "@src/Skill";
+import { Buff } from "../../../Modify";
+import { Skill } from "../../../Skill";
 export declare namespace Silenus {
     const 星尘余烬: Skill;
     const 极寒诅咒: Buff;

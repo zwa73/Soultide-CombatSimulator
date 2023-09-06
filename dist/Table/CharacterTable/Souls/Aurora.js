@@ -158,11 +158,11 @@ var Aurora;
                 } };
         },
     };
-    Aurora.baseStatus = {
+    Aurora.AuroraStatus = {
         攻击: 10000
     };
-    Aurora.genChar = function (name, status) {
-        let opt = Object.assign({}, Aurora.baseStatus, status);
+    Aurora.AuroraGen = function (name, status) {
+        let opt = Object.assign({}, Aurora.AuroraStatus, status);
         let char = new Character_1.Character(name || "Aurora", opt);
         char.addSkill(Aurora.失心童话);
         char.addSkill(Aurora.荆雷奔袭);

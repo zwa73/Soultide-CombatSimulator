@@ -28,7 +28,7 @@ class Character {
     castingSkillData = {};
     constructor(name, status) {
         this.name = name;
-        let staticStatus = Object.assign({}, Status_1.DefStaticStatus, status);
+        let staticStatus = Object.assign({}, Status_1.DefStatus, status);
         let baseBuff = {
             info: (0, Modify_1.genBuffInfo)((name + "基础属性"), "其他效果"),
             addModify: staticStatus
