@@ -1,4 +1,4 @@
-import { DamageConsAnd } from "../Modify";
+import { DamageConsAnd } from "@src/Modify";
 import { AnyHook, Character, Damage, TriggerBase } from "..";
 /**伤害前触发器 */
 export interface TDamageBefore extends TriggerBase {

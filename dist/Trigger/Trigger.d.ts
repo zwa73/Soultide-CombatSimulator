@@ -1,7 +1,7 @@
 import { Character, TBattleStartAfter, TCauseDamageAfter, TCauseDamageBefore, TCauseHealAfter, TCauseHealBefore, TCauseShieldAfter, TCauseShieldBefore, TCauseSkillDamageAfter, TCauseSkillDamageBefore, TRoundStartAfter, TTakeDamageAfter, TTakeDamageBefore, TTakeSkillDamageAfter, TTakeSkillDamageBefore, TTurnEndBefore, TTurnStartAfter } from "..";
 import { TCauseAttackAfter, TCauseAttackBefore, TTakeAttackAfter, TTakeAttackBefore } from "./AttackTrigger";
 import { TGetBuffStackCountAfter, TRoundEndBefore } from "./OtherTrigger";
-import { TUseSkillAfter, TUseSkillBefore } from "./SkillTrigger";
+import { TTakeSkillAfter, TTakeSkillBefore, TUseSkillAfter, TUseSkillBefore } from "./SkillTrigger";
 export type TriggerBase = {
     readonly info: TriggerInfo;
     /**触发点 */
@@ -37,6 +37,8 @@ export type HookTriggerMap = {
     readonly 造成攻击后: TCauseAttackAfter;
     readonly 释放技能前: TUseSkillBefore;
     readonly 释放技能后: TUseSkillAfter;
+    readonly 受到技能前: TTakeSkillBefore;
+    readonly 受到技能后: TTakeSkillAfter;
     readonly 回合开始后: TRoundStartAfter;
     readonly 回合结束前: TRoundEndBefore;
     readonly 行动开始后: TTurnStartAfter;
