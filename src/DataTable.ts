@@ -4,6 +4,7 @@ import { Skill, SkillGener, SkillName } from "./Skill";
 import { StaticStatus, StatusOption } from "./Status";
 import { AnyTrigger } from "./Trigger";
 
+
 /**所有的技能表 */
 export const SkillDataTable:Record<SkillName,Skill> = {};
 /**所有的效果表 */
